@@ -1,11 +1,27 @@
 from .token import Token
+from syft.generic.object import AbstractObject
+from syft.workers.base import BaseWorker
 
-class Doc(object):
+from typing import List
+from typing import Union
+
+class Doc(AbstractObject):
 
     def __init__(self,
                  vocab,
-                 text
+                 text,
+                 id: int = None,                 
+                 owner: BaseWorker = None,
+                 tags: List[str] = None,
+                 description: str = None
     ):
+
+        super(Doc, self).__init__(id = id,
+                                  owner = owner,
+                                  tags = tags,
+                                  description = description)        
+
+        
         self.vocab = vocab
         self.text = text
         
@@ -50,3 +66,39 @@ class Doc(object):
 
         return token
                       
+
+
+    @staticmethod
+    def create_pointer(doc,
+                       location: BaseWorker = None,
+                       id_at_location: (str or int) = None,
+                       register : bool = False,
+                       owner: BaseWorker = None,
+                       ptr_id: (str or int) = None,
+                       garbage_collect_data: bool = True,
+    ):
+        """
+           Creates a DocPointer object that points to a Doc object
+           living in the the worker 'location'.
+
+           Returns:
+                  a DocPointer object
+        """
+
+        # I put the import here in order to avoid circular imports
+        from .pointers.doc_pointer import DocPointer
+
+        if id_at_location is None:
+            id_at_location = doc.id
+
+        if owner is None:
+            owner = doc.owner
+            
+        doc_pointer =  DocPointer(location = location,
+                                  id_at_location = id_at_location,
+                                  owner = owner,
+                                  id = ptr_id,
+                                  garbage_collect_data = garbage_collect_data)
+
+        return doc_pointer
+    

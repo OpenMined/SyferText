@@ -98,7 +98,8 @@ class Tokenizer(AbstractObject):
 
 
     def __call__(self,
-                 text: Union[String, str]
+                 text: Union[String, str] = None,
+                 text_id: int = None
     ):
         """
            The real tokenization procedure takes place here.
@@ -117,15 +118,37 @@ class Tokenizer(AbstractObject):
            without loss of white spaces.
            I think that reconstructing the original string might be a good way
            to blindly verify the sanity of the blind tokenization process.
+
+
+           Parameters
+           ----------
+           text: Syft String or str
+                 The text to be tokenized
+           text_id: int
+                    the text id to be tokenized. The id can be used to get the object
+                    from the worker registery
         """
 
 
+        # Either the `text` or the `text_id` should be specified, they cannot be both None
+        assert text is not None or text_id is not None, "`text` and `text_id` cannot be both None"
+        
         # Create a document that will hold meta data of tokens
         # By meta data I mean the start and end positions of each token
         # in the original text, if the token is followed by a white space,
         # if the token itself is composed of white spaces or not, etc ...
-        doc = Doc(self.vocab, text)
-        
+
+        # If the text is not specified, then get the text using its id
+        if text is None:
+            text = self.owner.get_obj(text_id)
+
+            
+        doc = Doc(self.vocab,
+                  text,
+                  owner = self.owner
+        )
+
+
         # The number of characters in the text
         text_size = len(text)
 
@@ -182,9 +205,27 @@ class Tokenizer(AbstractObject):
                 # Append the token to the document
                 doc.container.append(token_meta)
                 
-        
+
+        # If the Language object using this tokenizer lives on a different worker
+        # (self.client_id != self.owner.id)
+        # Then return a DocPointer to the generated doc object
+        if self.client_id != self.owner.id:
+
+            # Register the Doc in the current worker
+            self.owner.register_obj(obj = doc)
+
+            # Create a pointer to the above Doc object
+            doc_pointer = Doc.create_pointer(doc,
+                                             location = self.owner,
+                                             id_at_location = doc.id,
+                                             garbage_collect_data = False
+            )
+
+            return doc_pointer
+            
         return doc
 
+    
 
     def send(self,
              location: BaseWorker
@@ -210,10 +251,43 @@ class Tokenizer(AbstractObject):
 
         return ptr
 
+    @staticmethod
+    def create_pointer(tokenizer,
+                       location: BaseWorker = None,
+                       id_at_location: (str or int) = None,
+                       register : bool = False,
+                       owner: BaseWorker = None,
+                       ptr_id: (str or int) = None,
+                       garbage_collect_data: bool = True,
+    ):
+        """
+           Creates a TokenizerPointer object that points to a Tokenizer object
+           living in the worker 'location'.
 
+           Returns:
+                  a TokenizerPointer object
+        """
+
+        # I put the import here in order to avoid circular imports
+        from .pointers.tokenizer_pointer import TokenizerPointer
+
+        if id_at_location is None:
+            id_at_location = tokenizer.id
+
+        if owner is None:
+            owner = tokenizer.owner
+            
+        tokenizer_pointer =  TokenizerPointer(location = location,
+                                              id_at_location = id_at_location,
+                                              owner = owner,
+                                              id = ptr_id,
+                                              garbage_collect_data = garbage_collect_data)
+
+        return tokenizer_pointer
+    
 
     @staticmethod
-    def simplify(tokenizer: "Tokenizer"):
+    def _simplify(tokenizer: "Tokenizer"):
         """
            This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
            serialized.
@@ -239,8 +313,8 @@ class Tokenizer(AbstractObject):
 
 
     @staticmethod
-    def detail(worker: BaseWorker,
-               simple_obj: tuple
+    def _detail(worker: BaseWorker,
+                simple_obj: tuple
     ):
         """
            Create an object of type Tokenizer from the reduced representation in `simple_obj`.
@@ -251,7 +325,7 @@ class Tokenizer(AbstractObject):
                    The worker on which the new Tokenizer object is to be created.
            simple_obj: tuple
                        A tuple resulting from the serialized then deserialized returned tuple
-                       from the `simplify` static method above.
+                       from the `_simplify` static method above.
 
            Returns
            -------
@@ -279,3 +353,5 @@ class Tokenizer(AbstractObject):
         )
 
         return tokenizer
+
+
