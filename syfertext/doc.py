@@ -1,4 +1,8 @@
 from .token import Token
+import syft
+import torch
+hook = syft.TorchHook(torch)
+
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
@@ -102,3 +106,48 @@ class Doc(AbstractObject):
 
         return doc_pointer
     
+
+    def __len__(self):
+        """
+           Return the number of tokens in the Doc.
+        """
+
+        return len(self.container)
+
+
+    def __iter__(self):
+        """
+           Allows to loop over tokens in `self.container`
+        """
+
+        for i in range(len(self.container)):
+
+            # Yield a Token object
+            yield self[i]
+
+
+    def getEncryptedVector(self, *workers):
+        """
+           Create one big vector composed of the concatenated Token vectors included in the
+           Doc. The returned vector is SMPC-encrypted.
+
+           TODO: This method should probably be removed. It served for a prototype test,
+                 but concatenating all token vectors of the Doc into one big vector
+                 might not be really useful for practical usecases.
+        """
+        
+        assert len(workers) > 1, "You need at least two workers in order to encrypt the vector with SMPC"
+
+        # Accumulate the vectors here
+        vectors = []
+        
+        for token in self:
+            
+            # Get the encypted vector of the token
+            vectors.append(token.getEncryptedVector(*workers))
+
+
+        # Create the final Doc vector
+        doc_vector = torch.cat(vectors)
+
+        return doc_vector

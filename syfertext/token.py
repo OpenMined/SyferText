@@ -1,5 +1,10 @@
 from .utils import hash_string
 
+import syft as sy
+import torch
+
+hook = sy.TorchHook(torch)
+
 class Token:
 
     def __init__(self,
@@ -40,3 +45,22 @@ class Token:
         """
 
         return self.doc.vocab.vectors[self.__str__()]
+
+
+    def getEncryptedVector(self, *workers):
+
+        assert len(workers) > 1, "You need at least two workers in order to encrypt the vector with SMPC"
+        
+        # Get the vector
+        vector = self.doc.vocab.vectors[self.__str__()]
+
+        # Create a Syft/Torch tensor
+        vector = torch.Tensor(vector)
+
+        # Encrypt the vector using SMPC
+        vector = vector.fix_precision().share(*workers)
+
+
+        return vector
+
+

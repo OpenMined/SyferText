@@ -49,5 +49,5 @@ class TokenizerPointer(ObjectPointer):
         
         # Send the command
         response = self.owner.send_command(self.location, command)
-        print(response)
+
         return response

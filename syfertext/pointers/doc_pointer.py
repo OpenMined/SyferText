@@ -28,7 +28,42 @@ class DocPointer(ObjectPointer):
 
 
 
+
+    def getEncrypterVector(self, *workers):
+        """
+           Create one big vector composed of the concatenated Token vectors included in the
+           Doc. The returned vector is SMPC-encrypted.
+
+           TODO: This method should probably be removed. It served for a prototype test,
+                 but concatenating all token vectors of the Doc into one big vector
+                 might not be really useful for practical usecases.
+        """
         
+        assert len(workers) > 1, "You need at least two workers in order to encrypt the vector with SMPC"
+
+        # Create the command
+        command = ('getEncryptedVector', self.id_at_location, workers, {})
+        
+        # Send the command
+        doc_vector = self.owner.send_command(self.location, command)
+
+        # I call get because the returned object is a PointerTensor to the AdditiveSharedTensor
+        doc_vector = doc_vector.get()
+        
+        return doc_vector
+
+
+    def __len__(self):
+        
+        # Create the command
+        command = ('__len__', self.id_at_location, [], {})
+
+        # Send the command
+        length = self.owner.send_command(self.location, command)
+        
+        return length
+
+    
     @staticmethod
     def _simplify(doc_pointer):
         """
@@ -97,3 +132,7 @@ class DocPointer(ObjectPointer):
         )
 
         return doc_pointer
+
+
+
+    
