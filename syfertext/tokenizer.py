@@ -15,13 +15,8 @@ class TokenMeta(object):
        This class holds some meta data about a token from the text held by a Doc object.
        This allows to create a Token object when needed.
     """
-    
-    def __init__(self,
-                 start_pos: int,
-                 end_pos: int,
-                 space_after: bool,
-                 is_space: bool
-    ):
+
+    def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
         """
            Parameters
            ----------
@@ -37,23 +32,22 @@ class TokenMeta(object):
                      Whether the token itself is composed of only white spaces (True) or not (false).
 
         """
-        
+
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.space_after = space_after
         self.is_space = is_space
 
-        
-class Tokenizer(AbstractObject):
 
-    def __init__(self,
-                 vocab: Union[Vocab, str],
-                 id: int = None,                 
-                 owner: BaseWorker = None,
-                 client_id: str = None,                 
-                 tags: List[str] = None,
-                 description: str = None
-                 
+class Tokenizer(AbstractObject):
+    def __init__(
+        self,
+        vocab: Union[Vocab, str],
+        id: int = None,
+        owner: BaseWorker = None,
+        client_id: str = None,
+        tags: List[str] = None,
+        description: str = None,
     ):
         """
            Parameters
@@ -76,11 +70,11 @@ class Tokenizer(AbstractObject):
            description: str
                         A description of this Tokenizer object.
         """
-        
+
         if isinstance(vocab, Vocab):
             self.vocab = vocab
         else:
-            self.vocab = Vocab(model_name = vocab)
+            self.vocab = Vocab(model_name=vocab)
 
         # If the client id is not specified, then it should be the same as the owner id.
         # This means that the tokenizer and the Language objects live on the same
@@ -89,18 +83,12 @@ class Tokenizer(AbstractObject):
             self.client_id = client_id
         else:
             self.client_id = owner.id
-        
-        super(Tokenizer, self).__init__(id = id,
-                                        owner = owner,
-                                        tags = tags,
-                                        description = description)        
 
+        super(Tokenizer, self).__init__(
+            id=id, owner=owner, tags=tags, description=description
+        )
 
-
-    def __call__(self,
-                 text: Union[String, str] = None,
-                 text_id: int = None
-    ):
+    def __call__(self, text: Union[String, str] = None, text_id: int = None):
         """
            The real tokenization procedure takes place here.
 
@@ -129,10 +117,11 @@ class Tokenizer(AbstractObject):
                     from the worker registery
         """
 
-
         # Either the `text` or the `text_id` should be specified, they cannot be both None
-        assert text is not None or text_id is not None, "`text` and `text_id` cannot be both None"
-        
+        assert (
+            text is not None or text_id is not None
+        ), "`text` and `text_id` cannot be both None"
+
         # Create a document that will hold meta data of tokens
         # By meta data I mean the start and end positions of each token
         # in the original text, if the token is followed by a white space,
@@ -142,12 +131,7 @@ class Tokenizer(AbstractObject):
         if text is None:
             text = self.owner.get_obj(text_id)
 
-            
-        doc = Doc(self.vocab,
-                  text,
-                  owner = self.owner
-        )
-
+        doc = Doc(self.vocab, text, owner=self.owner)
 
         # The number of characters in the text
         text_size = len(text)
@@ -162,19 +146,20 @@ class Tokenizer(AbstractObject):
         # Start tokenization
         for i, char in enumerate(text):
 
-
             # We are looking for a character that is the opposit of 'is_space'
             # if 'is_space' is True, then we want to find a character that is
             # not a space. and vice versa. This event marks the end of a token.
             is_current_space = char.isspace()
-            if  is_current_space != is_space:
+            if is_current_space != is_space:
 
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
-                token_meta = TokenMeta(start_pos = pos,
-                                       end_pos = i - 1,
-                                       space_after = is_current_space,
-                                       is_space = is_space)
+                token_meta = TokenMeta(
+                    start_pos=pos,
+                    end_pos=i - 1,
+                    space_after=is_current_space,
+                    is_space=is_space,
+                )
 
                 # Append the token to the document
                 doc.container.append(token_meta)
@@ -190,21 +175,22 @@ class Tokenizer(AbstractObject):
                 # the opposite (space vs. not space).
                 # prevent 'pos' from being out of bound
                 if pos < text_size:
-                    is_space = text[pos].isspace()                
+                    is_space = text[pos].isspace()
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
-                
+
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
-                token_meta = TokenMeta(start_pos = pos,
-                                       end_pos = None, # text[pos:None] ~ text[pos:]
-                                       space_after = is_current_space,
-                                       is_space = is_space)
+                token_meta = TokenMeta(
+                    start_pos=pos,
+                    end_pos=None,  # text[pos:None] ~ text[pos:]
+                    space_after=is_current_space,
+                    is_space=is_space,
+                )
 
                 # Append the token to the document
                 doc.container.append(token_meta)
-                
 
         # If the Language object using this tokenizer lives on a different worker
         # (self.client_id != self.owner.id)
@@ -212,24 +198,21 @@ class Tokenizer(AbstractObject):
         if self.client_id != self.owner.id:
 
             # Register the Doc in the current worker
-            self.owner.register_obj(obj = doc)
+            self.owner.register_obj(obj=doc)
 
             # Create a pointer to the above Doc object
-            doc_pointer = Doc.create_pointer(doc,
-                                             location = self.owner,
-                                             id_at_location = doc.id,
-                                             garbage_collect_data = False
+            doc_pointer = Doc.create_pointer(
+                doc,
+                location=self.owner,
+                id_at_location=doc.id,
+                garbage_collect_data=False,
             )
 
             return doc_pointer
-            
+
         return doc
 
-    
-
-    def send(self,
-             location: BaseWorker
-    ):
+    def send(self, location: BaseWorker):
         """
            Sends this tokenizer object to the worker specified by 'location'. 
            and returns a pointer to that tokenizer as a TokenizerPointer object.
@@ -244,21 +227,19 @@ class Tokenizer(AbstractObject):
 
         """
 
-        ptr = self.owner.send(
-            self,
-            location
-        )
+        ptr = self.owner.send(self, location)
 
         return ptr
 
     @staticmethod
-    def create_pointer(tokenizer,
-                       location: BaseWorker = None,
-                       id_at_location: (str or int) = None,
-                       register : bool = False,
-                       owner: BaseWorker = None,
-                       ptr_id: (str or int) = None,
-                       garbage_collect_data: bool = True,
+    def create_pointer(
+        tokenizer,
+        location: BaseWorker = None,
+        id_at_location: (str or int) = None,
+        register: bool = False,
+        owner: BaseWorker = None,
+        ptr_id: (str or int) = None,
+        garbage_collect_data: bool = True,
     ):
         """
            Creates a TokenizerPointer object that points to a Tokenizer object
@@ -276,18 +257,19 @@ class Tokenizer(AbstractObject):
 
         if owner is None:
             owner = tokenizer.owner
-            
-        tokenizer_pointer =  TokenizerPointer(location = location,
-                                              id_at_location = id_at_location,
-                                              owner = owner,
-                                              id = ptr_id,
-                                              garbage_collect_data = garbage_collect_data)
+
+        tokenizer_pointer = TokenizerPointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
 
         return tokenizer_pointer
-    
 
     @staticmethod
-    def _simplify(tokenizer: "Tokenizer"):
+    def simplify(worker, tokenizer: "Tokenizer"):
         """
            This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
            serialized.
@@ -299,23 +281,10 @@ class Tokenizer(AbstractObject):
         description = pickle.dumps(tokenizer.description)
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        # Get the path to the current class
-        type_path = Tokenizer.__module__ + '/' + Tokenizer.__name__
-
-        return (tokenizer.id,
-                client_id,
-                tags,
-                description,
-                model_name,
-                type_path
-        )
-
-
+        return (tokenizer.id, client_id, tags, description, model_name)
 
     @staticmethod
-    def _detail(worker: BaseWorker,
-                simple_obj: tuple
-    ):
+    def detail(worker: BaseWorker, simple_obj: tuple):
         """
            Create an object of type Tokenizer from the reduced representation in `simple_obj`.
 
@@ -342,16 +311,14 @@ class Tokenizer(AbstractObject):
         description = pickle.loads(description)
         model_name = pickle.loads(model_name)
 
-
         # Create the tokenizer object
-        tokenizer = Tokenizer(vocab = model_name,
-                              id = id,
-                              owner = worker,
-                              client_id = client_id,
-                              tags = tags,
-                              description = description
+        tokenizer = Tokenizer(
+            vocab=model_name,
+            id=id,
+            owner=worker,
+            client_id=client_id,
+            tags=tags,
+            description=description,
         )
 
         return tokenizer
-
-

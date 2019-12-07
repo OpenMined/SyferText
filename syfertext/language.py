@@ -1,6 +1,7 @@
 # Author: Alan Aboudib
 
 from .tokenizer import Tokenizer
+from .pointers.tokenizer_pointer import TokenizerPointer
 from .vocab import Vocab
 
 from syft.generic.object import AbstractObject
@@ -29,17 +30,16 @@ class BaseDefaults(object):
         vocab = Vocab(model_name)
 
         return vocab
-        
-        
+
     @classmethod
-    def create_tokenizer(cls,
-                         vocab,
-                         id: int = None,
-                         owner: BaseWorker = None,
-                         client_id: BaseWorker = None,
-                         tags: List[str] = None,
-                         description: str = None
-                         
+    def create_tokenizer(
+        cls,
+        vocab,
+        id: int = None,
+        owner: BaseWorker = None,
+        client_id: BaseWorker = None,
+        tags: List[str] = None,
+        description: str = None,
     ):
         """
            Creates a Tokenizer object that will be used to create the Doc object, which is the 
@@ -51,15 +51,15 @@ class BaseDefaults(object):
         """
 
         # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab,
-                              owner = owner,
-                              client_id = client_id, # This is the id of the owner of the Language object using this tokenizer
-                              tags = tags,
-                              description = description
+        tokenizer = Tokenizer(
+            vocab,
+            owner=owner,
+            client_id=client_id,  # This is the id of the owner of the Language object using this tokenizer
+            tags=tags,
+            description=description,
         )
 
         return tokenizer
-
 
 
 class Language(AbstractObject):
@@ -71,15 +71,15 @@ class Language(AbstractObject):
        pipeline components feed their results.
     """
 
-
-    def __init__(self,
-                 model_name,
-                 id: int = None,                 
-                 owner: BaseWorker = None,
-                 tags: List[str] = None,
-                 description: str = None
+    def __init__(
+        self,
+        model_name,
+        id: int = None,
+        owner: BaseWorker = None,
+        tags: List[str] = None,
+        description: str = None,
     ):
-        
+
         # Define the default settings
         self.Defaults = BaseDefaults
 
@@ -87,48 +87,68 @@ class Language(AbstractObject):
         self.vocab = self.Defaults.create_vocab(model_name)
         # Create a dictionary that associates to the name of each text-processing compomenet
         # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = {
-            "tokenizer": self.Defaults.create_tokenizer
-        }
+        self.factories = {"tokenizer": self.Defaults.create_tokenizer}
 
-        super(Language, self).__init__(id = id,
-                                       owner = owner,
-                                       tags = tags,
-                                       description = description)        
-        
-    
-    def make_doc(self,
-                 text: Union[str, String, StringPointer]
-    ):
+        self.tokenizer = None
+
+        super(Language, self).__init__(
+            id=id, owner=owner, tags=tags, description=description
+        )
+
+    def make_doc(self, text: Union[str, String, StringPointer]):
         """
            Creates a Tokenizer object and uses it to tokenize 'text'. The tokens
            are stored in a Doc object which is then returned.
         """
 
-        # Create the Tokenizer object
-        tokenizer = self.factories['tokenizer'](self.vocab,
-                                                owner = self.owner,
-                                                client_id = self.owner.id, # This is the id of the owner of the Language object using this tokenizer
-        )
+        # TODO: huge bugs in this function. deal with the case when the function a local string `text`
+        #       after it has been already called with a remote string
+        if self.tokenizer is None:
+
+            # Create the Tokenizer object
+            self.tokenizer = self.factories["tokenizer"](
+                self.vocab,
+                owner=self.owner,
+                client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
+            )
 
         # If `text` is of type `StringPointer` and the pointer's `location` attribute
         # is a worker different from the current Language object' owner, then run
         # tokenization remotely
         if isinstance(text, StringPointer) and text.location != self.owner:
 
-            # Send the tokenizer to the worker where `text` lives
-            tokenizer = tokenizer.send(text.location)
-        
+            if (
+                isinstance(self.tokenizer, TokenizerPointer)
+                and self.tokenizer.location == text.location
+            ):
+                pass
+
+            elif (
+                isinstance(self.tokenizer, TokenizerPointer)
+                and self.tokenizer.location != text.location
+            ):
+
+                # Create a new Tokenizer object
+                self.tokenizer = self.factories["tokenizer"](
+                    self.vocab,
+                    owner=self.owner,
+                    client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
+                )
+
+                # Send the tokenizer to the worker where `text` lives
+                self.tokenizer = self.tokenizer.send(text.location)
+
+            else:
+                # Send the tokenizer to the worker where `text` lives
+                self.tokenizer = self.tokenizer.send(text.location)
+
         # Tokenize the text
-        doc = tokenizer(text)
+        doc = self.tokenizer(text)
 
         # Return the Doc object containing the tokens
         return doc
-        
 
-    def __call__(self,
-                 text
-    ):
+    def __call__(self, text):
         """
            Here is where the real work is done. The pipeline components
            are called here, and the Doc object containing their results is created
@@ -140,7 +160,6 @@ class Language(AbstractObject):
 
         # TODO: Other pipline components should be called here and attach
         # their results to tokens in 'doc'
-        
+
         # return the Doc object
         return doc
-    
