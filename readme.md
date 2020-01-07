@@ -1,8 +1,7 @@
 # SyferText
 
+You can clone this repo and start playing with SyferText.
 
-SyferText is under construction...
+You just need to have PySyft installed.
 
-It will soon be possible to install and test it on your machine.
-
-I will add more instructions soon.
+I will add an installation tutorial, with some example usage usecases very soon.
