@@ -21,9 +21,10 @@ class BaseDefaults(object):
         """
            Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
-           PROTO: start by a very simple Vocab class that
-           contains only a variable called 'vectors' of type DICT to hold word vectors
-           vocab.vectors['word'] = float
+           Todo:
+               I started by a very simple Vocab class that
+               contains only a variable called 'vectors' of type DICT to hold word vectors
+               vocab.vectors['word'] = float. To be reviewed for more complex functionality.
         """
 
         # Instantiate the Vocab object
@@ -41,13 +42,13 @@ class BaseDefaults(object):
         tags: List[str] = None,
         description: str = None,
     ):
-        """
-           Creates a Tokenizer object that will be used to create the Doc object, which is the 
-           main container for annotated tokens.
+        """Creates a Tokenizer object that will be used to create the Doc object, which is the 
+        main container for annotated tokens.
 
-           PROTO: this is a minimal Tokenizer object that is not nearly as sophisticated
-           as that of spacy. It just creates tokens as space separated strings. 
-           Something like "string1 string2".split(' '). Of course, this should be changed later.
+           Todo:
+               this is a minimal Tokenizer object that is not nearly as sophisticated
+               as that of spacy. It just creates tokens as space separated strings. 
+               Something like "string1 string2".split(' '). Of course, this should be changed later.
         """
 
         # Instantiate the Tokenizer object and return it
@@ -63,12 +64,11 @@ class BaseDefaults(object):
 
 
 class Language(AbstractObject):
-    """
-       Orchestrates the interactions between different components of the pipeline
-       to accomplish core text-processing task. 
+    """Orchestrates the interactions between different components of the pipeline
+    to accomplish core text-processing task. 
 
-       It create the Doc object which is the container into which all text-processing
-       pipeline components feed their results.
+    It create the Doc object which is the container into which all text-processing
+    pipeline components feed their results.
     """
 
     def __init__(
@@ -85,6 +85,7 @@ class Language(AbstractObject):
 
         # Create the vocabulary
         self.vocab = self.Defaults.create_vocab(model_name)
+
         # Create a dictionary that associates to the name of each text-processing compomenet
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer}
@@ -96,9 +97,8 @@ class Language(AbstractObject):
         )
 
     def make_doc(self, text: Union[str, String, StringPointer]):
-        """
-           Creates a Tokenizer object and uses it to tokenize 'text'. The tokens
-           are stored in a Doc object which is then returned.
+        """Creates a Tokenizer object and uses it to tokenize 'text'. The tokens
+        are stored in a Doc object which is then returned.
         """
 
         # TODO: huge bugs in this function. deal with the case when the function a local string `text`
@@ -149,10 +149,9 @@ class Language(AbstractObject):
         return doc
 
     def __call__(self, text):
-        """
-           Here is where the real work is done. The pipeline components
-           are called here, and the Doc object containing their results is created
-           here too.
+        """Here is where the real work is done. The pipeline components
+        are called here, and the Doc object containing their results is created
+        here too.
         """
 
         # create the Doc object with the tokenized text in it
