@@ -1,9 +1,9 @@
 import mmh3
 import os
-import wget
 import logging
 import urllib.request as request
 from tqdm import tqdm
+from pathlib import Path
 
 # Files to download for each language model
 # TODO: Downloading language models should be handled
@@ -42,17 +42,32 @@ def get_lang_model(model_name: str):
     file_path = os.path.dirname(os.path.realpath(__file__))
 
     # Path to the folder containing language models
-    data_path = os.path.join(file_path, "data")
+    data_path = os.path.join(str(Path.home()), "SyferText")
+
+    # Do not download the language model if it is already done
+    download_model = False
+
+    # If the data folder does not exist yet, create it
+    if not os.path.isdir(data_path):
+
+        os.mkdir(data_path)
+
+        # a flag signified that the model show be downloaded
+        download_model = True
 
     # If the data folder does not contain the language model
     # folder, download the language model
     if model_name not in os.listdir(data_path):
+
+        download_model = True
 
         # full path of the model folder to create
         model_path = os.path.join(data_path, model_name)
 
         # Create the model folder
         os.mkdir(model_path)
+
+    if download_model:
 
         # download model files into the specified path
         _download_model(model_name, model_path)

@@ -1,5 +1,6 @@
 import pickle
 import os
+from pathlib import Path
 
 from .vectors import Vectors
 
@@ -12,9 +13,9 @@ class Vocab:
         self.model_name = model_name
 
         # Create the path to where the folder named 'model_name' is stored.
-        dirname = os.path.dirname(os.path.realpath(__file__))
+        dirname = str(Path.home())
 
-        self.model_path = os.path.join(dirname, "data", model_name)
+        self.model_path = os.path.join(dirname, "SyferText", model_name)
 
         # Create the 'strings' list that holds all of the words that the Vocab object knows and
         # have vectors for
