@@ -1,5 +1,7 @@
 import pickle
 import os
+from pathlib import Path
+
 from .utils import hash_string
 
 
@@ -7,9 +9,9 @@ class Vectors:
     def __init__(self, model_name):
 
         # Create the path to where the folder named 'model_name' is stored.
-        dirname = os.path.dirname(os.path.realpath(__file__))
+        dirname = str(Path.home())
 
-        self.model_path = os.path.join(dirname, "data", model_name)
+        self.model_path = os.path.join(dirname, "SyferText", model_name)
 
         # Load the array holding the word vectors
         self.data = self.load_vectors()
