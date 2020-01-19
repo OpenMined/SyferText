@@ -1,11 +1,13 @@
 # SyferText
 
 
-You can now clone this repo and start playing around with SyferText.
+You can clone this repo and install it by running:
 
-You just need to have PySyft installed.
+```
+$ python setup.py install
+```
 
-I will add an installation tutorial with some usage examples very soon.
+Tutorials are coming soon. Stay tuned.
 
 
 
