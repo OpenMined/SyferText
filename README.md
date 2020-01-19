@@ -1,9 +1,11 @@
 # SyferText
 
 
-You can clone this repo and install it by running:
+You can clone this repo and install SyferText by running:
 
 ```
+$ git clone https://github.com/OpenMined/SyferText.git
+$ cd SyferText
 $ python setup.py install
 ```
 
