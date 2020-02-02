@@ -13,10 +13,11 @@ $ python setup.py install
 
 SyferText can be used to work with strings residing on a local machine (or a local worker as we call it in [PySyft](https://github.com/OpenMined/PySyft)), as well as with strings on remote workers. 
 
-To learn how to use SyferText for local string tokenization, you can refer to this [tutorial](https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%200%20-%20(Getting%20Started)%20Local%20Tokenization.ipynb).
+To learn how to use SyferText for local string tokenization, you can refer to [this tutorial](https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%200%20-%20(Getting%20Started)%20Local%20Tokenization.ipynb).
 
-A tutorial on using SyferText for remote string tokenization is coming very soon. Stay tuned!
+For remote string tokenization, check out [this tutorial](https://bit.ly/37VEJ28).
 
+More tutorials are coming soon. Stay tuned!
 
 
 ### SyferText News?
