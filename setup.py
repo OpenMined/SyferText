@@ -16,11 +16,7 @@ setup(
     install_requires = [
         'tqdm==4.36.1',
         'mmh3==2.5.1',
-        'syft==0.2.1a1',
+        'syft==0.2.3a1',
         'requests==2.22.0'
     ],
-
-    dependency_links = [
-        'git+https://github.com/OpenMined@1bc16b402dc04912406295e0a6feec0092573235#egg=syft-0.2.1a1'
-    ]
 )
