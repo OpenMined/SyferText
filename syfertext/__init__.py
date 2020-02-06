@@ -53,22 +53,14 @@ def register_to_serde(class_type: type):
             This enables serde to serialize and deserialize objects of that class.
     """
 
-    # Initialize an index in which the detailer method is to be
-    # added in serde.detailers
-    idx = None
+    # Get the maximum integer index of detailers and add 1 to it
+    # to create a new index that does not exist yet
+    idx = max(list(serde.detailers.keys())) + 1
 
-    # In the following loop, an index is chosen
-    # and the detailer is added in that index.
-    # However, I test again if the detailers was correctly
-    # added in that index to protect it from the case
-    # where concurrent adds to serde.detailers from other libraries are
-    # happening at the same time
-    while idx is None or serde.detailers[idx] != class_type.detail:
+    # Add the simplifier
+    serde.detailers[idx] = class_type.detail
 
-        idx = len(serde.detailers)
-        serde.detailers[idx] = class_type.detail
-
-    # Now add the simplifier
+    # Add the simplifier
     serde.simplifiers[class_type] = (idx, class_type.simplify)
 
 
