@@ -68,7 +68,7 @@ class DocPointer(ObjectPointer):
     def simplify(worker, doc_pointer):
         """
            This method is used to reduce a `DocPointer` object into a list of simpler objects that can be
-           serialized 
+           serialized
         """
 
         # Simplify the attributes

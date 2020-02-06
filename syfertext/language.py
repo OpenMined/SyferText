@@ -42,12 +42,12 @@ class BaseDefaults(object):
         tags: List[str] = None,
         description: str = None,
     ):
-        """Creates a Tokenizer object that will be used to create the Doc object, which is the 
+        """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
 
            Todo:
                this is a minimal Tokenizer object that is not nearly as sophisticated
-               as that of spacy. It just creates tokens as space separated strings. 
+               as that of spacy. It just creates tokens as space separated strings.
                Something like "string1 string2".split(' '). Of course, this should be changed later.
         """
 
@@ -65,7 +65,7 @@ class BaseDefaults(object):
 
 class Language(AbstractObject):
     """Orchestrates the interactions between different components of the pipeline
-    to accomplish core text-processing task. 
+    to accomplish core text-processing task.
 
     It create the Doc object which is the container into which all text-processing
     pipeline components feed their results.
@@ -90,7 +90,7 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer}
 
-        self.tokenizer = None
+        self.tokenizers = dict()
 
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
@@ -101,12 +101,13 @@ class Language(AbstractObject):
         are stored in a Doc object which is then returned.
         """
 
+        location_id = text.location.id
+
         # TODO: huge bugs in this function. deal with the case when the function a local string `text`
         #       after it has been already called with a remote string
-        if self.tokenizer is None:
-
+        if not location_id in self.tokenizers:
             # Create the Tokenizer object
-            self.tokenizer = self.factories["tokenizer"](
+            self.tokenizers[location_id] = self.factories["tokenizer"](
                 self.vocab,
                 owner=self.owner,
                 client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
@@ -118,37 +119,36 @@ class Language(AbstractObject):
         if isinstance(text, StringPointer) and text.location != self.owner:
 
             if (
-                isinstance(self.tokenizer, TokenizerPointer)
-                and self.tokenizer.location == text.location
+                isinstance(self.tokenizers[location_id], TokenizerPointer)
+                and self.tokenizers[location_id].location == text.location
             ):
                 pass
 
             elif (
-                isinstance(self.tokenizer, TokenizerPointer)
-                and self.tokenizer.location != text.location
+                isinstance(self.tokenizers[location_id], TokenizerPointer)
+                and self.tokenizers[location_id].location != text.location
             ):
 
                 # Create a new Tokenizer object
-                self.tokenizer = self.factories["tokenizer"](
+                self.tokenizers[location_id] = self.factories["tokenizer"](
                     self.vocab,
                     owner=self.owner,
                     client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
                 )
 
                 # Send the tokenizer to the worker where `text` lives
-                self.tokenizer = self.tokenizer.send(text.location)
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
 
             else:
                 # Send the tokenizer to the worker where `text` lives
-                self.tokenizer = self.tokenizer.send(text.location)
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
 
-        # Tokenize the text
-        doc = self.tokenizer(text)
+        doc = self.tokenizers[location_id](text)
 
         # Return the Doc object containing the tokens
         return doc
 
-    def __call__(self, text):
+    def __call__(self, text: Union[str, String, StringPointer]):
         """Here is where the real work is done. The pipeline components
         are called here, and the Doc object containing their results is created
         here too.
