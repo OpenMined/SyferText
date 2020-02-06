@@ -1,0 +1,9 @@
+__pycache__/
+
+build/
+dist/
+syfertext.egg-info/
+
+venv/
+.env
+.envrc
