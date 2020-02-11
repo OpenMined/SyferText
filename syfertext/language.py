@@ -90,7 +90,8 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer}
 
-        self.tokenizers = dict()
+        self.local_tokenizer = None
+        self.remote_tokenizers = dict()
 
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
@@ -101,49 +102,29 @@ class Language(AbstractObject):
         are stored in a Doc object which is then returned.
         """
 
-        location_id = text.location.id
+        if isinstance(text, StringPointer):
+            location_id = text.location.id
 
-        # TODO: huge bugs in this function. deal with the case when the function a local string `text`
-        #       after it has been already called with a remote string
-        if not location_id in self.tokenizers:
-            # Create the Tokenizer object
-            self.tokenizers[location_id] = self.factories["tokenizer"](
-                self.vocab,
-                owner=self.owner,
-                client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
-            )
-
-        # If `text` is of type `StringPointer` and the pointer's `location` attribute
-        # is a worker different from the current Language object' owner, then run
-        # tokenization remotely
-        if isinstance(text, StringPointer) and text.location != self.owner:
-
-            if (
-                isinstance(self.tokenizers[location_id], TokenizerPointer)
-                and self.tokenizers[location_id].location == text.location
-            ):
-                pass
-
-            elif (
-                isinstance(self.tokenizers[location_id], TokenizerPointer)
-                and self.tokenizers[location_id].location != text.location
-            ):
-
-                # Create a new Tokenizer object
-                self.tokenizers[location_id] = self.factories["tokenizer"](
+            if not location_id in self.remote_tokenizers:
+                # Create the Tokenizer object
+                self.remote_tokenizers[location_id] = self.factories["tokenizer"](
                     self.vocab,
                     owner=self.owner,
                     client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
                 )
 
-                # Send the tokenizer to the worker where `text` lives
-                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
+                self.remote_tokenizers[location_id] = self.remote_tokenizers[location_id].send(text.location)
 
-            else:
-                # Send the tokenizer to the worker where `text` lives
-                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
+            doc = self.remote_tokenizers[location_id](text)
+        else:
+            if not self.local_tokenizer:
+                self.local_tokenizer = self.factories["tokenizer"](
+                    self.vocab,
+                    owner=self.owner,
+                    client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
+                )
 
-        doc = self.tokenizers[location_id](text)
+            doc = self.local_tokenizer(text)
 
         # Return the Doc object containing the tokens
         return doc
