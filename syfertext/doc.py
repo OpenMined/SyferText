@@ -123,14 +123,10 @@ class Doc(AbstractObject):
             # Yield a Token object
             yield self[i]
 
-    def getEncryptedVector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """
-           Create one big vector composed of the concatenated Token vectors included in the
-           Doc. The returned vector is SMPC-encrypted.
-
-           TODO: This method should probably be removed. It served for a prototype test,
-                 but concatenating all token vectors of the Doc into one big vector
-                 might not be really useful for practical usecases.
+           Get the mean of the vectors of each Token in this documents.
+           Note: The token vectors are SMPC-encrypted.
         """
 
         assert (
@@ -138,20 +134,19 @@ class Doc(AbstractObject):
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
         # Accumulate the vectors here
-        vectors = []
+        vectors = None
 
         for token in self:
 
             # Get the encypted vector of the token
-            vectors.append(
-                token.getEncryptedVector(
-                    *workers,
-                    crypto_provider=crypto_provider,
-                    requires_grad=requires_grad
-                )
+            vector = token.getEncryptedVector(
+                *workers,
+                crypto_provider=crypto_provider,
+                requires_grad=requires_grad
             )
+            vectors = vector if vectors is None else vectors + vector
 
         # Create the final Doc vector
-        doc_vector = torch.cat(vectors)
+        doc_vector = vectors / len(self)
 
         return doc_vector

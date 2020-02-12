@@ -28,14 +28,10 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
-    def getEncryptedVector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """
-           Create one big vector composed of the concatenated Token vectors included in the
-           Doc. The returned vector is SMPC-encrypted.
-
-           TODO: This method should probably be removed. It served for a prototype test,
-                 but concatenating all token vectors of the Doc into one big vector
-                 might not be really useful for practical usecases.
+           Get the mean of the vectors of each Token in this documents.
+           Note: The token vectors are SMPC-encrypted.
         """
 
         assert (
@@ -44,7 +40,7 @@ class DocPointer(ObjectPointer):
 
         # Create the command
         kwargs = dict(crypto_provider=crypto_provider, requires_grad=requires_grad)
-        command = ("getEncryptedVector", self.id_at_location, workers, kwargs)
+        command = ("get_vector", self.id_at_location, workers, kwargs)
 
         # Send the command
         doc_vector = self.owner.send_command(self.location, command)
