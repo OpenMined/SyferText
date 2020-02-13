@@ -90,8 +90,7 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer}
 
-        self.local_tokenizer = None
-        self.remote_tokenizers = dict()
+        self.tokenizers = dict()
 
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
@@ -104,27 +103,21 @@ class Language(AbstractObject):
 
         if isinstance(text, StringPointer):
             location_id = text.location.id
-
-            if not location_id in self.remote_tokenizers:
-                # Create the Tokenizer object
-                self.remote_tokenizers[location_id] = self.factories["tokenizer"](
-                    self.vocab,
-                    owner=self.owner,
-                    client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
-                )
-
-                self.remote_tokenizers[location_id] = self.remote_tokenizers[location_id].send(text.location)
-
-            doc = self.remote_tokenizers[location_id](text)
         else:
-            if not self.local_tokenizer:
-                self.local_tokenizer = self.factories["tokenizer"](
-                    self.vocab,
-                    owner=self.owner,
-                    client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
-                )
+            location_id = self.owner.id
 
-            doc = self.local_tokenizer(text)
+        if not location_id in self.tokenizers:
+            # Create the Tokenizer object
+            self.tokenizers[location_id] = self.factories["tokenizer"](
+                self.vocab,
+                owner=self.owner,
+                client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
+            )
+
+            if isinstance(text, StringPointer):
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
+
+        doc = self.tokenizers[location_id](text)
 
         # Return the Doc object containing the tokens
         return doc
