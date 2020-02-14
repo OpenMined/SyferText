@@ -40,7 +40,7 @@ class Token:
 
         return self.doc.vocab.vectors[self.__str__()]
 
-    def getEncryptedVector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
 
         assert (
             len(workers) > 1

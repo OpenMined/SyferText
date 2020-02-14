@@ -123,10 +123,25 @@ class Doc(AbstractObject):
             # Yield a Token object
             yield self[i]
 
-    def get_vector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """
            Get the mean of the vectors of each Token in this documents.
-           Note: The token vectors are SMPC-encrypted.
+
+           Parameters
+           ----------
+            self: DocPointer
+                pointer to a remote document.
+            workers: sequence of BaseWorker
+                A sequence of remote workers from .
+            crypto_provider: BaseWorker
+                A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            requires_grad:
+                A boolean flag indicating whether gradients are required or not.
+
+           Returns
+           -------
+            encrypted_vector: Tensor
+                A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
         """
 
         assert (
@@ -139,11 +154,12 @@ class Doc(AbstractObject):
         for token in self:
 
             # Get the encypted vector of the token
-            vector = token.getEncryptedVector(
+            vector = token.get_encrypted_vector(
                 *workers,
                 crypto_provider=crypto_provider,
                 requires_grad=requires_grad
             )
+            # cumulate token's vector by summing them
             vectors = vector if vectors is None else vectors + vector
 
         # Create the final Doc vector
