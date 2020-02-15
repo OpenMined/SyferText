@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Dummy test
+    - name: run pytest
       run: python -m pytest
     - name: Run a multi-line script
       run: |
