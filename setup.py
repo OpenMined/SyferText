@@ -14,6 +14,7 @@ setup(
     version = '0.1.0.dev1',
     packages = find_packages(),
     install_requires = [
+        'pytest>=5.3.5',
         'tqdm==4.36.1',
         'mmh3==2.5.1',
         'syft==0.2.3a1',
