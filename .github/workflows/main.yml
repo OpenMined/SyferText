@@ -19,5 +19,5 @@ jobs:
         echo SyferTest successfully installed.
     - name: Running tests
       run: |    
-        python -m pytest
+        python -m pytest tests --black --verbose
 
