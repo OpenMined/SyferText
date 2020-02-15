@@ -109,9 +109,14 @@ class DocPointer(ObjectPointer):
         """
 
         # Get the typle elements
-        location_id, id_at_location, id, garbage_collect_data, tags, description = (
-            simple_obj
-        )
+        (
+            location_id,
+            id_at_location,
+            id,
+            garbage_collect_data,
+            tags,
+            description,
+        ) = simple_obj
 
         # Unpickle
         location_id = pickle.loads(location_id)
