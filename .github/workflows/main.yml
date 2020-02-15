@@ -16,3 +16,4 @@ jobs:
         echo SyferTest successfully installed.
         echo Running tests ...
         python -m pytest
+
