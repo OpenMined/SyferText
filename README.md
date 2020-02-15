@@ -1,4 +1,5 @@
 # SyferText
+![CI](https://github.com/OpenMined/SyferText/workflows/CI/badge.svg)
 
 
 You can clone this repo and install SyferText by running:
