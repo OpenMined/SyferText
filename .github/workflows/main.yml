@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -13,12 +13,11 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: '>=3.6'
-    - name: Run a multi-line script
+    - name: Install SyferText
       run: |
-        echo Creating a virtual env	
-        echo Installing package ...
         python setup.py install
         echo SyferTest successfully installed.
-        echo Running tests ...
+    - name: Running tests
+      run: |    
         python -m pytest
 
