@@ -9,8 +9,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Run a one-line script
-      run: echo Hello, world!
+    - name: Dummy test
+      run: python -m pytest
     - name: Run a multi-line script
       run: |
         echo Add other actions to build,
