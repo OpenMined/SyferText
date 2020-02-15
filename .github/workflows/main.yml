@@ -15,8 +15,7 @@ jobs:
         python-version: '>=3.6'
     - name: Run a multi-line script
       run: |
-        echo Creating a virtual env
-	
+        echo Creating a virtual env	
         echo Installing package ...
         python setup.py install
         echo SyferTest successfully installed.
