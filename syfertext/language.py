@@ -42,12 +42,12 @@ class BaseDefaults(object):
         tags: List[str] = None,
         description: str = None,
     ):
-        """Creates a Tokenizer object that will be used to create the Doc object, which is the 
+        """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
 
            Todo:
                this is a minimal Tokenizer object that is not nearly as sophisticated
-               as that of spacy. It just creates tokens as space separated strings. 
+               as that of spacy. It just creates tokens as space separated strings.
                Something like "string1 string2".split(' '). Of course, this should be changed later.
         """
 
@@ -65,7 +65,7 @@ class BaseDefaults(object):
 
 class Language(AbstractObject):
     """Orchestrates the interactions between different components of the pipeline
-    to accomplish core text-processing task. 
+    to accomplish core text-processing task.
 
     It create the Doc object which is the container into which all text-processing
     pipeline components feed their results.
@@ -90,7 +90,7 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer}
 
-        self.tokenizer = None
+        self.tokenizers = dict()
 
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
@@ -101,54 +101,34 @@ class Language(AbstractObject):
         are stored in a Doc object which is then returned.
         """
 
-        # TODO: huge bugs in this function. deal with the case when the function a local string `text`
-        #       after it has been already called with a remote string
-        if self.tokenizer is None:
+        # Get the location ID of the "worker" where the string to be tokenized
+        # is located
+        if isinstance(text, StringPointer):
+            location_id = text.location.id
+        else:
+            location_id = self.owner.id
 
-            # Create the Tokenizer object
-            self.tokenizer = self.factories["tokenizer"](
+        # Create a new Tokenizer object if one doesn't already exist on the
+        # "worker" where the string is located
+        if not location_id in self.tokenizers:
+            self.tokenizers[location_id] = self.factories["tokenizer"](
                 self.vocab,
                 owner=self.owner,
                 client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
             )
 
-        # If `text` is of type `StringPointer` and the pointer's `location` attribute
-        # is a worker different from the current Language object' owner, then run
-        # tokenization remotely
-        if isinstance(text, StringPointer) and text.location != self.owner:
-
-            if (
-                isinstance(self.tokenizer, TokenizerPointer)
-                and self.tokenizer.location == text.location
-            ):
-                pass
-
-            elif (
-                isinstance(self.tokenizer, TokenizerPointer)
-                and self.tokenizer.location != text.location
-            ):
-
-                # Create a new Tokenizer object
-                self.tokenizer = self.factories["tokenizer"](
-                    self.vocab,
-                    owner=self.owner,
-                    client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
+            # Send the tokenizer to the "worker" where the string to be tokenized is located
+            if isinstance(text, StringPointer) and text.location != self.owner:
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(
+                    text.location
                 )
 
-                # Send the tokenizer to the worker where `text` lives
-                self.tokenizer = self.tokenizer.send(text.location)
-
-            else:
-                # Send the tokenizer to the worker where `text` lives
-                self.tokenizer = self.tokenizer.send(text.location)
-
-        # Tokenize the text
-        doc = self.tokenizer(text)
+        doc = self.tokenizers[location_id](text)
 
         # Return the Doc object containing the tokens
         return doc
 
-    def __call__(self, text):
+    def __call__(self, text: Union[str, String, StringPointer]):
         """Here is where the real work is done. The pipeline components
         are called here, and the Doc object containing their results is created
         here too.
