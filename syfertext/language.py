@@ -101,14 +101,15 @@ class Language(AbstractObject):
         are stored in a Doc object which is then returned.
         """
 
-        # Get the location ID of the machine that owns this Tokenizer
+        # Get the location ID of the "worker" where the string to be tokenized
+        # is located
         if isinstance(text, StringPointer):
             location_id = text.location.id
         else:
             location_id = self.owner.id
 
-        # Create a new Tokenizer object if one doesn't yet exist in the owner's
-        # machine
+        # Create a new Tokenizer object if one doesn't already exist on the
+        # "worker" where the string is located
         if not location_id in self.tokenizers:
             self.tokenizers[location_id] = self.factories["tokenizer"](
                 self.vocab,
@@ -116,9 +117,11 @@ class Language(AbstractObject):
                 client_id=self.owner.id,  # This is the id of the owner of the Language object using this tokenizer
             )
 
-            # Send the tokenizer to the owner's machine where appropriate
+            # Send the tokenizer to the "worker" where the string to be tokenized is located
             if isinstance(text, StringPointer) and text.location != self.owner:
-                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(
+                    text.location
+                )
 
         doc = self.tokenizers[location_id](text)
 
