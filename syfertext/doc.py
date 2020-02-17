@@ -155,9 +155,7 @@ class Doc(AbstractObject):
 
             # Get the encypted vector of the token
             vector = token.get_encrypted_vector(
-                *workers,
-                crypto_provider=crypto_provider,
-                requires_grad=requires_grad
+                *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
             )
             # cumulate token's vector by summing them
             vectors = vector if vectors is None else vectors + vector
