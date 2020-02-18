@@ -26,22 +26,26 @@ class Token:
 
     @property
     def orth(self):
-        """
-           Get the corresponding hash value of this token
-        """
-
+        """Get the corresponding hash value of this token"""
         return hash_string(str(self))
 
     @property
     def vector(self):
-        """
-           Get the token vector
-        """
-
+        """Get the token vector"""
         return self.doc.vocab.vectors[self.__str__()]
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+        """Get the mean of the vectors of each Token in this documents.
 
+        Args:
+            self (Token): current token.
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+
+        Returns:
+            Tensor: A tensor representing the SMPC-encrypted vector of this token.
+        """
         assert (
             len(workers) > 1
         ), "You need at least two workers in order to encrypt the vector with SMPC"

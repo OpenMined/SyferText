@@ -35,17 +35,14 @@ class Doc(AbstractObject):
         self.container = list()
 
     def __getitem__(self, key: int):
-        """
-           Returns a Token object at position `key`.
+        """Returns a Token object at position `key`.
 
-           Parameters
-           ----------
-           key: int
-                the index of the token to return. 
-                Example: 0 -> first token
-                         1 -> second token
-                         :
-                         :
+        Args:
+            key (int): the index of the token to return.
+                Example: 0 -> first token, 1 -> second token
+
+        Returns:
+            Token: the token at index key
         """
 
         # Get the corresponding TokenMeta object
@@ -79,12 +76,10 @@ class Doc(AbstractObject):
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
     ):
-        """
-           Creates a DocPointer object that points to a Doc object
-           living in the the worker 'location'.
+        """Creates a DocPointer object that points to a Doc object living in the the worker 'location'.
 
-           Returns:
-                  a DocPointer object
+        Returns:
+            DocPointer: pointer object to a document
         """
 
         # I put the import here in order to avoid circular imports
@@ -107,43 +102,28 @@ class Doc(AbstractObject):
         return doc_pointer
 
     def __len__(self):
-        """
-           Return the number of tokens in the Doc.
-        """
-
+        """Return the number of tokens in the Doc."""
         return len(self.container)
 
     def __iter__(self):
-        """
-           Allows to loop over tokens in `self.container`
-        """
-
+        """Allows to loop over tokens in `self.container`"""
         for i in range(len(self.container)):
 
             # Yield a Token object
             yield self[i]
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+        """Get the mean of the vectors of each Token in this documents.
+
+        Args:
+            self (Doc): current document.
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+
+        Returns:
+            Tensor: A tensor representing the SMPC-encrypted vector of this document.
         """
-           Get the mean of the vectors of each Token in this documents.
-
-           Parameters
-           ----------
-            self: DocPointer
-                pointer to a remote document.
-            workers: sequence of BaseWorker
-                A sequence of remote workers from .
-            crypto_provider: BaseWorker
-                A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
-            requires_grad:
-                A boolean flag indicating whether gradients are required or not.
-
-           Returns
-           -------
-            encrypted_vector: Tensor
-                A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
-        """
-
         assert (
             len(workers) > 1
         ), "You need at least two workers in order to encrypt the vector with SMPC"
