@@ -25,4 +25,5 @@ setup(
         "syft==0.2.3a1",
         "requests==2.22.0",
     ],
+    extras_require={"test": ["jupyter>=1.0.0", "papermill>=1.2.1",],},
 )

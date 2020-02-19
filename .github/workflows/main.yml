@@ -17,7 +17,11 @@ jobs:
       run: |
         python setup.py install
         echo SyferTest successfully installed.
+    - name: Install test dependencies
+      run: |
+        pip install ".[test]"
+        echo Test dependencies successfully installed.
     - name: Running tests
-      run: |    
+      run: |
         python -m pytest --black --verbose
 
