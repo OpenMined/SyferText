@@ -1,11 +1,31 @@
-**PULL REQUEST CHECKLIST**
-Please complete the following checklist. Enter y for yes, i for inapplicable before the PR is submitted for review 
+# Pull Request Template
 
-- [ ] My pull request has a descriptive title (not a vague title like `Update xyz`)
-* [ ] I have performed a self-review of my own code
-* [ ] I have commented my code, particularly in hard-to-understand areas.
-* [ ] I have documented all fields, methods and types that I added or modified, following [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
+## Description
 
-If your pull request closes a GitHub issue, replace the XXXXX below with the issue number.
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
 
-Closes #XXXXX
+If your pull request closes a GitHub issue, then set its number below.
+
+Fixes # (issue)
+
+## Type of change
+
+Please mark options that are relevant.
+
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
+
+## How Has This Been Tested?
+
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+
+- [ ] Test A
+- [ ] Test B
+
+## Checklist:
+
+* [ ] I did follow the [contribution guidelines](https://github.com/OpenMined/PySyft/blob/master/CONTRIBUTING.md)
+* [ ] I have commented my code following [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
+* [ ] I have added tests for my changes
