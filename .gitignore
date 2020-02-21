@@ -7,3 +7,6 @@ syfertext.egg-info/
 venv/
 .env
 .envrc
+
+*.swp
+.eggs/

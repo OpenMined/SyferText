@@ -28,14 +28,17 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
-    def getEncryptedVector(self, *workers, crypto_provider=None, requires_grad=True):
-        """
-           Create one big vector composed of the concatenated Token vectors included in the
-           Doc. The returned vector is SMPC-encrypted.
+    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+        """Get the mean of the vectors of each Token in this documents.
 
-           TODO: This method should probably be removed. It served for a prototype test,
-                 but concatenating all token vectors of the Doc into one big vector
-                 might not be really useful for practical usecases.
+        Args:
+            self (DocPointer): current pointer to a remote document.
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+
+        Returns:
+            Tensor: A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
         """
 
         assert (
@@ -44,7 +47,7 @@ class DocPointer(ObjectPointer):
 
         # Create the command
         kwargs = dict(crypto_provider=crypto_provider, requires_grad=requires_grad)
-        command = ("getEncryptedVector", self.id_at_location, workers, kwargs)
+        command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
 
         # Send the command
         doc_vector = self.owner.send_command(self.location, command)
@@ -66,9 +69,7 @@ class DocPointer(ObjectPointer):
 
     @staticmethod
     def simplify(worker, doc_pointer):
-        """
-           This method is used to reduce a `DocPointer` object into a list of simpler objects that can be
-           serialized
+        """This method is used to reduce a `DocPointer` object into a list of simpler objects that can be serialized
         """
 
         # Simplify the attributes
@@ -91,21 +92,15 @@ class DocPointer(ObjectPointer):
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj):
-        """
-           Create an object of type DocPointer from the reduced representation in `simple_obj`.
+        """Create an object of type DocPointer from the reduced representation in `simple_obj`.
 
-           Parameters
-           ----------
-           worker: BaseWorker
-                   The worker on which the new DocPointer object is to be created.
-           simple_obj: tuple
-                       A tuple resulting from the serialized then deserialized returned tuple
-                       from the `_simplify` static method above.
+        Args:
+            worker (BaseWorker): The worker on which the new DocPointer object is to be created.
+            simple_obj (tuple): A tuple resulting from the serialized then deserialized returned tuple
+                from the `_simplify` static method above.
 
-           Returns
-           -------
-           doc_pointer: DocPointer
-                      a DocPointer object, pointing to a Doc object
+        Returns:
+            DocPointer: a DocPointer object, pointing to a Doc object
         """
 
         # Get the typle elements

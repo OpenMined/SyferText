@@ -17,12 +17,18 @@ setup(
     version="0.1.0.dev1",
     packages=find_packages(),
     install_requires=[
-        "black>=19.10b0",
-        "pytest>=5.3.5",
-        "pytest-black>=0.3.8",
         "tqdm==4.36.1",
         "mmh3==2.5.1",
         "syft==0.2.3a1",
         "requests==2.22.0",
     ],
+    extras_require={
+        "test": [
+            "black>=19.10b0",
+            "pytest>=5.3.5",
+            "pytest-black>=0.3.8",
+            "jupyter>=1.0.0",
+            "papermill>=1.2.1",
+        ],
+    },
 )
