@@ -10,7 +10,7 @@ dist/
 *__pycache__*
 *.pyc
 *.py~
-syft.egg-info/
+syfertext.egg-info/
 *.swp
 *.swo
 *.ipynb_checkpoints*
@@ -20,4 +20,5 @@ docs/_modules
 .coverage
 .vscode/
 **/pip-wheel-metadata
-
+.env
+.envrc

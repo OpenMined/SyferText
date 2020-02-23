@@ -13,11 +13,11 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: '>=3.6'
-    - name: Install SyferText
+    - name: Install SyferText with test dependencies
       run: |
-        python setup.py install
-        echo SyferTest successfully installed.
+        pip install ".[test]"
+        echo SyferText with test dependencies successfully installed.
     - name: Running tests
-      run: |    
+      run: |
         python -m pytest --black --verbose
 
