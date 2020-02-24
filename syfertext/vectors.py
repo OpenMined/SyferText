@@ -1,6 +1,7 @@
 import pickle
 import os
 from pathlib import Path
+import numpy as np
 
 from .utils import hash_string
 
@@ -14,7 +15,7 @@ class Vectors:
         self.model_path = os.path.join(dirname, "SyferText", model_name)
 
         # Load the array holding the word vectors
-        self.data = self.load_vectors()
+        self.data, self.default_vector = self.load_vectors()
 
         # Load the mappings between word hashes and row indices in 'self.data'
         self.key2row = self.load_key2row()
@@ -26,7 +27,10 @@ class Vectors:
         with open(vectors_path, "rb") as vectors_file:
             vectors = pickle.load(vectors_file)
 
-        return vectors
+        # default vector
+        default_vector = np.zeros(vectors.shape[1], dtype=vectors.dtype)
+
+        return vectors, default_vector
 
     def load_key2row(self):
 
@@ -38,12 +42,15 @@ class Vectors:
         return key2row
 
     def __getitem__(self, word):
-        """
-           takes a word as a string and returns the corresponding vector
+        """takes a word as a string and returns the corresponding vector
         """
 
         # Create the word hash key
         key = hash_string(word)
+
+        # if the key does not exists return default vector
+        if key not in self.key2row:
+            return self.default_vector
 
         # Get the vector row correponding to 'key
         row = self.key2row[key]
