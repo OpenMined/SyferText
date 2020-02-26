@@ -17,12 +17,15 @@ class Token:
         self.is_space = is_space
         self.space_after = space_after
 
+        # Whether this token has a vector or not
+        self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
+        
     def __str__(self):
 
         # The call to `str()` in the following is to account for the case
         # when text is of type String or StringPointer (which are Syft string
         # types)
-        return str(self.doc.text[self.start_pos : self.stop_pos])
+        return self.text
 
     @property
     def orth(self):
@@ -30,9 +33,14 @@ class Token:
         return hash_string(str(self))
 
     @property
+    def text(self):
+        """Get the token text"""
+        return str(self.doc.text[self.start_pos : self.stop_pos])
+    
+    @property
     def vector(self):
         """Get the token vector"""
-        return self.doc.vocab.vectors[self.__str__()]
+        return self.doc.vocab.vectors[self.text]
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """Get the mean of the vectors of each Token in this documents.
@@ -51,7 +59,7 @@ class Token:
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
         # Get the vector
-        vector = self.doc.vocab.vectors[self.__str__()]
+        vector = self.doc.vocab.vectors[self.text]
 
         # Create a Syft/Torch tensor
         vector = torch.Tensor(vector)

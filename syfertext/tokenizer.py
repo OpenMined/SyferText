@@ -49,26 +49,26 @@ class Tokenizer(AbstractObject):
         tags: List[str] = None,
         description: str = None,
     ):
-        """
-           Parameters
-           ----------
-           vocab: str or Vocab object
-                  If str, this should be the name of the language model to build the 
-                  Vocab object from. such as 'en_core_web_lg'. This is useful when
-                  the Tokenizer object is sent to a remote worker. So it can rebuild
-                  its Vocab object from scratch instead of send the Vocab object to
-                  the remote worker which might take too much network traffic.
-           id: int
-               The id of the Tokenizer object.
-           owner: BaseWorker 
-                  The worker on which the Tokenizer object lives.
-           client_id: str
-                      The id of the worker on which the Language object using this
-                      Tokenizer lives.
-           tags: list of str
-                 Tags to attach to the current Tokenizer.
-           description: str
-                        A description of this Tokenizer object.
+        """Initialize the Tokenizer object
+           
+           Args:
+               vocab: str or Vocab object
+                      If str, this should be the name of the language model to build the 
+                      Vocab object from. such as 'en_core_web_lg'. This is useful when
+                      the Tokenizer object is sent to a remote worker. So it can rebuild
+                      its Vocab object from scratch instead of send the Vocab object to
+                      the remote worker which might take too much network traffic.
+               id: int
+                   The id of the Tokenizer object.
+               owner: BaseWorker 
+                      The worker on which the Tokenizer object lives.
+               client_id: str
+                          The id of the worker on which the Language object using this
+                          Tokenizer lives.
+               tags: list of str
+                     Tags to attach to the current Tokenizer.
+               description: str
+                            A description of this Tokenizer object.
         """
 
         if isinstance(vocab, Vocab):
@@ -89,8 +89,7 @@ class Tokenizer(AbstractObject):
         )
 
     def __call__(self, text: Union[String, str] = None, text_id: int = None):
-        """
-           The real tokenization procedure takes place here.
+        """The real tokenization procedure takes place here.
 
            As in the spaCy library. This is not exactly equivalent to 
            text.split(' '). Because tokens can be whitle spaces if two or
