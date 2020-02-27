@@ -75,13 +75,12 @@ class Vectors:
 
         # if the key exists return True
         if key in self.key2row:
-            
+
             return True
 
         else:
             return False
-        
-        
+
     def __getitem__(self, word):
         """takes a word as a string and returns the corresponding vector
 
@@ -93,10 +92,10 @@ class Vectors:
                The vector embedding of the word.
                if no vector is found, self.default_vector is returned.
         """
-        
+
         # Create the word hash key
         key = hash_string(word)
-        
+
         # if the key does not exists return default vector
         if not self.has_vector(word):
             return self.default_vector

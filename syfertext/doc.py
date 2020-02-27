@@ -133,7 +133,7 @@ class Doc(AbstractObject):
 
         # Count the tokens that have vectors
         vector_count = 0
-        
+
         for token in self:
 
             # Get the encypted vector of the token if one exists
@@ -141,10 +141,9 @@ class Doc(AbstractObject):
 
                 # Increment the vector counter
                 vector_count += 1
-                
+
                 # cumulate token's vector by summing them
                 vectors = token.vector if vectors is None else vectors + token.vector
-                
 
         # if no tokens with vectors were found, just get the default vector (zeros)
         if vector_count == 0:
@@ -160,5 +159,5 @@ class Doc(AbstractObject):
         doc_vector = doc_vector.fix_precision().share(
             *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
         )
-        
+
         return doc_vector

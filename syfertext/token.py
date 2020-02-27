@@ -19,7 +19,7 @@ class Token:
 
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
-        
+
     def __str__(self):
 
         # The call to `str()` in the following is to account for the case
@@ -36,7 +36,7 @@ class Token:
     def text(self):
         """Get the token text"""
         return str(self.doc.text[self.start_pos : self.stop_pos])
-    
+
     @property
     def vector(self):
         """Get the token vector"""
