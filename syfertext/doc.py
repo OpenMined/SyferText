@@ -131,16 +131,33 @@ class Doc(AbstractObject):
         # Accumulate the vectors here
         vectors = None
 
+        # Count the tokens that have vectors
+        vector_count = 0
+
         for token in self:
 
-            # Get the encypted vector of the token
-            vector = token.get_encrypted_vector(
-                *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
-            )
-            # cumulate token's vector by summing them
-            vectors = vector if vectors is None else vectors + vector
+            # Get the encypted vector of the token if one exists
+            if token.has_vector:
 
-        # Create the final Doc vector
-        doc_vector = vectors / len(self)
+                # Increment the vector counter
+                vector_count += 1
+
+                # cumulate token's vector by summing them
+                vectors = token.vector if vectors is None else vectors + token.vector
+
+        # if no tokens with vectors were found, just get the default vector (zeros)
+        if vector_count == 0:
+            doc_vector = self.vocab.vectors.default_vector
+        else:
+            # Create the final Doc vector
+            doc_vector = vectors / vector_count
+
+        # Create a Syft/Torch tensor
+        doc_vector = torch.Tensor(doc_vector)
+
+        # Encrypt the vector using SMPC with PySyft
+        doc_vector = doc_vector.fix_precision().share(
+            *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
+        )
 
         return doc_vector
