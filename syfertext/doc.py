@@ -138,7 +138,7 @@ class Doc(AbstractObject):
             doc_vector = self.vocab.vectors.default_vector
         else:
             # Create the final Doc vector
-            doc_vector = vector / vector_count
+            doc_vector = vectors / vector_count
                 
         return doc_vector
     
