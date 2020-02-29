@@ -131,7 +131,7 @@ class Doc(AbstractObject):
                 vector_count += 1
 
                 # Cumulate token's vector by summing them
-                vectors = token.vector if vector if None else vectors + token.vector
+                vectors = token.vector if vector is None else vectors + token.vector
 
         # If no tokens with vectors were found, just get the default vector(zeros)
         if vector_count == 0:
