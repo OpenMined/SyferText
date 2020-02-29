@@ -147,14 +147,11 @@ class Doc(AbstractObject):
         else:
             # Create the final Doc vector
             doc_vector = vectors / vector_count
-                
+
         return doc_vector
-    
+
     def get_encrypted_vector(
-            self,
-            *workers,
-            crypto_provider=None,
-            requires_grad=True,
+        self, *workers, crypto_provider=None, requires_grad=True,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
@@ -171,10 +168,9 @@ class Doc(AbstractObject):
             len(workers) > 1
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
-        
         # Storing the average of vectors of each in-vocabulary token's vectors
         doc_vector = self.vector
-        
+
         # Create a Syft/Torch tensor
         doc_vector = torch.Tensor(doc_vector)
 
