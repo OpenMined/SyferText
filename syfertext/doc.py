@@ -114,7 +114,15 @@ class Doc(AbstractObject):
 
     @property
     def vector(self):
-        """Get document vector as an average of in-vocabulary token's vectors """
+        """
+        Get document vector as an average of in-vocabulary token's vectors 
+        
+        Args:
+          self (Doc): current document
+        
+        Returns:
+          doc_vector: document vector 
+        """
 
         # Accumulate the vectors here
         vectors = None
@@ -142,7 +150,12 @@ class Doc(AbstractObject):
                 
         return doc_vector
     
-    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_encrypted_vector(
+            self,
+            *workers,
+            crypto_provider=None,
+            requires_grad=True,
+    ):
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
