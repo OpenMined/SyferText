@@ -7,15 +7,24 @@ hook = sy.TorchHook(torch)
 
 
 class Token:
-    def __init__(
-        self, doc, start_pos: int, stop_pos: int, is_space: bool, space_after: bool
-    ):
+    def __init__(self, doc, token_meta: "TokenMeta"):
 
         self.doc = doc
-        self.start_pos = start_pos
-        self.stop_pos = stop_pos
-        self.is_space = is_space
-        self.space_after = space_after
+
+        # The start and stop positions of the token in self.text
+        # notice that stop_position refers to one position after `token_meta.end_pos`.
+        # this is practical for indexing
+        self.start_pos = token_meta.start_pos
+        self.stop_pos = (
+            token_meta.end_pos + 1 if token_meta.end_pos is not None else None
+        )
+        self.is_space = token_meta.is_space
+        self.space_after = token_meta.space_after
+
+        # Initialize the Underscore object (inspired by spaCy)
+        # This object will hold all the custom attributes et
+        # using the `self.set_attribute` method
+        self._ = token_meta._
 
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
@@ -26,6 +35,13 @@ class Token:
         # when text is of type String or StringPointer (which are Syft string
         # types)
         return self.text
+
+    def set_attribute(self, name: str, value: object):
+        """Creates a custom attribute with the name `name` and
+           value `value` in the Underscore object `self._`
+        """
+
+        setattr(self._, name, value)
 
     @property
     def orth(self):
