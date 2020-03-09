@@ -10,7 +10,7 @@ class SimpleTagger:
        The attribute becomes accessible then through the Underscore attribute
        of the `Token` object.
     """
-    
+
     def __init__(
         self,
         attribute: str,
