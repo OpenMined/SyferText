@@ -1,5 +1,7 @@
 from .doc import Doc
 from .vocab import Vocab
+from .punctuations import prefix_re, infix_re, suffix_re
+
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -43,6 +45,9 @@ class Tokenizer(AbstractObject):
     def __init__(
         self,
         vocab: Union[Vocab, str],
+        prefix_match=prefix_re.match,
+        suffix_match=suffix_re.match,
+        infix_match=infix_re.match,
         id: int = None,
         owner: BaseWorker = None,
         client_id: str = None,
@@ -51,25 +56,34 @@ class Tokenizer(AbstractObject):
     ):
         """Initialize the Tokenizer object
            
-           Args:
-               vocab: str or Vocab object
-                      If str, this should be the name of the language model to build the 
-                      Vocab object from. such as 'en_core_web_lg'. This is useful when
-                      the Tokenizer object is sent to a remote worker. So it can rebuild
-                      its Vocab object from scratch instead of send the Vocab object to
-                      the remote worker which might take too much network traffic.
-               id: int
-                   The id of the Tokenizer object.
-               owner: BaseWorker 
-                      The worker on which the Tokenizer object lives.
-               client_id: str
-                          The id of the worker on which the Language object using this
-                          Tokenizer lives.
-               tags: list of str
-                     Tags to attach to the current Tokenizer.
-               description: str
+            Args:
+                vocab: str or Vocab object
+                        If str, this should be the name of the language model to build the 
+                        Vocab object from. such as 'en_core_web_lg'. This is useful when
+                        the Tokenizer object is sent to a remote worker. So it can rebuild
+                        its Vocab object from scratch instead of send the Vocab object to
+                        the remote worker which might take too much network traffic.
+                prefix_search(callable): A function matching the signature of
+                        `re.compile(string).search` to match prefixes.
+                suffix_search(callable): A function matching the signature of
+                        `re.compile(string).search` to match sufixes.
+                infix_finditer(callable): A function matching the signature of
+                        `re.compile(string).search` to match infixes.
+                id: int
+                    The id of the Tokenizer object.
+                owner: BaseWorker 
+                        The worker on which the Tokenizer object lives.
+                client_id: str
+                            The id of the worker on which the Language object using this
+                            Tokenizer lives.
+                tags: list of str
+                        Tags to attach to the current Tokenizer.
+                description: str
                             A description of this Tokenizer object.
         """
+        self.prefix_match = prefix_match
+        self.suffix_match = suffix_match
+        self.infix_match = infix_match
 
         if isinstance(vocab, Vocab):
             self.vocab = vocab
@@ -144,18 +158,13 @@ class Tokenizer(AbstractObject):
 
         # Start tokenization
         for i, char in enumerate(text):
-
-            # We are looking for a character that is the opposit of 'is_space'
-            # if 'is_space' is True, then we want to find a character that is
-            # not a space. and vice versa. This event marks the end of a token.
-            is_current_space = char.isspace()
-            if is_current_space != is_space:
-
+            
+            if self.sep_char(char):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    start_pos=pos,
-                    end_pos=i - 1,
+                    start_pos=i,
+                    end_pos=i + 1,
                     space_after=is_current_space,
                     is_space=is_space,
                 )
@@ -164,17 +173,42 @@ class Tokenizer(AbstractObject):
                 doc.container.append(token_meta)
 
                 # Adjust the position 'pos' against which
-                # we compare the currently visited chararater
-                if is_current_space:
-                    pos = i + 1
-                else:
-                    pos = i
+                # we compare the currently visited chararater   
+                pos = i+1
 
-                # Update the character type of which we are searching
-                # the opposite (space vs. not space).
-                # prevent 'pos' from being out of bound
-                if pos < text_size:
-                    is_space = text[pos].isspace()
+            # We are looking for a character that is the opposit of 'is_space'
+            # if 'is_space' is True, then we want to find a character that is
+            # not a space. and vice versa. This event marks the end of a token.
+            is_current_space = char.isspace()
+            else:
+                
+                if is_current_space != is_space:
+
+                    # Create the TokenMeta object that can be later used to retrieve the token
+                    # from the text
+                    token_meta = TokenMeta(
+                        start_pos=pos,
+                        end_pos=i - 1,
+                        space_after=is_current_space,
+                        is_space=is_space,
+                    )
+
+                    # Append the token to the document
+                    doc.container.append(token_meta)
+
+                    # Adjust the position 'pos' against which
+                    # we compare the currently visited chararater
+                    if is_current_space:
+                        pos = i + 1
+                    else:
+                        pos = i
+
+                    # Update the character type of which we are searching
+                    # the opposite (space vs. not space).
+                    # prevent 'pos' from being out of bound
+                    if pos < text_size:
+                        is_space = text[pos].isspace()
+
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
@@ -210,6 +244,27 @@ class Tokenizer(AbstractObject):
             return doc_pointer
 
         return doc
+
+    def  is_sep_char(self, sep_char):
+        """Checks if given character is sepration  char i.e char which seprate two tokens.
+
+        Args:
+            sep_char (str): Input character to check.
+
+        Returns:
+            Boolian : True char is separates two tokens otherwise False.
+        """
+        if(prefix_match(substring)):
+            return True
+        
+        if(suffix_match(substring)):
+            return True
+        
+        if(infix_match(substring)):
+            return True
+
+        else:
+            return False
 
     def send(self, location: BaseWorker):
         """
@@ -275,12 +330,15 @@ class Tokenizer(AbstractObject):
         """
 
         # Simplify attributes
+        prefix_match = pickle.dumps(tokenizer.prefix_match)
+        suffix_match = pickle.dumps(tokenizer.suffix_match)
+        infix_match = pickle.dumps(tokenizer.infix_match)
         client_id = pickle.dumps(tokenizer.client_id)
         tags = [pickle.dumps(tag) for tag in tokenizer.tags] if tokenizer.tags else None
         description = pickle.dumps(tokenizer.description)
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        return (tokenizer.id, client_id, tags, description, model_name)
+        return (tokenizer.id, client_id,prefix_match, suffix_match, infix_match, tags, description, model_name)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -302,9 +360,12 @@ class Tokenizer(AbstractObject):
         """
 
         # Get the tuple elements
-        id, client_id, tags, description, model_name = simple_obj
+        id, client_id,prefix_match, suffix_match, infix_match, tags, description, model_name = simple_obj
 
         # Unpickle
+        prefix_match = pickle.loads(tokenizer.prefix_match)
+        suffix_match = pickle.loads(tokenizer.suffix_match)
+        infix_match = pickle.loads(tokenizer.infix_match)
         client_id = pickle.loads(client_id)
         tags = [pickle.loads(tag) for tag in tags] if tags else None
         description = pickle.loads(description)
@@ -313,6 +374,9 @@ class Tokenizer(AbstractObject):
         # Create the tokenizer object
         tokenizer = Tokenizer(
             vocab=model_name,
+            prefix_match=prefix_match,
+            suffix_match=suffix_match,
+            infix_match=infix_match,
             id=id,
             owner=worker,
             client_id=client_id,

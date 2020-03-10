@@ -157,7 +157,7 @@ def compile_suffix_regex(entries):
     Args:
         entries (tuple): The suffix rules.
 
-    RETURNS:
+    Returns:
         regex object: The regex object. to be used for Tokenizer.suffix_search.
     """
     expression = "|".join([piece + "$" for piece in entries if piece.strip()])
@@ -170,8 +170,12 @@ def compile_infix_regex(entries):
     Args:
         entries (tuple): The infix rules.
 
-    RETURNS:
+    Returns:
         regex object: The regex object. to be used for Tokenizer.infix_finditer.
     """
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
+
+
+
+    
