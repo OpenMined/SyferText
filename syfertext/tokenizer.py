@@ -2,7 +2,7 @@ from .doc import Doc
 from .vocab import Vocab
 from .punctuations import prefix_re, infix_re, suffix_re
 
-
+import re
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
@@ -164,7 +164,7 @@ class Tokenizer(AbstractObject):
             # not a space. and vice versa. This event marks the end of a token.
             is_current_space = char.isspace()
 
-            #check if char is a  prefix/suffix/infix which seprates two  tokens.
+            # check if char is a  prefix/suffix/infix which seprates two  tokens.
             if self.sep_char(char):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
@@ -179,12 +179,11 @@ class Tokenizer(AbstractObject):
                 doc.container.append(token_meta)
 
                 # Adjust the position 'pos' against which
-                # we compare the currently visited chararater   
-                pos = i+1
+                # we compare the currently visited chararater
+                pos = i + 1
 
-            
             else:
-                
+
                 if is_current_space != is_space:
 
                     # Create the TokenMeta object that can be later used to retrieve the token
@@ -211,7 +210,6 @@ class Tokenizer(AbstractObject):
                     # prevent 'pos' from being out of bound
                     if pos < text_size:
                         is_space = text[pos].isspace()
-
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
@@ -248,7 +246,7 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def  is_sep_char(self, sep_char):
+    def is_sep_char(self, sep_char):
         """Checks if given character is sepration  char i.e char which seprate two tokens.
 
         Args:
@@ -257,13 +255,13 @@ class Tokenizer(AbstractObject):
         Returns:
             Boolian : True char is separates two tokens otherwise False.
         """
-        if(prefix_match(substring)):
+        if prefix_match(substring):
             return True
-        
-        if(suffix_match(substring)):
+
+        if suffix_match(substring):
             return True
-        
-        if(infix_match(substring)):
+
+        if infix_match(substring):
             return True
 
         else:
@@ -341,7 +339,16 @@ class Tokenizer(AbstractObject):
         description = pickle.dumps(tokenizer.description)
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        return (tokenizer.id, client_id,prefix_match, suffix_match, infix_match, tags, description, model_name)
+        return (
+            tokenizer.id,
+            client_id,
+            prefix_match,
+            suffix_match,
+            infix_match,
+            tags,
+            description,
+            model_name,
+        )
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -363,7 +370,16 @@ class Tokenizer(AbstractObject):
         """
 
         # Get the tuple elements
-        id, client_id,prefix_match, suffix_match, infix_match, tags, description, model_name = simple_obj
+        (
+            id,
+            client_id,
+            prefix_match,
+            suffix_match,
+            infix_match,
+            tags,
+            description,
+            model_name,
+        ) = simple_obj
 
         # Unpickle
         prefix_match = pickle.loads(tokenizer.prefix_match)

@@ -6,6 +6,7 @@
 
 
 from __future__ import unicode_literals
+import re
 
 split_chars = lambda char: list(char.strip().split(" "))
 merge_chars = lambda char: char.strip().replace(" ", "|")
