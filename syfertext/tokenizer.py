@@ -158,7 +158,13 @@ class Tokenizer(AbstractObject):
 
         # Start tokenization
         for i, char in enumerate(text):
-            
+
+            # We are looking for a character that is the opposit of 'is_space'
+            # if 'is_space' is True, then we want to find a character that is
+            # not a space. and vice versa. This event marks the end of a token.
+            is_current_space = char.isspace()
+
+            #check if char is a  prefix/suffix/infix which seprates two  tokens.
             if self.sep_char(char):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
@@ -176,10 +182,7 @@ class Tokenizer(AbstractObject):
                 # we compare the currently visited chararater   
                 pos = i+1
 
-            # We are looking for a character that is the opposit of 'is_space'
-            # if 'is_space' is True, then we want to find a character that is
-            # not a space. and vice versa. This event marks the end of a token.
-            is_current_space = char.isspace()
+            
             else:
                 
                 if is_current_space != is_space:
