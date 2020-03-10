@@ -175,7 +175,3 @@ def compile_infix_regex(entries):
     """
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
-
-
-
-    
