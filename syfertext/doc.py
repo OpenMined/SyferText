@@ -48,21 +48,8 @@ class Doc(AbstractObject):
         # Get the corresponding TokenMeta object
         token_meta = self.container[key]
 
-        # The start and stop positions of the token in self.text
-        # notice that stop_position refers to one position after `token_meta.end_pos`.
-        # this is practical for indexing
-        start_pos = token_meta.start_pos
-        stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
-
         # Create a Token object
-        token = Token(
-            doc=self,
-            # string = self.text[start_pos:end_pos],
-            start_pos=start_pos,
-            stop_pos=stop_pos,
-            is_space=token_meta.is_space,
-            space_after=token_meta.space_after,
-        )
+        token = Token(doc=self, token_meta=token_meta)
 
         return token
 

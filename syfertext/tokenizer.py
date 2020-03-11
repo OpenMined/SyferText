@@ -1,5 +1,6 @@
 from .doc import Doc
 from .vocab import Vocab
+from .underscore import Underscore
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -10,26 +11,21 @@ from typing import List, Union
 
 
 class TokenMeta(object):
-
-    """
-       This class holds some meta data about a token from the text held by a Doc object.
+    """This class holds some meta data about a token from the text held by a Doc object.
        This allows to create a Token object when needed.
     """
 
     def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
-        """
-           Parameters
-           ----------
-           start_pos: int
-                      The start index of the token in the Doc text.
+        """Initializes a TokenMeta object
 
-           end_pos: int
-                    The end index of the token in the Doc text (the end index is
-                    part of the token).
-           space_after: bool
-                        Whether the token is followed by a single white space (True) or not (False).
-           is_space: bool
-                     Whether the token itself is composed of only white spaces (True) or not (false).
+           Args:
+               start_pos (int): The start index of the token in the Doc text.
+               end_pos (int): The end index of the token in the Doc text (the end index is
+                   part of the token).
+               space_after (bool): Whether the token is followed by a single white 
+                   space (True) or not (False).
+               is_space (bool): Whether the token itself is composed of only white 
+                   spaces (True) or not (false).
 
         """
 
@@ -37,6 +33,11 @@ class TokenMeta(object):
         self.end_pos = end_pos
         self.space_after = space_after
         self.is_space = is_space
+
+        # Initialize the Underscore object (inspired by spaCy)
+        # This object will hold all the custom attributes set
+        # using the `self.set_attribute` method
+        self._ = Underscore()
 
 
 class Tokenizer(AbstractObject):

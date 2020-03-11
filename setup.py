@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "tqdm==4.36.1",
         "mmh3==2.5.1",
-        "syft==0.2.3.a3",
+        "syft==0.2.3",
         "requests==2.22.0",
     ],
     extras_require={
