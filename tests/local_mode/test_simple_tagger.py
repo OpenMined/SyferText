@@ -89,7 +89,7 @@ def test_simple_tagger_with_lists_sets(lookups, tag, default_tag, case_sensitive
         attribute="custom_tag",
         lookups=lookups,
         case_sensitive=case_sensitive,
-        tag=tag,  # This will be ignored since a dict lookup is used
+        tag=tag,
         default_tag=default_tag,
     )
 

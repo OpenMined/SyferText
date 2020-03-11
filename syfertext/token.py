@@ -22,7 +22,7 @@ class Token:
         self.space_after = token_meta.space_after
 
         # Initialize the Underscore object (inspired by spaCy)
-        # This object will hold all the custom attributes et
+        # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
         self._ = token_meta._
 

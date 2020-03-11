@@ -35,7 +35,7 @@ class TokenMeta(object):
         self.is_space = is_space
 
         # Initialize the Underscore object (inspired by spaCy)
-        # This object will hold all the custom attributes et
+        # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
         self._ = Underscore()
 

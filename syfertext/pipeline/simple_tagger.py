@@ -19,7 +19,7 @@ class SimpleTagger:
         default_tag: object = None,
         case_sensitive: bool = True,
     ):
-        """Initialize the TokenTagger object.
+        """Initialize the SimpleTagger object.
 
            Args:
                attribute (str): The name of the attribute that will hold the tag.
