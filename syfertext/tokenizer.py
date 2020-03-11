@@ -165,7 +165,7 @@ class Tokenizer(AbstractObject):
             is_current_space = char.isspace()
 
             # check if char is a  prefix/suffix/infix which seprates two  tokens.
-            if self.sep_char(char):
+            if self.is_sep_char(char):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
@@ -255,13 +255,14 @@ class Tokenizer(AbstractObject):
         Returns:
             Boolian : True char is separates two tokens otherwise False.
         """
-        if prefix_match(substring):
+        sep_char = str(sep_char)
+        if self.prefix_match(sep_char):
             return True
 
-        if suffix_match(substring):
+        if self.suffix_match(sep_char):
             return True
 
-        if infix_match(substring):
+        if self.infix_match(sep_char):
             return True
 
         else:
@@ -382,9 +383,9 @@ class Tokenizer(AbstractObject):
         ) = simple_obj
 
         # Unpickle
-        prefix_match = pickle.loads(tokenizer.prefix_match)
-        suffix_match = pickle.loads(tokenizer.suffix_match)
-        infix_match = pickle.loads(tokenizer.infix_match)
+        prefix_match = pickle.loads(prefix_match)
+        suffix_match = pickle.loads(suffix_match)
+        infix_match = pickle.loads(infix_match)
         client_id = pickle.loads(client_id)
         tags = [pickle.loads(tag) for tag in tags] if tags else None
         description = pickle.loads(description)
