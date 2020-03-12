@@ -46,9 +46,9 @@ class BaseDefaults(object):
         main container for annotated tokens.
 
            Todo:
-               this is a minimal Tokenizer object that is not nearly as sophisticated
-               as that of spacy. It just creates tokens as space separated strings.
-               Something like "string1 string2".split(' '). Of course, this should be changed later.
+               this is a Tokenizer object similar as in spacy but is not nearly as sophisticated
+               as that of spacy. It creates tokens as strings seprated by spaces, infix, prefix and suffixs.
+               Of course, more features should be added later.
         """
 
         # Instantiate the Tokenizer object and return it

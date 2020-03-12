@@ -114,6 +114,8 @@ class Tokenizer(AbstractObject):
               'I  love apples ' gives four tokens: 'I', ' ', 'love', 'apples'
               ' I love ' gives three tokens: ' ', 'I', 'love' (yes a single white space
               at the beginning is considered a token)
+              'I love #app$le%' gives 7 tokens: 'I', 'love', '#', 'app', '$', 'le', '%'(prefix,
+              suffix and infix are seprate tokens)
 
            Tokenizing this ways helps reconstructing the original string
            without loss of white spaces.
@@ -156,21 +158,26 @@ class Tokenizer(AbstractObject):
         # to is a white space or not
         is_space = text[0].isspace()
 
+        # This is a flag to indicate whether the character we are comparing
+        # to is a white sep_char or not (sep_char are prefix,suffix and infix characters wgich are tokens themselves)
+        is_sep_char = self.is_sep_char(text[0])
+        is_prev_space = is_space
         # Start tokenization
         for i, char in enumerate(text):
 
-            # We are looking for a character that is the opposit of 'is_space'
-            # if 'is_space' is True, then we want to find a character that is
-            # not a space. and vice versa. This event marks the end of a token.
             is_current_space = char.isspace()
+            is_current_sep_char = self.is_sep_char(char)
 
-            # check if char is a  prefix/suffix/infix which seprates two  tokens.
-            if self.is_sep_char(char):
+            # We are looking for a character that is the opposit of 'is_sep_char'
+            # if 'is_sep_char' is True, then we want to find a character that is
+            # not a sep_char. and vice versa. This event marks the end of a token.
+            if is_current_sep_char != is_sep_char:
+
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    start_pos=i,
-                    end_pos=i + 1,
+                    start_pos=pos,
+                    end_pos=i - 1,
                     space_after=is_current_space,
                     is_space=is_space,
                 )
@@ -180,10 +187,24 @@ class Tokenizer(AbstractObject):
 
                 # Adjust the position 'pos' against which
                 # we compare the currently visited chararater
-                pos = i + 1
+                if is_current_sep_char:
+                    pos = i
+                if is_current_space:
+                    pos = i + 1
+                else:
+                    pos = i
 
+                # Update the character type of which we are searching
+                # the opposite (space vs. not space) and opposite of is_sep_char(prefix,suffix,infix vs opposite)
+                # prevent 'pos' from being out of bound
+                if pos < text_size:
+                    is_space = text[pos].isspace()
+                    is_sep_char = self.is_sep_char(text[pos])
+
+            # We are looking for a character that is the opposit of 'is_space'
+            # if 'is_space' is True, then we want to find a character that is
+            # not a space. and vice versa. This event marks the end of a token.
             else:
-
                 if is_current_space != is_space:
 
                     # Create the TokenMeta object that can be later used to retrieve the token
@@ -206,10 +227,11 @@ class Tokenizer(AbstractObject):
                         pos = i
 
                     # Update the character type of which we are searching
-                    # the opposite (space vs. not space).
+                    # the opposite (space vs. not space) and opposite of is_sep_char(prefix,suffix,infix vs opposite)
                     # prevent 'pos' from being out of bound
                     if pos < text_size:
                         is_space = text[pos].isspace()
+                        is_sep_char = self.is_sep_char(text[pos])
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
@@ -247,7 +269,7 @@ class Tokenizer(AbstractObject):
         return doc
 
     def is_sep_char(self, sep_char):
-        """Checks if given character is sepration  char i.e char which seprate two tokens.
+        """Checks if given character is prefix,suffix infix char which themselves are seprate tokens and seprate two tokens.
 
         Args:
             sep_char (str): Input character to check.
