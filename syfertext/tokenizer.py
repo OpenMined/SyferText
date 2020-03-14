@@ -15,7 +15,7 @@ class TokenMeta(object):
        This allows to create a Token object when needed.
     """
 
-    def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
+    def __init__(self, token_text: str, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
         """Initializes a TokenMeta object
 
            Args:
@@ -29,6 +29,7 @@ class TokenMeta(object):
 
         """
 
+        self.token_text = token_text
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.space_after = space_after
@@ -155,6 +156,7 @@ class Tokenizer(AbstractObject):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
+                    token_text=text[pos:i],
                     start_pos=pos,
                     end_pos=i - 1,
                     space_after=is_current_space,
@@ -183,6 +185,7 @@ class Tokenizer(AbstractObject):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
+                    token_text=text[pos:],
                     start_pos=pos,
                     end_pos=None,  # text[pos:None] ~ text[pos:]
                     space_after=is_current_space,
@@ -191,6 +194,8 @@ class Tokenizer(AbstractObject):
 
                 # Append the token to the document
                 doc.container.append(token_meta)
+        # After filling Doc object container, we delete Doc object text to save memory
+        doc.text = None
 
         # If the Language object using this tokenizer lives on a different worker
         # (self.client_id != self.owner.id)

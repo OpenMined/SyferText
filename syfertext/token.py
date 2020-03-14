@@ -20,6 +20,7 @@ class Token:
         )
         self.is_space = token_meta.is_space
         self.space_after = token_meta.space_after
+        self.text = token_meta.token_text
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -47,11 +48,6 @@ class Token:
     def orth(self):
         """Get the corresponding hash value of this token"""
         return hash_string(str(self))
-
-    @property
-    def text(self):
-        """Get the token text"""
-        return str(self.doc.text[self.start_pos : self.stop_pos])
 
     @property
     def vector(self):
