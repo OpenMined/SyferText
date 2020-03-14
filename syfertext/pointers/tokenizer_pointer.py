@@ -32,7 +32,7 @@ class TokenizerPointer(ObjectPointer):
 
     def __call__(self, text: StringPointer):
 
-        # For the moment, and to protect privacy this method accepts only StringPointer objects whos `location`
+        # For the moment, and to protect privacy this method accepts only StringPointer objects whose `location`
         # is the same location as `self.location`
         assert (
             text.location == self.location
