@@ -45,15 +45,14 @@ class Doc(AbstractObject):
            value `value` in the Underscore object `self._`
 
         Args:
-            name (str): name of the custom attribute .
+            name (str): name of the custom attribute.
             value (object): value of the custom named attribute.
         """
 
         # make sure there is no space in name as well prevent empty name
-        assert type(name) is str, "name must be of str type"
         assert (
-            len(name) > 0 and (not (" " in name)) and (type(name) == str)
-        ), "name cannot be empty or contain space"
+            isinstance(name, str) and len(name) > 0 and (not (" " in name))
+        ), "Argument name should be a non-empty str type containing no spaces"
 
         setattr(self._, name, value)
 
