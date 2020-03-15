@@ -36,7 +36,7 @@ class Doc(AbstractObject):
 
 
     def set_attribute(self, name: str, value: object):
-        """Creates a custom attribute with the name `name` and
+        """Creates a custom attribute with the name `name` and the
            value `value` in the Underscore object `self._`
         """
 
