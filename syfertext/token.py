@@ -41,7 +41,7 @@ class Token:
            value `value` in the Underscore object `self._`
         """
 
-        setattr(self._, name, value)
+         return setattr(self._, name, value)
 
     @property
     def orth(self):
