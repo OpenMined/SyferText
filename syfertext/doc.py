@@ -35,12 +35,20 @@ class Doc(AbstractObject):
         self.container = list()
 
 
+    def __str__(self):
+
+        # The call to `str()` in the following is to account for the case
+        # when text is of type String or StringPointer (which are Syft string
+        # types)
+        return self.text
+
+
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and the
            value `value` in the Underscore object `self._`
         """
 
-        return setattr(self._, name, value)
+        setattr(self._, name, value)
 
     def __getitem__(self, key: int):
         """Returns a Token object at position `key`.
