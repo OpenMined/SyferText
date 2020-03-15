@@ -40,7 +40,7 @@ class Doc(AbstractObject):
            value `value` in the Underscore object `self._`
         """
 
-        setattr(self._, name, value)
+        return setattr(self._, name, value)
 
     def __getitem__(self, key: int):
         """Returns a Token object at position `key`.
