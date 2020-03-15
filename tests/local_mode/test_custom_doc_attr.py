@@ -14,4 +14,4 @@ def test_add_custom_attr_doc():
     doc.set_attribute(name = 'my_custom_tag', value = 'tag')
     
     # check custom tag has been added
-    assert (doc._.my_custom_tag == 'tag')
+    assert (hasattr(doc._,'my_custom_tag') and doc._.my_custom_tag == 'tag')
