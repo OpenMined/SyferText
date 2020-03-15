@@ -43,6 +43,11 @@ class Doc(AbstractObject):
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
+
+        Args:
+            self (Doc): current Doc.
+            name (str): name of the custom attribute .
+            value (object): value of the custom named attribute.
         """
 
         # make sure there is no space in name as well prevent empty name
