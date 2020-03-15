@@ -49,6 +49,10 @@ class Doc(AbstractObject):
         token_meta = self.container[key]
 
         # Create a Token object
+        doc = nlp("Tokenize me")
+        token = doc[1]
+
+        token.set_attribute(name="custom_att", value='tag')
         token = Token(doc=self, token_meta=token_meta)
 
         return token
