@@ -44,6 +44,10 @@ class Doc(AbstractObject):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
         """
+
+        # make sure there is no space in name as well prevent empty name
+        assert(len(name) > 0 and (not(' ' in name)))
+
         setattr(self._, name, value)
 
     def __getitem__(self, key: int):

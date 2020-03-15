@@ -16,4 +16,16 @@ def test_add_custom_attr_doc():
     # check custom tag has been added
     assert (hasattr(doc._,'my_custom_tag') and doc._.my_custom_tag == 'tag')
 
+
+def test_update_custom_attr_doc():
+    """Test updating custom attribute of Doc objects"""
+
+    doc = nlp("Joey doesnt share food")
+    doc.set_attribute(name = 'my_custom_tag', value = 'tag')
     
+    # check custom tag has been added
+    assert (hasattr(doc._,'my_custom_tag') and doc._.my_custom_tag == 'tag')
+
+    doc.set_attribute(name = 'my_custom_tag', value = 'new_tag')
+
+    assert (hasattr(doc._,'my_custom_tag') and doc._.my_custom_tag == 'new_tag')
