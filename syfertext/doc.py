@@ -37,7 +37,7 @@ class Doc(AbstractObject):
                 # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
-        self._ = Underscore() 
+        self._ = Underscore()
 
 
     def __str__(self):
@@ -48,11 +48,20 @@ class Doc(AbstractObject):
         # types)
         return self.text
 
-
-    def set_attribute(self, name: str, value: object):
-        """Creates a custom attribute with the name `name` and the
+def set_attribute(self, name: str, value: object):
+        """Created a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
+        Args:
+            name (str): name of the custom attribute .
+            value (object): value of the custom named attribute.
         """
+
+        # make sure there is no space in name as well prevent empty name
+        assert type(name) is str, "name must be of str type"
+        assert (
+            len(name) > 0 and (not (" " in name)) and (type(name) == str)
+        ),
+        "name cannot be empty or contain space"
 
         setattr(self._, name, value)
 
