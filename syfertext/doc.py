@@ -9,6 +9,7 @@ from syft.workers.base import BaseWorker
 
 from typing import List
 from typing import Union
+from .underscore import Underscore
 
 
 class Doc(AbstractObject):
@@ -33,9 +34,14 @@ class Doc(AbstractObject):
         # Its members are objects of the TokenMeta class defined in the tokenizer.py
         # file
         self.container = list()
+                # Initialize the Underscore object (inspired by spaCy)
+        # This object will hold all the custom attributes set
+        # using the `self.set_attribute` method
+        self._ = Underscore() 
 
 
     def __str__(self):
+
 
         # The call to `str()` in the following is to account for the case
         # when text is of type String or StringPointer (which are Syft string
