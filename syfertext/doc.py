@@ -34,6 +34,14 @@ class Doc(AbstractObject):
         # file
         self.container = list()
 
+
+    def set_attribute(self, name: str, value: object):
+        """Creates a custom attribute with the name `name` and
+           value `value` in the Underscore object `self._`
+        """
+
+        setattr(self._, name, value)
+
     def __getitem__(self, key: int):
         """Returns a Token object at position `key`.
 
@@ -45,16 +53,12 @@ class Doc(AbstractObject):
             Token: the token at index key
         """
 
+
         # Get the corresponding TokenMeta object
         token_meta = self.container[key]
 
         # Create a Token object
-        doc = nlp("Tokenize me")
-        token = doc[1]
-
-        token.set_attribute(name="custom_att", value='tag')
         token = Token(doc=self, token_meta=token_meta)
-
         return token
 
     @staticmethod
