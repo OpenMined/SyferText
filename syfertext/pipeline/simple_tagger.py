@@ -21,24 +21,24 @@ class SimpleTagger:
     ):
         """Initialize the SimpleTagger object.
 
-           Args:
-               attribute (str): The name of the attribute that will hold the tag.
-                   this attribute will be accessible through the attribute
-                   `._` of Token objects. Example `token_object._.<attribute>
-               lookups (set, list or dict): If of type `list` of `set`, it should contain
-                   the tokens that are to be searched for and tagged in the Doc 
-                   object's text. Example: ['the', 'myself', ...]
-                   If of type `dict`, the keys should be the tokens texts to be
-                   tagged, and values should hold a single tag for each such token.
-                   Example: tagging stop words {'the': True, 'myself' : True}.
-               tag (object, optional): If `lookups` is of type `list`, then this
-                   will be the tag assigned to all matched tokens. It will be 
-                   ignored if `lookups` if of type `dict`.
-               default_tag: (object, optional): The default tag to be assigned
-                   in case the token text maches no entry in `lookups`.
-               case_sensitive: (bool, optional): If set to True, then matching
-                   token texts to `lookups` will become case sensitive.
-                   Defaults to True.
+        Args:
+            attribute (str): The name of the attribute that will hold the tag.
+                this attribute will be accessible through the attribute
+                `._` of Token objects. Example `token_object._.<attribute>
+            lookups (set, list or dict): If of type `list` of `set`, it should contain
+                the tokens that are to be searched for and tagged in the Doc 
+                object's text. Example: ['the', 'myself', ...]
+                If of type `dict`, the keys should be the tokens texts to be
+                tagged, and values should hold a single tag for each such token.
+                Example: tagging stop words {'the': True, 'myself' : True}.
+            tag (object, optional): If `lookups` is of type `list`, then this
+                will be the tag assigned to all matched tokens. It will be 
+                ignored if `lookups` if of type `dict`.
+            default_tag: (object, optional): The default tag to be assigned
+                in case the token text maches no entry in `lookups`.
+            case_sensitive: (bool, optional): If set to True, then matching
+                token texts to `lookups` will become case sensitive.
+                Defaults to True.
         """
 
         self.attribute = attribute
@@ -73,12 +73,12 @@ class SimpleTagger:
         """Converts every token in `self.lookups` to lower case to enable
            case in-sensitive matching
 
-           Args:
-               lookups (set, list or dict): Check out the docstring of `__init__()`.
+        Args:
+            lookups (set, list or dict): Check out the docstring of `__init__()`.
 
-           Returns:
-               A transformed version  of `lookup` where all token texts are in 
-               lower case.
+        Returns:
+            A transformed version  of `lookup` where all token texts are in 
+            lower case.
  
         """
 
@@ -95,11 +95,11 @@ class SimpleTagger:
            If now value is found, self.default is used instead
 
 
-           Args:
-               token (Token): The Token object to which the tag is to be assigned.
+        Args:
+            token (Token): The Token object to which the tag is to be assigned.
 
-           Returns:
-               tag (object): Check out the docstring of `__init__()`.
+        Returns:
+            tag (object): Check out the docstring of `__init__()`.
         """
 
         # Get the token text
