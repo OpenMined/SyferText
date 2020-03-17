@@ -6,7 +6,7 @@ import numpy as np
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_sci_md", owner=me)
+nlp = syfertext.load("en_core_web_lg", owner=me)
 
 
 def test_vector_valid_token_is_not_zero():
@@ -22,7 +22,7 @@ def test_vector_valid_dim():
     """Test that the vector has valid dimensions"""
     doc = nlp("love")
     # check that dimension of vector is valid
-    assert(doc[0].vector.shape[0] > 0)
+    assert doc[0].vector.shape[0] > 0 
 
 
 def test_vector_non_valid_token_is_zero():
