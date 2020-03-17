@@ -59,3 +59,4 @@ TOKENIZER_INFIXES = _infixes
 suffix_re = compile_suffix_regex(_suffixes)
 prefix_re = compile_prefix_regex(_prefixes)
 infix_re = compile_infix_regex(_infixes)
+

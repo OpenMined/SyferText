@@ -29,16 +29,18 @@ def test_vector_non_valid_token_is_zero():
 
 def test_length_of_doc():
     """Test that tokenizer creates right number of tokens are created"""
-    doc = nlp("I love #app$le%  ")
+    doc = nlp("I #love  app-le.")
     actual = 8
     tokens_created = len(doc)
     # check that all cells in actual vector are zeros
     assert actual == tokens_created
 
 
-def test_corectness_of_tokens_created():
+def test_correctness_of_tokens_created():
     """Test that tokens created by tokenizer are correct"""
-    doc = nlp("I love #app$le%  ")
-    actual_tokens = ["I", "love", "#", "app", "$", "le", "%", " "]
+    doc = nlp("I #love  app-le!")
+    actual_tokens = ["I", "#", "love", " ", "app", "-", "le", "!"]
     for i, token_created in enumerate(doc):
         assert str(token_created) == actual_tokens[i]
+print(test_length_of_doc())
+print(test_correctness_of_tokens_created())

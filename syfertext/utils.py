@@ -6,6 +6,7 @@ import urllib.request as request
 from tqdm import tqdm
 from pathlib import Path
 
+
 # Files to download for each language model
 # TODO: Downloading language models should be handled
 #       differently in later version of the library.
@@ -131,14 +132,10 @@ def _download_model(model_name: str, model_path: str):
     prog_bar.close()
 
 
-def compile_prefix_regex(entries):
+def compile_prefix_regex(entries: str):
     """Compile a sequence of prefix rules into a regex object.
-
-    Args:
-        entries (tuple): The prefix rules.
-
-    RETURNS:
-        regex object: The regex object. to be used for Tokenizer.prefix_search.
+    entries (tuple): The prefix rules, e.g. spacy.lang.punctuation.TOKENIZER_PREFIXES.
+    Returns (re.Pattern): The regex object. to be used for Tokenizer.prefix_search.
     """
     if "(" in entries:
         # Handle deprecated data
@@ -151,27 +148,19 @@ def compile_prefix_regex(entries):
         return re.compile(expression)
 
 
-def compile_suffix_regex(entries):
+def compile_suffix_regex(entries: str):
     """Compile a sequence of suffix rules into a regex object.
-
-    Args:
-        entries (tuple): The suffix rules.
-
-    Returns:
-        regex object: The regex object. to be used for Tokenizer.suffix_search.
+    entries (tuple): The suffix rules, e.g. spacy.lang.punctuation.TOKENIZER_SUFFIXES.
+    Returns (re.Pattern): The regex object. to be used for Tokenizer.suffix_search.
     """
     expression = "|".join([piece + "$" for piece in entries if piece.strip()])
     return re.compile(expression)
 
 
-def compile_infix_regex(entries):
+def compile_infix_regex(entries: str):
     """Compile a sequence of infix rules into a regex object.
-
-    Args:
-        entries (tuple): The infix rules.
-
-    Returns:
-        regex object: The regex object. to be used for Tokenizer.infix_finditer.
+    entries (tuple): The infix rules, e.g. spacy.lang.punctuation.TOKENIZER_INFIXES.
+    Returns (re.Pattern): The regex object. to be used for Tokenizer.infix_finditer.
     """
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)

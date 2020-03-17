@@ -68,3 +68,5 @@ def test_tokenizer_is_not_recreated_in_remote_workers():
     assert len(tokenizers) == 1
     assert len(documents) == 3
     assert len(nlp.tokenizers.keys()) == 2
+
+

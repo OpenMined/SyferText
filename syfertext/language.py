@@ -48,7 +48,7 @@ class BaseDefaults(object):
            Todo:
                this is a Tokenizer object similar as in spacy but is not nearly as sophisticated
                as that of spacy. It creates tokens as strings seprated by spaces, infix, prefix and suffixs.
-               Of course, more features should be added later.
+               And it can handle exceptions and special cases.Of course, more features should   be added later.
         """
 
         # Instantiate the Tokenizer object and return it
