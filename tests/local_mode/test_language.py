@@ -7,7 +7,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', default='en_core_sci_sm', help='Model to be tested')
+    parser.add_argument('--model', default='en_core_sci_md', help='Model to be tested')
     return parser.parse_args()
 
 
@@ -23,7 +23,7 @@ def test_vector_valid_token_is_not_zero(nlp):
 def test_vector_valid_dim(nlp):
     """Test that the vector has valid dimensions"""
     doc = nlp("love")
-    print(doc[0].vector.shape)
+    print('Vector shape:', doc[0].vector.shape)
 
 
 def test_vector_non_valid_token_is_zero(nlp):

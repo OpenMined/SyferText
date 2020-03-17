@@ -27,6 +27,13 @@ lang_model_files["en_core_sci_sm"] = [
     "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_sm/words?raw=true",
 ]
 
+# Larger language model for biomedical data with 50k word vectors
+lang_model_files["en_core_sci_md"] = [
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_md/key2row?raw=true",
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_md/vectors?raw=true",
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_md/words?raw=true",
+]
+
 # Large language model from Spacy
 lang_model_files["en_core_web_lg"] = [
     "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/key2row?raw=true",
