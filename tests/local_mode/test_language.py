@@ -6,12 +6,12 @@ import numpy as np
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = syfertext.load("en_core_web_sm", owner=me)
 
 
 def test_vector_valid_token_is_not_zero():
     """Test that the vector of a valid token is not all zeros"""
-    doc = nlp("banana")
+    doc = nlp("love")
     actual = doc[0].vector
     zeros = np.zeros(actual.shape)
     # check that at least one cell in actual vector is not zero
@@ -25,3 +25,7 @@ def test_vector_non_valid_token_is_zero():
     zeros = np.zeros(actual.shape)
     # check that all cells in actual vector are zeros
     assert (actual == zeros).all() == True
+
+if __name__ == "__main__":
+    test_vector_valid_token_is_not_zero()
+    test_vector_non_valid_token_is_zero()
