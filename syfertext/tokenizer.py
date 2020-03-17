@@ -18,14 +18,14 @@ class TokenMeta(object):
     def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
         """Initializes a TokenMeta object
 
-           Args:
-               start_pos (int): The start index of the token in the Doc text.
-               end_pos (int): The end index of the token in the Doc text (the end index is
-                   part of the token).
-               space_after (bool): Whether the token is followed by a single white 
-                   space (True) or not (False).
-               is_space (bool): Whether the token itself is composed of only white 
-                   spaces (True) or not (false).
+        Args:
+            start_pos (int): The start index of the token in the Doc text.
+            end_pos (int): The end index of the token in the Doc text (the end index is
+                part of the token).
+            space_after (bool): Whether the token is followed by a single white 
+                space (True) or not (False).
+            is_space (bool): Whether the token itself is composed of only white 
+                spaces (True) or not (false).
 
         """
 
@@ -52,24 +52,20 @@ class Tokenizer(AbstractObject):
     ):
         """Initialize the Tokenizer object
            
-           Args:
-               vocab: str or Vocab object
-                      If str, this should be the name of the language model to build the 
-                      Vocab object from. such as 'en_core_web_lg'. This is useful when
-                      the Tokenizer object is sent to a remote worker. So it can rebuild
-                      its Vocab object from scratch instead of send the Vocab object to
-                      the remote worker which might take too much network traffic.
-               id: int
-                   The id of the Tokenizer object.
-               owner: BaseWorker 
-                      The worker on which the Tokenizer object lives.
-               client_id: str
-                          The id of the worker on which the Language object using this
-                          Tokenizer lives.
-               tags: list of str
-                     Tags to attach to the current Tokenizer.
-               description: str
-                            A description of this Tokenizer object.
+        Args:
+            vocab (str or Vocab) :If str, this should be the name of the 
+                language model to build the Vocab object from. such as 
+                'en_core_web_lg'. This is useful whenthe Tokenizer 
+                object is sent to a remote worker. So it can rebuild
+                its Vocab object from scratch instead of send the Vocab object to
+                the remote worker which might take too much network traffic.
+            id (int): The id of the Tokenizer object.
+            owner (BaseWorker): The worker on which the Tokenizer object is located.
+            client_id (str): The id of the worker on which the Language 
+                object using this Tokenizer is located.
+            tags  (list of str): Tags to attach to the current Tokenizer.
+            description (str):
+                A description of this Tokenizer object.
         """
 
         if isinstance(vocab, Vocab):

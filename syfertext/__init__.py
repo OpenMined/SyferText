@@ -1,14 +1,19 @@
 from .language import Language
 from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
+from .pipeline import SubPipeline
 
+import syft
 import syft.serde.msgpack.serde as serde
 from syft.workers.base import BaseWorker
+import torch
 
 from typing import List, Tuple, Set
 import logging
 import os
 
+# Get a torch hook
+hook = syft.TorchHook(torch)
 
 def load(
     model_name,
@@ -66,4 +71,7 @@ def register_to_serde(class_type: type):
 
 # Register some types to serde
 register_to_serde(Tokenizer)
-register_to_serde(DocPointer)
+register_to_serde(SubPipeline)
+
+# Set the default owners of some classes
+SubPipeline.owner = hook.local_worker
