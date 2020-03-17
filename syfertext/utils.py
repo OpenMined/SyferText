@@ -13,18 +13,21 @@ from pathlib import Path
 
 lang_model_files = dict()
 
+# Light model for tutorials
 lang_model_files["en_core_web_sm"] = [
     "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_sm/key2row?raw=true",
     "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_sm/vectors?raw=true",
-    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_sm/words?raw=true"
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_sm/words?raw=true",
 ]
 
-lang_model_files["en_core_web_sm"] = [
-    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_md/key2row?raw=true",
-    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_md/vectors?raw=true",
-    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_web_md/words?raw=true"
+# Language model for biomedical data
+lang_model_files["en_core_sci_sm"] = [
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_sm/key2row?raw=true",
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_sm/vectors?raw=true",
+    "https://github.com/sachin-101/syfertext_lang_models/blob/master/en_core_sci_sm/words?raw=true",
 ]
 
+# Large language model from Spacy
 lang_model_files["en_core_web_lg"] = [
     "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/key2row?raw=true",
     "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/vectors?raw=true",
