@@ -55,9 +55,9 @@ class Tokenizer(AbstractObject):
         Args:
             vocab (str or Vocab) :If str, this should be the name of the 
                 language model to build the Vocab object from. such as 
-                'en_core_web_lg'. This is useful whenthe Tokenizer 
+                'en_core_web_lg'. This is useful when the Tokenizer 
                 object is sent to a remote worker. So it can rebuild
-                its Vocab object from scratch instead of send the Vocab object to
+                its Vocab object from scratch instead of sending the Vocab object to
                 the remote worker which might take too much network traffic.
             id (int): The id of the Tokenizer object.
             owner (BaseWorker): The worker on which the Tokenizer object is located.

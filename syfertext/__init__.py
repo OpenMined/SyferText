@@ -56,22 +56,27 @@ def register_to_serde(class_type: type):
     Args:
         class_type (type): The class to register to PySyfts' serde module.
             This enables serde to serialize and deserialize objects of that class.
+
+    Returns:
+        (int): The proto ID it is registered with
     """
 
     # Get the maximum integer index of detailers and add 1 to it
     # to create a new index that does not exist yet
-    idx = max(list(serde.detailers.keys())) + 1
+    proto_id = max(list(serde.detailers.keys())) + 1
 
     # Add the simplifier
-    serde.detailers[idx] = class_type.detail
+    serde.detailers[proto_id] = class_type.detail
 
     # Add the simplifier
-    serde.simplifiers[class_type] = (idx, class_type.simplify)
+    serde.simplifiers[class_type] = (proto_id, class_type.simplify)
 
+
+    return proto_id
 
 # Register some types to serde
-register_to_serde(Tokenizer)
-register_to_serde(SubPipeline)
+Tokenizer.proto_id = register_to_serde(Tokenizer)
+SubPipeline.proto_id = register_to_serde(SubPipeline)
 
 # Set the default owners of some classes
 SubPipeline.owner = hook.local_worker
