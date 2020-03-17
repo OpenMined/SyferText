@@ -18,14 +18,14 @@ class TokenMeta(object):
     def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
         """Initializes a TokenMeta object
 
-           Args:
-               start_pos (int): The start index of the token in the Doc text.
-               end_pos (int): The end index of the token in the Doc text (the end index is
-                   part of the token).
-               space_after (bool): Whether the token is followed by a single white 
-                   space (True) or not (False).
-               is_space (bool): Whether the token itself is composed of only white 
-                   spaces (True) or not (false).
+        Args:
+            start_pos (int): The start index of the token in the Doc text.
+            end_pos (int): The end index of the token in the Doc text (the end index is
+                part of the token).
+            space_after (bool): Whether the token is followed by a single white 
+                space (True) or not (False).
+            is_space (bool): Whether the token itself is composed of only white 
+                spaces (True) or not (false).
 
         """
 
@@ -52,24 +52,24 @@ class Tokenizer(AbstractObject):
     ):
         """Initialize the Tokenizer object
            
-           Args:
-               vocab: str or Vocab object
-                      If str, this should be the name of the language model to build the 
-                      Vocab object from. such as 'en_core_web_lg'. This is useful when
-                      the Tokenizer object is sent to a remote worker. So it can rebuild
-                      its Vocab object from scratch instead of send the Vocab object to
-                      the remote worker which might take too much network traffic.
-               id: int
-                   The id of the Tokenizer object.
-               owner: BaseWorker 
-                      The worker on which the Tokenizer object lives.
-               client_id: str
-                          The id of the worker on which the Language object using this
-                          Tokenizer lives.
-               tags: list of str
-                     Tags to attach to the current Tokenizer.
-               description: str
-                            A description of this Tokenizer object.
+        Args:
+            vocab: str or Vocab object
+                    If str, this should be the name of the language model to build the 
+                    Vocab object from. such as 'en_core_web_lg'. This is useful when
+                    the Tokenizer object is sent to a remote worker. So it can rebuild
+                    its Vocab object from scratch instead of send the Vocab object to
+                    the remote worker which might take too much network traffic.
+            id: int
+                The id of the Tokenizer object.
+            owner: BaseWorker 
+                    The worker on which the Tokenizer object lives.
+            client_id: str
+                        The id of the worker on which the Language object using this
+                        Tokenizer lives.
+            tags: list of str
+                    Tags to attach to the current Tokenizer.
+            description: str
+                        A description of this Tokenizer object.
         """
 
         if isinstance(vocab, Vocab):
@@ -108,13 +108,11 @@ class Tokenizer(AbstractObject):
            to blindly verify the sanity of the blind tokenization process.
 
 
-           Parameters
-           ----------
-           text: Syft String or str
-                 The text to be tokenized
-           text_id: int
-                    the text id to be tokenized. The id can be used to get the object
-                    from the worker registery
+        Args:
+           text (Syft String or str) : The text to be tokenized
+           text_id (int) : the text id to be tokenized. The id can be used to get the object
+                            from the worker registery
+
         """
 
         # Either the `text` or the `text_id` should be specified, they cannot be both None
@@ -213,17 +211,16 @@ class Tokenizer(AbstractObject):
         return doc
 
     def send(self, location: BaseWorker):
-        """
-           Sends this tokenizer object to the worker specified by 'location'. 
+        """Sends this tokenizer object to the worker specified by 'location'. 
            and returns a pointer to that tokenizer as a TokenizerPointer object.
 
-           Args:
-               location: The BaseWorker object to which the tokenizer is to be sent.
-                         Note that this is never actually the BaseWorker but instead
-                         a class which inherits the BaseWorker abstraction.
+        Args:
+            location: The BaseWorker object to which the tokenizer is to be sent.
+                        Note that this is never actually the BaseWorker but instead
+                        a class which inherits the BaseWorker abstraction.
 
-           Returns:
-               A TokenizerPointer objects to self.
+        Returns:
+            A TokenizerPointer objects to self.
 
         """
 
@@ -241,12 +238,11 @@ class Tokenizer(AbstractObject):
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
     ):
-        """
-           Creates a TokenizerPointer object that points to a Tokenizer object
+        """Creates a TokenizerPointer object that points to a Tokenizer object
            living in the worker 'location'.
 
-           Returns:
-                  a TokenizerPointer object
+        Returns:
+                a TokenizerPointer object
         """
 
         # I put the import here in order to avoid circular imports
@@ -270,8 +266,7 @@ class Tokenizer(AbstractObject):
 
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):
-        """
-           This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
+        """This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
            serialized.
         """
 
@@ -285,21 +280,15 @@ class Tokenizer(AbstractObject):
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
-        """
-           Create an object of type Tokenizer from the reduced representation in `simple_obj`.
+        """Create an object of type Tokenizer from the reduced representation in `simple_obj`.
 
-           Parameters
-           ----------
-           worker: BaseWorker
-                   The worker on which the new Tokenizer object is to be created.
-           simple_obj: tuple
-                       A tuple resulting from the serialized then deserialized returned tuple
-                       from the `_simplify` static method above.
+        Args:
+            worker (BaseWorker) : The worker on which the new Tokenizer object is to be created.
+            simple_obj (tuple) : A tuple resulting from the serialized then deserialized returned tuple
+                                from the `_simplify` static method above.
 
-           Returns
-           -------
-           tokenizer: Tokenizer
-                      a Tokenizer object
+        Returns:
+           tokenizer (Tokenizer) : a Tokenizer object
         """
 
         # Get the tuple elements
