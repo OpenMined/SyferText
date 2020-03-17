@@ -42,5 +42,3 @@ def test_correctness_of_tokens_created():
     actual_tokens = ["I", "#", "love", " ", "app", "-", "le", "!"]
     for i, token_created in enumerate(doc):
         assert str(token_created) == actual_tokens[i]
-print(test_length_of_doc())
-print(test_correctness_of_tokens_created())
