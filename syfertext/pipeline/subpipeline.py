@@ -95,7 +95,8 @@ class SubPipeline(AbstractObject):
         """
 
         ptr = self.owner.send(self, location)
-        
+
+    
     def __call__(self,
                  input: Union[str, String, Doc],
     ) -> Union[int, str, Doc]:
@@ -178,7 +179,7 @@ class SubPipeline(AbstractObject):
         
         return (client_id, pipe_names, simple_pipes)
 
-
+    @staticmethod
     def detail(
             worker: BaseWorker,
             simple_obj: tuple

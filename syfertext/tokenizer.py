@@ -40,15 +40,10 @@ class TokenMeta(object):
         self._ = Underscore()
 
 
-class Tokenizer(AbstractObject):
+class Tokenizer:
     def __init__(
         self,
         vocab: Union[Vocab, str],
-        id: int = None,
-        owner: BaseWorker = None,
-        client_id: str = None,
-        tags: List[str] = None,
-        description: str = None,
     ):
         """Initialize the Tokenizer object
            
@@ -59,13 +54,7 @@ class Tokenizer(AbstractObject):
                 object is sent to a remote worker. So it can rebuild
                 its Vocab object from scratch instead of sending the Vocab object to
                 the remote worker which might take too much network traffic.
-            id (int): The id of the Tokenizer object.
-            owner (BaseWorker): The worker on which the Tokenizer object is located.
-            client_id (str): The id of the worker on which the Language 
-                object using this Tokenizer is located.
-            tags  (list of str): Tags to attach to the current Tokenizer.
-            description (str):
-                A description of this Tokenizer object.
+    
         """
 
         if isinstance(vocab, Vocab):
@@ -73,18 +62,15 @@ class Tokenizer(AbstractObject):
         else:
             self.vocab = Vocab(model_name=vocab)
 
-        # If the client id is not specified, then it should be the same as the owner id.
-        # This means that the tokenizer and the Language objects live on the same
-        # worker.
-        if client_id:
-            self.client_id = client_id
-        else:
-            self.client_id = owner.id
+    
+    def factory(self):
+        """Creates a clone of this object.
+        This method is used by the SupPipeline class to create
+        objects using subpipeline templates.
+        """
 
-        super(Tokenizer, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
-
+        return Tokenizer(vocab = self.vocab)
+    
     def __call__(self, text: Union[String, str] = None, text_id: int = None):
         """The real tokenization procedure takes place here.
 
@@ -208,24 +194,6 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def send(self, location: BaseWorker):
-        """
-           Sends this tokenizer object to the worker specified by 'location'. 
-           and returns a pointer to that tokenizer as a TokenizerPointer object.
-
-           Args:
-               location: The BaseWorker object to which the tokenizer is to be sent.
-                         Note that this is never actually the BaseWorker but instead
-                         a class which inherits the BaseWorker abstraction.
-
-           Returns:
-               A TokenizerPointer objects to self.
-
-        """
-
-        ptr = self.owner.send(self, location)
-
-        return ptr
 
     @staticmethod
     def create_pointer(
@@ -272,12 +240,9 @@ class Tokenizer(AbstractObject):
         """
 
         # Simplify attributes
-        client_id = pickle.dumps(tokenizer.client_id)
-        tags = [pickle.dumps(tag) for tag in tokenizer.tags] if tokenizer.tags else None
-        description = pickle.dumps(tokenizer.description)
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        return (tokenizer.id, client_id, tags, description, model_name)
+        return (model_name)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -299,22 +264,14 @@ class Tokenizer(AbstractObject):
         """
 
         # Get the tuple elements
-        id, client_id, tags, description, model_name = simple_obj
+        model_name = simple_obj
 
         # Unpickle
-        client_id = pickle.loads(client_id)
-        tags = [pickle.loads(tag) for tag in tags] if tags else None
-        description = pickle.loads(description)
         model_name = pickle.loads(model_name)
 
         # Create the tokenizer object
         tokenizer = Tokenizer(
             vocab=model_name,
-            id=id,
-            owner=worker,
-            client_id=client_id,
-            tags=tags,
-            description=description,
         )
 
         return tokenizer

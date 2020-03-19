@@ -58,6 +58,26 @@ class SimpleTagger:
         self.tag = tag
         self.default_tag = default_tag
 
+        attribute: str,
+        lookups: Union[set, list, dict],
+        tag: object = None,
+        default_tag: object = None,
+        case_sensitive: bool = True,
+
+    def factory(self):
+        """Creates a clone of this object.
+        This method is used by the SupPipeline class to create
+        objects using subpipeline templates.
+        """
+
+        return SimpleTagger(
+            attribute =  self.attribute,
+            lookups =  self.lookups,
+            tag =  self.tag,
+            default_tag =  self.default_tag,
+            case_sensitive = self.case_sensitive
+        )
+
     def __call__(self, doc: Doc):
 
         # Start tagging

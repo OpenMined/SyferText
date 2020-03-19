@@ -311,8 +311,15 @@ class Language(AbstractObject):
         pipe_index = self.pipe_names.index(name)
 
         # Delete the pipe using its index
-        pipe = self.pipeline.pop(pipe_index)
+        pipe = self.pipeline_template.pop(pipe_index)
 
+        # Parse the pipeline template again
+        # to create the subpipeline templates
+        self._parse_pipeline_template()
+
+        # Reset the pipeline.
+        self._reset_pipeline()
+        
         return pipe
 
     def _run_subpipeline_from_template(self,
@@ -361,6 +368,9 @@ class Language(AbstractObject):
             # Get the subpipeline template
             subpipeline_template = self.subpipeline_templates[template_index]
 
+            # Is the pipeline a remote one?
+            remote = subpipeline_template['remote']
+            
             # Instantiate a subpipeline
             subpipeline = SubPipeline(template = subpipeline_template,
                                       factories = self.factories)
@@ -369,13 +379,33 @@ class Language(AbstractObject):
             self.pipeline[template_index][location_id] = subpipeline
         
             # Send the subpipeline to the worker where the input is located
-            if isinstance(input, ObjectPointer) and input.location != self.owner:
+            if (
+                    isinstance(input, ObjectPointer) and # Is the input remote?
+                    input.location != self.owner and
+                    remote # Is the subpipeline is sendable?
+            ):
                 self.pipeline[template_index][location_id] = self.pipeline[template_index][location_id].send(
                     input.location
                 )
 
-        # Apply the subpipeline
-        doc = self.pipeline[template_index][location_id](input)
+        # Apply the subpipeline and get the doc or the Doc id.
+        # If a Doc ID is obtained, this signifies the ID of the
+        # Doc object on the remote worker.
+        doc_or_id = self.pipeline[template_index][location_id](input)
+
+        # If the doc is of type str or int, this means that a
+        # DocPointer should be created
+        if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
+            
+            doc = DocPointer(
+                location = input.location,
+                id_at_location = doc_or_id,
+                owner = self.owner
+            )
+
+        # This is of type Doc then
+        else:
+            doc = doc_or_id
 
         # return the doc
         return doc
