@@ -21,7 +21,7 @@ def test_avg_vector_valid_token_is_not_zero():
 def test_avg_vector_non_valid_token_is_zero():
     """Test that the average vector of non valid token is all zeros"""
     doc = nlp("non-valid-token")
-    actual = doc[0].vector
+    actual = doc.vector
     zeros = np.zeros(actual.shape)
     # check that all cells in actual average vector are zeros
     assert (actual == zeros).all() == True
