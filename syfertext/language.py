@@ -38,28 +38,15 @@ class BaseDefaults(object):
     def create_tokenizer(
         cls,
         vocab,
-        id: int = None,
-        owner: BaseWorker = None,
-        client_id: BaseWorker = None,
-        tags: List[str] = None,
-        description: str = None,
     ) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
 
-        Todo:
-            this is a minimal Tokenizer object that is not nearly as sophisticated
-            as that of spacy. It just creates tokens as space separated strings.
-            Something like "string1 string2".split(' '). Of course, this should be changed later.
         """
 
         # Instantiate the Tokenizer object and return it
         tokenizer = Tokenizer(
             vocab,
-            owner=owner,
-            client_id=client_id,  # This is the id of the owner of the Language object using this tokenizer
-            tags=tags,
-            description=description,
         )
 
         return tokenizer
@@ -92,13 +79,12 @@ class Language(AbstractObject):
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = {"tokenizer": self.Defaults.create_tokenizer}
+        self.factories = {"tokenizer": self.Defaults.create_tokenizer(self.vocab)}
 
-        self.tokenizers = dict()
-
-        # Initialize the pipeline list
-        self.pipeline = []
-
+        # Initialize the subpipeline template
+        # It only contains the tokenizer at initialization
+        self.pipeline_template = [{'remote': True, 'name': 'tokenizer'}]
+        
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
         )
@@ -123,7 +109,7 @@ class Language(AbstractObject):
         # to True.
         subpipeline_template = dict(
             remote=self.pipeline_template[0]["remote"],
-            names=list(self.pipeline_template[0]["name"]),
+            names=[self.pipeline_template[0]["name"]],
         )
 
         # Initialize the subpipeline templates list as a class property
@@ -142,7 +128,7 @@ class Language(AbstractObject):
             # pipe template to it
             else:
                 subpipeline_template = dict(
-                    remote=pipe_template["remote"], names=list(pipe_template["name"])
+                    remote=pipe_template["remote"], names= [pipe_template["name"]]
                 )
 
                 self.subpipeline_templates.append(subpipeline_template)
@@ -355,7 +341,7 @@ class Language(AbstractObject):
 
         # Get the location ID of the worker where the text to be tokenized,
         # or the Doc to be processed is located
-        if isinstance(input, objectPointer):
+        if isinstance(input, ObjectPointer):
             location_id = input.location.id
         else:
             location_id = self.owner.id
@@ -371,13 +357,17 @@ class Language(AbstractObject):
             # Is the pipeline a remote one?
             remote = subpipeline_template['remote']
             
-            # Instantiate a subpipeline
-            subpipeline = SubPipeline(template = subpipeline_template,
-                                      factories = self.factories)
+            # Instantiate a subpipeline and load the subpipeline template
+            subpipeline = SubPipeline()
+            
+            subpipeline.load_template(
+                template = subpipeline_template,
+                factories = self.factories
+            )
 
             # Add the subpipeline to the pipeline
             self.pipeline[template_index][location_id] = subpipeline
-        
+
             # Send the subpipeline to the worker where the input is located
             if (
                     isinstance(input, ObjectPointer) and # Is the input remote?
@@ -432,8 +422,8 @@ class Language(AbstractObject):
 
         # Apply the the rest of subpipelines sequentially
         # Each subpipeline will modify the document `doc` inplace
-        for i, subpipeline in enumerate(self.pipeline[1:]):
-            doc = self._run_subpipeline(template_index=i, input=doc)
+        for i, subpipeline in enumerate(self.pipeline[1:], start = 1):
+            doc = self._run_subpipeline_from_template(template_index=i, input=doc)
 
         # return the Doc object
         return doc

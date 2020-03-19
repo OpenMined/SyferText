@@ -118,7 +118,7 @@ class SubPipeline(AbstractObject):
 
         
         # Execute the  rest of pipes in the subpipeline 
-        for pipe in self.subpipeline:
+        for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
 
 
@@ -136,7 +136,20 @@ class SubPipeline(AbstractObject):
             # Return the Doc's ID
             return doc.id
 
-        # Otherwise, return the Doc object itself
+        # Otherwise, the `doc_or_id` variable is a Doc
+        # object, if it has no owner yet, assign it the
+        # same owner as the this object.
+        # It is not yet clear if a Doc object actually
+        # needs an owner. Are we going to ever need to
+        # send a Doc object to another worker? If yes
+        # then an owner is needed. Let's give it an
+        # owner for now.
+        # A Doc owner will usually be None when returned
+        # from the tokenizer, which is not itself aware
+        # of which worker it is in.
+        if doc.owner is None:
+            doc.owner = self.owner
+            
         return doc
 
 
@@ -153,7 +166,6 @@ class SubPipeline(AbstractObject):
         Args:
             worker (BaseWorker): The worker on which the
                 simplify operation is carried out.
-                Required by PySyft serde, but unused here.
             subpipeline (SupPipeline): the SubPipeline object
                 to simplify.
 
@@ -191,7 +203,6 @@ class SubPipeline(AbstractObject):
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
                 Required by PySyft serde, but unused here.
-            simple_obj (tuple): the simplified SubPipeline object.
         Returns:
             (SubPipeline): The SubPipeline object.
         """
@@ -201,8 +212,8 @@ class SubPipeline(AbstractObject):
         client_id, simple_pipe_names, simple_pipes = simple_obj
 
         # Detail the client ID and the pipe names
-        client_id = sy.serde.msgpack.serde._detail(worker, client_id)
-        pipe_names = sy.serde.msgpack.serde._detail(worker, simple_pipe_names)        
+        client_id = serde._detail(worker, client_id)
+        pipe_names = serde._detail(worker, simple_pipe_names)        
 
         # Initialize a list of pipes
         pipes = []

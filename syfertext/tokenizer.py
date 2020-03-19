@@ -113,7 +113,10 @@ class Tokenizer:
         if text is None:
             text = self.owner.get_obj(text_id)
 
-        doc = Doc(self.vocab, text, owner=self.owner)
+        # I do not assign the Doc here any owner, this will
+        # be done by the SupPipeline object that operates
+        # this tokenizer.
+        doc = Doc(self.vocab, text)
 
         # The number of characters in the text
         text_size = len(text)
@@ -174,23 +177,6 @@ class Tokenizer:
                 # Append the token to the document
                 doc.container.append(token_meta)
 
-        # If the Language object using this tokenizer lives on a different worker
-        # (self.client_id != self.owner.id)
-        # Then return a DocPointer to the generated doc object
-        if self.client_id != self.owner.id:
-
-            # Register the Doc in the current worker
-            self.owner.register_obj(obj=doc)
-
-            # Create a pointer to the above Doc object
-            doc_pointer = Doc.create_pointer(
-                doc,
-                location=self.owner,
-                id_at_location=doc.id,
-                garbage_collect_data=False,
-            )
-
-            return doc_pointer
 
         return doc
 

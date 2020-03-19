@@ -2,6 +2,9 @@ from syfertext.doc import Doc
 from syfertext.token import Token
 from typing import Union
 
+from syft.workers.base import BaseWorker
+import syft.serde.msgpack.serde as serde
+
 
 class SimpleTagger:
     """This is a very simple token-level tagger. It enables to tag specified
@@ -58,11 +61,6 @@ class SimpleTagger:
         self.tag = tag
         self.default_tag = default_tag
 
-        attribute: str,
-        lookups: Union[set, list, dict],
-        tag: object = None,
-        default_tag: object = None,
-        case_sensitive: bool = True,
 
     def factory(self):
         """Creates a clone of this object.
@@ -88,6 +86,8 @@ class SimpleTagger:
 
             # Set the attribute of each matched token to the tag
             token.set_attribute(name=self.attribute, value=tag)
+
+        return doc
 
     def _desensitize_lookups(self, lookups: Union[dict, list, set]):
         """Converts every token in `self.lookups` to lower case to enable
@@ -137,3 +137,73 @@ class SimpleTagger:
             tag = self.tag if token_text in self.lookups else self.default_tag
 
         return tag
+
+
+    @staticmethod
+    def simplify(
+            worker: BaseWorker,
+            simple_tagger: "SimpleTagger"
+    ):
+        """Simplifies a SimpleTagger object. 
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                simplify operation is carried out.
+            simple_tagger (SimpleTagger): the SimpleTagger object
+                to simplify.
+
+        Returns:
+            (tuple): The simplified SimpleTagger object.
+        
+        """
+
+        # Simplify the object properties
+        attribute = serde._simplify(worker, simple_tagger.attribute)
+        lookups =  serde._simplify(worker, simple_tagger.lookups)
+        tag =  serde._simplify(worker, simple_tagger.tag)
+        default_tag = serde._simplify(worker, simple_tagger.default_tag)
+        case_sensitive = serde._simplify(worker, simple_tagger.case_sensitive)
+
+
+        return (attribute, lookups, tag, default_tag, case_sensitive)
+
+
+    @staticmethod
+    def detail(
+            worker: BaseWorker,
+            simple_obj: tuple
+    ):
+        """Takes a simplified SimpleTagger object, details it 
+           and returns a SimpleTagger object.
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                detail operation is carried out.
+            simple_obj (tuple): the simplified SubPipeline object.
+        Returns:
+            (SimpleTagger): The SimpleTagger object.
+        """
+
+        # Unpack the simplified object
+        attribute, lookups, tag, default_tag, case_sensitive = simple_obj
+
+        # Detail each property
+        attribute = serde._detail(worker, attribute)
+        lookups =  serde._detail(worker, lookups)
+        tag =  serde._detail(worker, tag)
+        default_tag = serde._detail(worker, default_tag)
+        case_sensitive = serde._detail(worker, case_sensitive)
+
+        # Instantiate a SimpleTagger object
+        simple_tagger = SimpleTagger(
+            attribute = attribute,
+            lookups = lookups,
+            tag = tag, 
+            default_tag = default_tag, 
+            case_sensitive = case_sensitive
+        )
+
+
+        return simple_tagger
+    
+        

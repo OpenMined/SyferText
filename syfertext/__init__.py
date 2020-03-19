@@ -2,6 +2,7 @@ from .language import Language
 from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .pipeline import SimpleTagger
 
 import syft
 import syft.serde.msgpack.serde as serde
@@ -77,6 +78,11 @@ def register_to_serde(class_type: type):
 # Register some types to serde
 Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
+SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 
 # Set the default owners of some classes
 SubPipeline.owner = hook.local_worker
+
+
+
+
