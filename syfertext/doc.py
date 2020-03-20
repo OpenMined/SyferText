@@ -115,10 +115,7 @@ class Doc(AbstractObject):
     @property
     def vector(self):
         """
-        Get document vector as an average of in-vocabulary token's vectors 
-        
-        Args:
-          self (Doc): current document
+        Get document vector as an average of in-vocabulary token's vectors
         
         Returns:
           doc_vector: document vector 
@@ -151,12 +148,11 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_encrypted_vector(
-        self, *workers, crypto_provider=None, requires_grad=True,
+        self, *workers, crypto_provider: BaseWorker = None, requires_grad: bool = True,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
-            self (Doc): current document.
             workers (sequence of BaseWorker): A sequence of remote workers from .
             crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
