@@ -1,16 +1,16 @@
 from .utils import hash_string
 
-#############################
-# StringStore object acts as a lookup table
-# It looks up strings by hashes 
-#############################
 
 class StringStore:
+    """ StringStore object acts as a lookup table.
+        It looks up strings by 64-bit hashes 
+    """ 
 
     def __init__(self, strings=None):
         """Create the StringStore object
-
-        strings (list): List of Strings to add to StringStore 
+        
+        Args:
+            strings (list): List of Strings to add to store 
         """
         self.key_to_str = {}
         self.str_to_key = {}
@@ -23,7 +23,14 @@ class StringStore:
 
 
      def __contains__(self, string):
-        """Check whether a string in in the store"""
+        """Check whether string is in the store
+        
+        Args:
+            string (str): string to check
+
+        Returns:
+            Boolean: True if string in store else False 
+        """
 
         return string in self.str_to_key.keys()
 
@@ -31,7 +38,11 @@ class StringStore:
     def add(self, string):
         """Add a sting to the StringStore
 
-        string (str): The string to add
+        Args:
+            string (str): The string to add
+        
+        Returns:
+            key (int): hash key for corresponding string
         """
 
         if isinstance(string, str):
@@ -53,29 +64,31 @@ class StringStore:
         
         return key
     
-    
+
     def __getitem__(self, string_or_id):
         """Retrieve a string from a given hash,  or vice-versa
 
-        string_or_id (str, int): The hash/string value
+        Args:
+            string_or_id (str, int): The hash/string value
         """
 
         if isinstance(string_or_id, int):
             # if string_or_id is hash value
-            # return correpoding string
+            # return corresponding string
             return self.key_to_str[string_or_id]
         
         elif isinstance(string_or_id, str):
             # if string_or_id is of type string
+            # return corresponding key (hash value)
 
             if string_or_id not in self:    # string not in store
-                key = self.add(string_or_id)
+                key = self.add(string_or_id)    # add string to store
             else: 
                 key = self.str_to_key[string_or_id]
 
             return key
 
-        else:   # Wrong type
+        else:   #[TODO] Add custom SyferText error messgage
             raise TypeError(f"key is of type {type(string_or_id)}; Expected type str or int")
 
    
