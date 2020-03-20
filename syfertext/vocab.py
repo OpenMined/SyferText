@@ -25,8 +25,7 @@ class Vocab:
         self.vectors = Vectors(model_name)
 
     def load_strings(self):
-        """
-           load the pickled list of words that the Vocab object knows and has vectors fot.
+        """load the pickled list of words that the Vocab object knows and has vectors fot.
 
            # TODO: this should be later replaced by an object of StringStore as in spaCy
         """
