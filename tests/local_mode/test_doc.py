@@ -9,6 +9,7 @@ me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
+
 def test_avg_vector_valid_token():
     """Test that the average vector of valid tokens match the expected result"""
     doc = nlp("on your left")
