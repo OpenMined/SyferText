@@ -1,6 +1,7 @@
 from .doc import Doc
 from .vocab import Vocab
 from .underscore import Underscore
+from .utils import hash_string
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -15,10 +16,11 @@ class TokenMeta(object):
        This allows to create a Token object when needed.
     """
 
-    def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
+    def __init__(self, hash_key: int, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
         """Initializes a TokenMeta object
 
         Args:
+            hash_key(int): hash value of the string stored by the Token object
             start_pos (int): The start index of the token in the Doc text.
             end_pos (int): The end index of the token in the Doc text (the end index is
                 part of the token).
@@ -29,11 +31,14 @@ class TokenMeta(object):
 
         """
 
+        # stores the hash of the hash of the string
+        self.orth = hash_key
+
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.space_after = space_after
         self.is_space = is_space
-
+        
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
@@ -147,9 +152,14 @@ class Tokenizer(AbstractObject):
 
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
+                start_pos = pos
+                end_pos = i - 1
+                hash_key = hash_string(str(text[start_pos:end_pos])) #get hash key for string
+
                 token_meta = TokenMeta(
-                    start_pos=pos,
-                    end_pos=i - 1,
+                    hash_key=hash_key,
+                    start_pos=start_pos,
+                    end_pos=end_pos,
                     space_after=is_current_space,
                     is_space=is_space,
                 )
