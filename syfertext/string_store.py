@@ -22,7 +22,7 @@ class StringStore:
                 self.str_to_key[word] = key
 
 
-     def __contains__(self, string):
+    def __contains__(self, string):
         """Check whether string is in the store
         
         Args:

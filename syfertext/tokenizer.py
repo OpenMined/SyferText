@@ -152,14 +152,14 @@ class Tokenizer(AbstractObject):
 
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
-                start_pos = pos
-                end_pos = i - 1
-                hash_key = hash_string(str(text[start_pos:end_pos])) #get hash key for string
-
                 token_meta = TokenMeta(
-                    hash_key=hash_key,
-                    start_pos=start_pos,
-                    end_pos=end_pos,
+                    # get hash key for string stored in the TokenMeta object, where string is
+                    # substring of text from start_pos == pos to end_pos == (i - 1) 
+                    # Note: If the store doesn't contain string, then it is added to store
+                    # and the corresponding key is returned back
+                    hash_key=self.vocab.store[str(text[pos:(i-1)])], 
+                    start_pos=pos,
+                    end_pos=i - 1,
                     space_after=is_current_space,
                     is_space=is_space,
                 )
@@ -182,10 +182,15 @@ class Tokenizer(AbstractObject):
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
-
+                
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
+                    # hash key for string stored in the TokenMeta object, where string is
+                    # substring of text from start_pos == pos to end_pos == None 
+                    # Note: If the store doesn't contain string, then it is added to store
+                    # and the corresponding key is returned back
+                    hash_key = self.vocab.store[str(text[pos:])],
                     start_pos=pos,
                     end_pos=None,  # text[pos:None] ~ text[pos:]
                     space_after=is_current_space,
