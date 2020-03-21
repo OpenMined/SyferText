@@ -16,7 +16,14 @@ class TokenMeta(object):
        This allows to create a Token object when needed.
     """
 
-    def __init__(self, hash_key: int, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
+    def __init__(
+        self,
+        hash_key: int,
+        start_pos: int,
+        end_pos: int,
+        space_after: bool,
+        is_space: bool,
+    ):
         """Initializes a TokenMeta object
 
         Args:
@@ -38,7 +45,7 @@ class TokenMeta(object):
         self.end_pos = end_pos
         self.space_after = space_after
         self.is_space = is_space
-        
+
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
@@ -154,10 +161,10 @@ class Tokenizer(AbstractObject):
                 # from the text
                 token_meta = TokenMeta(
                     # get hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos == (i - 1) 
+                    # substring of text from start_pos == pos to end_pos == (i - 1)
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos:(i-1)])], 
+                    hash_key=self.vocab.store[str(text[pos : (i - 1)])],
                     start_pos=pos,
                     end_pos=i - 1,
                     space_after=is_current_space,
@@ -182,15 +189,15 @@ class Tokenizer(AbstractObject):
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
-                
+
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
                     # hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos == None 
+                    # substring of text from start_pos == pos to end_pos == None
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
-                    hash_key = self.vocab.store[str(text[pos:])],
+                    hash_key=self.vocab.store[str(text[pos:])],
                     start_pos=pos,
                     end_pos=None,  # text[pos:None] ~ text[pos:]
                     space_after=is_current_space,

@@ -21,7 +21,7 @@ class Vocab:
         # Create the 'strings' list that holds words that the Vocab object knows and
         # have vectors for
         strings = self.load_strings()
-        
+
         # StringStore object acts as a lookup table for known strings
         # Stores strings encoded as hash values to save memory
         self.store = StringStore(strings)

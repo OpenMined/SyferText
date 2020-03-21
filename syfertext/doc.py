@@ -28,7 +28,7 @@ class Doc(AbstractObject):
         )
 
         self.vocab = vocab
-        
+
         # This list is populated in the __call__ method of the Tokenizer object.
         # Its members are objects of the TokenMeta class defined in the tokenizer.py
         # file
