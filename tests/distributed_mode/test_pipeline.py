@@ -43,28 +43,28 @@ def test_subpipeline_is_not_recreated_in_remote_workers():
     # The second time a text owned by `bob` is tokenized, no new `SubPipeline`
     # objects are created. Only a new document on `bob`'s machine.
     doc2 = nlp(texts_ptr[1])
-    subpipelines = [v for v in bob._objects.values() if isinstance(v, SubPipeline)]    
+    subpipelines = [v for v in bob._objects.values() if isinstance(v, SubPipeline)]
     documents = [v for v in bob._objects.values() if isinstance(v, Doc)]
     assert len(subpipelines) == 1
     assert len(documents) == 2
     assert len(nlp.pipeline[0].keys()) == 1
-    
+
     # The first time a text owned by `alice` is tokenized, a new `SubPipeline` object
     # is created by the `nlp` object and sent to `alice`. Now the `nlp` object has
     # a second pointer to a `SubPipeline`.
     doc3 = nlp(texts_ptr[2])
-    subpipelines = [v for v in alice._objects.values() if isinstance(v, SubPipeline)]    
+    subpipelines = [v for v in alice._objects.values() if isinstance(v, SubPipeline)]
     documents = [v for v in alice._objects.values() if isinstance(v, Doc)]
     assert len(subpipelines) == 1
     assert len(documents) == 1
     assert len(nlp.pipeline[0].keys()) == 2
-    
+
     # The third time a text owned by `bob` is tokenized, no new `SupPipeline`
     # objects are created. The `nlp` object still has the same previous pointer
     # to a `SubPipeline` on `bob`'s machine and `bob` now has a third document.
     doc4 = nlp(texts_ptr[3])
-    subpipelines = [v for v in bob._objects.values() if isinstance(v, SubPipeline)]    
+    subpipelines = [v for v in bob._objects.values() if isinstance(v, SubPipeline)]
     documents = [v for v in bob._objects.values() if isinstance(v, Doc)]
-    assert len(subpipelines) == 1    
+    assert len(subpipelines) == 1
     assert len(documents) == 3
     assert len(nlp.pipeline[0].keys()) == 2

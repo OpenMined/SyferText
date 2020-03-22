@@ -80,7 +80,7 @@ class Language(AbstractObject):
 
         # Intialize the main pipeline
         self._reset_pipeline()
-        
+
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
         )
@@ -138,7 +138,7 @@ class Language(AbstractObject):
         # This method will create the instance variable
         # self.subpipeline_templates
         self._parse_pipeline_template()
-        
+
         # Get the number of subpipelines
         subpipeline_count = len(self.subpipeline_templates)
 
@@ -266,7 +266,6 @@ class Language(AbstractObject):
                 False
             ), "component cannot be added to the pipeline, \
                 please double check argument values of the `add_pipe` method call."
-
 
         # Reset the pipeline.
         # The instance variable that will be affected is:

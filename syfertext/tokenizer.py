@@ -70,10 +70,7 @@ class Tokenizer:
 
         return Tokenizer(vocab=self.vocab)
 
-    def __call__(
-            self,
-            text: Union[String, str]
-    ):
+    def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
 
            As in the spaCy library. This is not exactly equivalent to 
@@ -167,7 +164,6 @@ class Tokenizer:
                 doc.container.append(token_meta)
 
         return doc
-
 
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):

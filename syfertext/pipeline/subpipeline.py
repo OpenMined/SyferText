@@ -98,9 +98,7 @@ class SubPipeline(AbstractObject):
         return ptr
 
     def __call__(
-        self,
-        input: Union[str, String, Doc] = None,
-        input_id: Union[str, int] = None,
+        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
@@ -121,7 +119,7 @@ class SubPipeline(AbstractObject):
 
         # Either the `input` or the `input_id` should be specified, they can
         # be neither  both None nor both specified at the same time
-        # 
+        #
         assert (
             input is not None or input_id is not None
         ), "Arguments `input` and `input_id` cannot be both None"
@@ -130,18 +128,16 @@ class SubPipeline(AbstractObject):
             input is None or input_id is None
         ), "Arguments `input` and `input_id` cannot be both specified"
 
-
         # If `input` is not specified, then get the input using its ID
         if input is None:
             input = self.owner.get_obj(input_id)
-            
+
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
 
         # If the Language object using this subpipeline
         # is located on a different worker, then
