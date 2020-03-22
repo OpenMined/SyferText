@@ -26,6 +26,10 @@ More tutorials are coming soon. Stay tuned!
 To get news about feature and tutorial relseases:
 
  Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib).
+ 
+ Or join:
+
+#team_nlp channel on [slack](slack.openmined.org)
 
 -------
 
