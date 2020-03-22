@@ -43,11 +43,7 @@ class SubPipelinePointer(ObjectPointer):
             garbage_collect_data=garbage_collect_data,
         )
 
-
-    def __call__(
-            self,
-            pointer: Union[StringPointer, DocPointer]
-    ):
+    def __call__(self, pointer: Union[StringPointer, DocPointer]):
         """Forwards the call to the `__call__` method of the
         `SubPipeline` object it points to. 
         This forwarding mecanism is needed when the SubPipeline is
@@ -67,7 +63,6 @@ class SubPipelinePointer(ObjectPointer):
         # Get the ID of the remote object pointed to by `pointer`.
         input_id_at_location = pointer.id_at_location
 
-
         # Create the command message to is used to forward the method
         # call.
         args = []
@@ -79,4 +74,3 @@ class SubPipelinePointer(ObjectPointer):
         response = self.owner.send_command(self.location, command)
 
         return response
-        

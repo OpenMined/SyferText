@@ -24,9 +24,7 @@ class SubPipeline(AbstractObject):
     local worker as the default owner.
     """
 
-    def __init__(self,
-                 id: Union[str, int] = None,
-                 pipes: List[callable] = None):
+    def __init__(self, id: Union[str, int] = None, pipes: List[callable] = None):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
@@ -55,10 +53,7 @@ class SubPipeline(AbstractObject):
         # Create the subpipeline
         self.subpipeline = pipes
 
-        super(SubPipeline, self).__init__(
-            id = id,
-            owner=self.owner
-        )
+        super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_template(
         self,
@@ -86,7 +81,6 @@ class SubPipeline(AbstractObject):
         # Create the subpipeline property
         self.subpipeline = [factories[name].factory() for name in template["names"]]
 
-        
     def send(self, location: BaseWorker):
         """Sends this object to the worker specified by 'location'. 
 
@@ -104,9 +98,9 @@ class SubPipeline(AbstractObject):
         return ptr
 
     def __call__(
-            self,
-            input: Union[str, String, Doc],
-            #input_id: Union[str, int],
+        self,
+        input: Union[str, String, Doc],
+        # input_id: Union[str, int],
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
@@ -220,7 +214,7 @@ class SubPipeline(AbstractObject):
         """
 
         # Simplify the attributes and pipe components
-        id = serde._simplify(worker, subpipeline.id)        
+        id = serde._simplify(worker, subpipeline.id)
         client_id = serde._simplify(worker, subpipeline.client_id)
         pipe_names = serde._simplify(worker, subpipeline.pipe_names)
 
@@ -250,7 +244,7 @@ class SubPipeline(AbstractObject):
         id, client_id, simple_pipe_names, simple_pipes = simple_obj
 
         # Detail the client ID and the pipe names
-        id = serde._detail(worker, id)        
+        id = serde._detail(worker, id)
         client_id = serde._detail(worker, client_id)
         pipe_names = serde._detail(worker, simple_pipe_names)
 
@@ -269,9 +263,9 @@ class SubPipeline(AbstractObject):
             pipes.append(pipe)
 
         # Create the subpipeline object and set the client ID
-        subpipeline = SubPipeline(id = id, pipes=pipes)
+        subpipeline = SubPipeline(id=id, pipes=pipes)
 
-        # Important: the 
+        # Important: the
         subpipeline.client_id = client_id
         subpipeline.pipe_names = pipe_names
 
