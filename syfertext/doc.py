@@ -138,7 +138,7 @@ class Doc(AbstractObject):
 
         for token in self:
 
-            # Get the encrypted vector of the token if one exists
+            # Get the vector of the token if one exists
             if token.has_vector:
 
                 # Increment the vector counter
@@ -157,7 +157,7 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_encrypted_vector(
-        self, *workers, crypto_provider: BaseWorker = None, requires_grad: bool = True,
+        self, *workers: BaseWorker, crypto_provider: BaseWorker = None, requires_grad: bool = True,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
