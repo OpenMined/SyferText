@@ -16,6 +16,7 @@ import os
 # Get a torch hook
 hook = syft.TorchHook(torch)
 
+
 def load(
     model_name,
     owner: BaseWorker,
@@ -72,8 +73,8 @@ def register_to_serde(class_type: type):
     # Add the simplifier
     serde.simplifiers[class_type] = (proto_id, class_type.simplify)
 
-
     return proto_id
+
 
 # Register some types to serde
 Tokenizer.proto_id = register_to_serde(Tokenizer)
@@ -82,7 +83,3 @@ SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 
 # Set the default owners of some classes
 SubPipeline.owner = hook.local_worker
-
-
-
-

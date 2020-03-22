@@ -1,5 +1,6 @@
 from ..doc import Doc
 from ..pointers.doc_pointer import DocPointer
+from .pointers import SubPipelinePointer
 
 import syft as sy
 from syft.generic.object import AbstractObject
@@ -12,6 +13,7 @@ import syft.serde.msgpack.serde as serde
 import pickle
 from typing import Union, Dict, List
 
+
 class SubPipeline(AbstractObject):
     """This class defines a subpipeline. A subpipeline
     is an PySyft object that encapsulate one or more
@@ -21,11 +23,8 @@ class SubPipeline(AbstractObject):
     is assigned to this class, and holds the PySyft 
     local worker as the default owner.
     """
-    
-    def __init__(
-            self,
-            pipes: List[callable] = None
-    ):
+
+    def __init__(self, pipes: List[callable] = None):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
@@ -50,13 +49,13 @@ class SubPipeline(AbstractObject):
 
         # Create the subpipeline
         self.subpipeline = pipes
-        
-        super(SubPipeline, self).__init__(owner=self.owner)
-        
 
-    def load_template(self,
-                      template: Dict[str, Union[bool, List[str]]],
-                      factories: Dict[str, callable]
+        super(SubPipeline, self).__init__(owner=self.owner)
+
+    def load_template(
+        self,
+        template: Dict[str, Union[bool, List[str]]],
+        factories: Dict[str, callable],
     ):
         """Loads the subpipeline template.
 
@@ -74,15 +73,12 @@ class SubPipeline(AbstractObject):
         """
 
         # set the pipe names property
-        self.pipe_names = template['names']
-        
-        # Create the subpipeline property
-        self.subpipeline = [factories[name].factory() for name in template['names']]
+        self.pipe_names = template["names"]
 
-    def send(
-            self,
-            location: BaseWorker
-    ):
+        # Create the subpipeline property
+        self.subpipeline = [factories[name].factory() for name in template["names"]]
+
+    def send(self, location: BaseWorker):
         """Sends this object to the worker specified by 'location'. 
 
         Args:
@@ -96,10 +92,9 @@ class SubPipeline(AbstractObject):
 
         ptr = self.owner.send(self, location)
 
-    
-    def __call__(self,
-                 input: Union[str, String, Doc],
-    ) -> Union[int, str, Doc]:
+        return ptr
+
+    def __call__(self, input: Union[str, String, Doc],) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
         Args:
@@ -112,15 +107,12 @@ class SubPipeline(AbstractObject):
                 or the ID of that Doc object (str or int).
         """
 
-
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        
-        # Execute the  rest of pipes in the subpipeline 
+        # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
 
         # If the Language object using this subpipeline
         # is located on a different worker, then
@@ -149,15 +141,55 @@ class SubPipeline(AbstractObject):
         # of which worker it is in.
         if doc.owner is None:
             doc.owner = self.owner
-            
+
         return doc
 
+    @staticmethod
+    def create_pointer(
+        subpipeline: "SubPipeline",
+        owner: BaseWorker,
+        location: BaseWorker,
+        id_at_location: Union[str, int],
+        register: bool = True,
+        ptr_id: Union[str, int] = None,
+        garbage_collect_data: bool = True,
+    ) -> SubPipelinePointer:
+        """Creates a SupPipelinePointer object that points to a given
+        SupPipeline object.
+
+        Args:
+            subpipeline (SubPipeline): The SubPipeline object to which
+                the pointer refers.
+            location (BaseWorker): The worker on which the SubPipeline
+                object pointed to by this object is located.
+            id_at_location (str, int): The PySyft ID of the SubPipeline
+                object referenced by this pointer.
+            owner (BaseWorker): The worker that owns this pointer 
+                object.
+            register (bool): Whether to register the pointer object 
+                in the object store or not. (it is required by the 
+                the BaseWorker's object send() method in PySyft, but
+                not used for the moment in this method).
+            ptr_id (str, int): The ID of the pointer object.
+            garbage_collect_data (bool): Activate garbage collection or not.
+        
+        Returns:
+            A SubPipelinePointer object pointing to `subpipeline`.
+        """
+
+        # Create the pointer object
+        subpipeline_pointer = SubPipelinePointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
+
+        return subpipeline_pointer
 
     @staticmethod
-    def simplify(
-            worker: BaseWorker,
-            subpipeline: "SubPipeline"
-    ):
+    def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> tuple:
         """Simplifies a SubPipeline object. 
 
         This requires simplifying each underlying pipe
@@ -177,25 +209,18 @@ class SubPipeline(AbstractObject):
         # Simplify the attributes and pipe components
         client_id = sy.serde.msgpack.serde._simplify(worker, subpipeline.client_id)
         pipe_names = sy.serde.msgpack.serde._simplify(worker, subpipeline.pipe_names)
-        
+
         # A list to store the simplified pipes
         simple_pipes = []
 
         # Simplify each pipe
         for pipe in subpipeline.subpipeline:
-            simple_pipes.append(
-                (pipe.proto_id, pipe.simplify(worker, pipe))
-                )
+            simple_pipes.append((pipe.proto_id, pipe.simplify(worker, pipe)))
 
-
-        
         return (client_id, pipe_names, simple_pipes)
 
     @staticmethod
-    def detail(
-            worker: BaseWorker,
-            simple_obj: tuple
-    ):
+    def detail(worker: BaseWorker, simple_obj: tuple) -> "SubPipeline":
         """Takes a simplified SubPipeline object, details it along with
         every pipe included in it and returns a SubPipeline object.
 
@@ -207,17 +232,16 @@ class SubPipeline(AbstractObject):
             (SubPipeline): The SubPipeline object.
         """
 
-        
         # Unpack the simplified object
         client_id, simple_pipe_names, simple_pipes = simple_obj
 
         # Detail the client ID and the pipe names
         client_id = serde._detail(worker, client_id)
-        pipe_names = serde._detail(worker, simple_pipe_names)        
+        pipe_names = serde._detail(worker, simple_pipe_names)
 
         # Initialize a list of pipes
         pipes = []
-        
+
         # Detail the pipes with the help of PySyft serde module
         for simple_pipe in simple_pipes:
 
@@ -230,17 +254,15 @@ class SubPipeline(AbstractObject):
             pipes.append(pipe)
 
         # Create the subpipeline object and set the client ID
-        subpipeline = SubPipeline(pipes = pipes)
+        subpipeline = SubPipeline(pipes=pipes)
         subpipeline.client_id = client_id
         subpipeline.pipe_names = pipe_names
 
-
         return subpipeline
-               
 
     def __repr__(self):
 
         # Create a list of pipe names included in the subpipeline
         pipe_names = "[" + " > ".join(self.pipe_names) + "]"
-        
+
         return self.__class__.__name__ + pipe_names

@@ -61,7 +61,6 @@ class SimpleTagger:
         self.tag = tag
         self.default_tag = default_tag
 
-
     def factory(self):
         """Creates a clone of this object.
         This method is used by the SupPipeline class to create
@@ -69,11 +68,11 @@ class SimpleTagger:
         """
 
         return SimpleTagger(
-            attribute =  self.attribute,
-            lookups =  self.lookups,
-            tag =  self.tag,
-            default_tag =  self.default_tag,
-            case_sensitive = self.case_sensitive
+            attribute=self.attribute,
+            lookups=self.lookups,
+            tag=self.tag,
+            default_tag=self.default_tag,
+            case_sensitive=self.case_sensitive,
         )
 
     def __call__(self, doc: Doc):
@@ -138,12 +137,8 @@ class SimpleTagger:
 
         return tag
 
-
     @staticmethod
-    def simplify(
-            worker: BaseWorker,
-            simple_tagger: "SimpleTagger"
-    ):
+    def simplify(worker: BaseWorker, simple_tagger: "SimpleTagger"):
         """Simplifies a SimpleTagger object. 
 
         Args:
@@ -159,20 +154,15 @@ class SimpleTagger:
 
         # Simplify the object properties
         attribute = serde._simplify(worker, simple_tagger.attribute)
-        lookups =  serde._simplify(worker, simple_tagger.lookups)
-        tag =  serde._simplify(worker, simple_tagger.tag)
+        lookups = serde._simplify(worker, simple_tagger.lookups)
+        tag = serde._simplify(worker, simple_tagger.tag)
         default_tag = serde._simplify(worker, simple_tagger.default_tag)
         case_sensitive = serde._simplify(worker, simple_tagger.case_sensitive)
 
-
         return (attribute, lookups, tag, default_tag, case_sensitive)
 
-
     @staticmethod
-    def detail(
-            worker: BaseWorker,
-            simple_obj: tuple
-    ):
+    def detail(worker: BaseWorker, simple_obj: tuple):
         """Takes a simplified SimpleTagger object, details it 
            and returns a SimpleTagger object.
 
@@ -189,21 +179,18 @@ class SimpleTagger:
 
         # Detail each property
         attribute = serde._detail(worker, attribute)
-        lookups =  serde._detail(worker, lookups)
-        tag =  serde._detail(worker, tag)
+        lookups = serde._detail(worker, lookups)
+        tag = serde._detail(worker, tag)
         default_tag = serde._detail(worker, default_tag)
         case_sensitive = serde._detail(worker, case_sensitive)
 
         # Instantiate a SimpleTagger object
         simple_tagger = SimpleTagger(
-            attribute = attribute,
-            lookups = lookups,
-            tag = tag, 
-            default_tag = default_tag, 
-            case_sensitive = case_sensitive
+            attribute=attribute,
+            lookups=lookups,
+            tag=tag,
+            default_tag=default_tag,
+            case_sensitive=case_sensitive,
         )
 
-
         return simple_tagger
-    
-        

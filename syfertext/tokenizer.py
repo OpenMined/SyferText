@@ -42,8 +42,7 @@ class TokenMeta(object):
 
 class Tokenizer:
     def __init__(
-        self,
-        vocab: Union[Vocab, str],
+        self, vocab: Union[Vocab, str],
     ):
         """Initialize the Tokenizer object
            
@@ -62,15 +61,14 @@ class Tokenizer:
         else:
             self.vocab = Vocab(model_name=vocab)
 
-    
     def factory(self):
         """Creates a clone of this object.
         This method is used by the SupPipeline class to create
         objects using subpipeline templates.
         """
 
-        return Tokenizer(vocab = self.vocab)
-    
+        return Tokenizer(vocab=self.vocab)
+
     def __call__(self, text: Union[String, str] = None, text_id: int = None):
         """The real tokenization procedure takes place here.
 
@@ -177,9 +175,7 @@ class Tokenizer:
                 # Append the token to the document
                 doc.container.append(token_meta)
 
-
         return doc
-
 
     @staticmethod
     def create_pointer(
@@ -228,7 +224,7 @@ class Tokenizer:
         # Simplify attributes
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        return (model_name)
+        return model_name
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -256,8 +252,6 @@ class Tokenizer:
         model_name = pickle.loads(model_name)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(
-            vocab=model_name,
-        )
+        tokenizer = Tokenizer(vocab=model_name,)
 
         return tokenizer
