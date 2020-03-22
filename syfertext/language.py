@@ -14,14 +14,14 @@ from typing import List, Union, Tuple
 
 
 class BaseDefaults(object):
-    """
-       A class that defines all the defaults of the Language class
+    """A class that defines all the defaults of the Language class
     """
 
     @classmethod
     def create_vocab(cls, model_name) -> Vocab:
         """
            Creates the Vocab object that holds the vocabulary along with vocabulary meta data
+
 
         Todo:
             I started by a very simple Vocab class that
@@ -38,7 +38,6 @@ class BaseDefaults(object):
     def create_tokenizer(cls, vocab,) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
-
         """
 
         # Instantiate the Tokenizer object and return it

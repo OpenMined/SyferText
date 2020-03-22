@@ -54,6 +54,7 @@ class Tokenizer:
                 its Vocab object from scratch instead of sending the Vocab object to
                 the remote worker which might take too much network traffic.
     
+
         """
 
         if isinstance(vocab, Vocab):
@@ -88,13 +89,11 @@ class Tokenizer:
            to blindly verify the sanity of the blind tokenization process.
 
 
-           Parameters
-           ----------
-           text: Syft String or str
-                 The text to be tokenized
-           text_id: int
-                    the text id to be tokenized. The id can be used to get the object
-                    from the worker registery
+        Args:
+           text (Syft String or str) : The text to be tokenized
+           text_id (int) : the text id to be tokenized. The id can be used to get the object
+                            from the worker registery
+
         """
 
         # Either the `text` or the `text_id` should be specified, they cannot be both None
@@ -129,7 +128,7 @@ class Tokenizer:
         # Start tokenization
         for i, char in enumerate(text):
 
-            # We are looking for a character that is the opposit of 'is_space'
+            # We are looking for a character that is the opposite of 'is_space'
             # if 'is_space' is True, then we want to find a character that is
             # not a space. and vice versa. This event marks the end of a token.
             is_current_space = char.isspace()
@@ -187,12 +186,11 @@ class Tokenizer:
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
     ):
-        """
-           Creates a TokenizerPointer object that points to a Tokenizer object
+        """Creates a TokenizerPointer object that points to a Tokenizer object
            living in the worker 'location'.
 
-           Returns:
-                  a TokenizerPointer object
+        Returns:
+                a TokenizerPointer object
         """
 
         # I put the import here in order to avoid circular imports
@@ -216,8 +214,7 @@ class Tokenizer:
 
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):
-        """
-           This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
+        """This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
            serialized.
         """
 
@@ -228,21 +225,15 @@ class Tokenizer:
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
-        """
-           Create an object of type Tokenizer from the reduced representation in `simple_obj`.
+        """Create an object of type Tokenizer from the reduced representation in `simple_obj`.
 
-           Parameters
-           ----------
-           worker: BaseWorker
-                   The worker on which the new Tokenizer object is to be created.
-           simple_obj: tuple
-                       A tuple resulting from the serialized then deserialized returned tuple
-                       from the `_simplify` static method above.
+        Args:
+            worker (BaseWorker) : The worker on which the new Tokenizer object is to be created.
+            simple_obj (tuple) : A tuple resulting from the serialized then deserialized returned tuple
+                                from the `_simplify` static method above.
 
-           Returns
-           -------
-           tokenizer: Tokenizer
-                      a Tokenizer object
+        Returns:
+           tokenizer (Tokenizer) : a Tokenizer object
         """
 
         # Get the tuple elements
