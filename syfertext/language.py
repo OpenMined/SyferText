@@ -10,19 +10,17 @@ from typing import List, Union, Tuple
 
 
 class BaseDefaults(object):
-    """
-       A class that defines all the defaults of the Language class
+    """A class that defines all the defaults of the Language class
     """
 
     @classmethod
     def create_vocab(cls, model_name):
-        """
-           Creates the Vocab object that holds the vocabulary along with vocabulary meta data
+        """Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
-           Todo:
-               I started by a very simple Vocab class that
-               contains only a variable called 'vectors' of type DICT to hold word vectors
-               vocab.vectors['word'] = float. To be reviewed for more complex functionality.
+        Todo:
+            I started by a very simple Vocab class that
+            contains only a variable called 'vectors' of type DICT to hold word vectors
+            vocab.vectors['word'] = float. To be reviewed for more complex functionality.
         """
 
         # Instantiate the Vocab object
@@ -43,10 +41,10 @@ class BaseDefaults(object):
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
 
-           Todo:
-               this is a minimal Tokenizer object that is not nearly as sophisticated
-               as that of spacy. It just creates tokens as space separated strings.
-               Something like "string1 string2".split(' '). Of course, this should be changed later.
+        Todo:
+            this is a minimal Tokenizer object that is not nearly as sophisticated
+            as that of spacy. It just creates tokens as space separated strings.
+            Something like "string1 string2".split(' '). Of course, this should be changed later.
         """
 
         # Instantiate the Tokenizer object and return it
