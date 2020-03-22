@@ -1,5 +1,4 @@
 from .tokenizer import Tokenizer
-from .pointers.tokenizer_pointer import TokenizerPointer
 from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
@@ -79,6 +78,9 @@ class Language(AbstractObject):
         # It only contains the tokenizer at initialization
         self.pipeline_template = [{"remote": True, "name": "tokenizer"}]
 
+        # Intialize the main pipeline
+        self._reset_pipeline()
+        
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
         )
@@ -131,6 +133,12 @@ class Language(AbstractObject):
         """Reset the `pipeline` class property.
         """
 
+        # Read the pipeline components from the template and aggregate them into
+        # a list of subpipline templates.
+        # This method will create the instance variable
+        # self.subpipeline_templates
+        self._parse_pipeline_template()
+        
         # Get the number of subpipelines
         subpipeline_count = len(self.subpipeline_templates)
 
@@ -259,11 +267,6 @@ class Language(AbstractObject):
             ), "component cannot be added to the pipeline, \
                 please double check argument values of the `add_pipe` method call."
 
-        # Read the pipeline components from the template and aggregate them into
-        # a list of subpipline templates.
-        # This method will create the instance variable
-        # self.subpipeline_templates
-        self._parse_pipeline_template()
 
         # Reset the pipeline.
         # The instance variable that will be affected is:

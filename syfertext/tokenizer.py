@@ -70,7 +70,10 @@ class Tokenizer:
 
         return Tokenizer(vocab=self.vocab)
 
-    def __call__(self, text: Union[String, str] = None, text_id: int = None):
+    def __call__(
+            self,
+            text: Union[String, str]
+    ):
         """The real tokenization procedure takes place here.
 
            As in the spaCy library. This is not exactly equivalent to 
@@ -91,24 +94,13 @@ class Tokenizer:
 
         Args:
            text (Syft String or str) : The text to be tokenized
-           text_id (int) : the text id to be tokenized. The id can be used to get the object
-                            from the worker registery
 
         """
-
-        # Either the `text` or the `text_id` should be specified, they cannot be both None
-        assert (
-            text is not None or text_id is not None
-        ), "`text` and `text_id` cannot be both None"
 
         # Create a document that will hold meta data of tokens
         # By meta data I mean the start and end positions of each token
         # in the original text, if the token is followed by a white space,
         # if the token itself is composed of white spaces or not, etc ...
-
-        # If the text is not specified, then get the text using its id
-        if text is None:
-            text = self.owner.get_obj(text_id)
 
         # I do not assign the Doc here any owner, this will
         # be done by the SupPipeline object that operates
@@ -176,41 +168,6 @@ class Tokenizer:
 
         return doc
 
-    @staticmethod
-    def create_pointer(
-        tokenizer,
-        location: BaseWorker = None,
-        id_at_location: (str or int) = None,
-        register: bool = False,
-        owner: BaseWorker = None,
-        ptr_id: (str or int) = None,
-        garbage_collect_data: bool = True,
-    ):
-        """Creates a TokenizerPointer object that points to a Tokenizer object
-           living in the worker 'location'.
-
-        Returns:
-                a TokenizerPointer object
-        """
-
-        # I put the import here in order to avoid circular imports
-        from .pointers.tokenizer_pointer import TokenizerPointer
-
-        if id_at_location is None:
-            id_at_location = tokenizer.id
-
-        if owner is None:
-            owner = tokenizer.owner
-
-        tokenizer_pointer = TokenizerPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
-        )
-
-        return tokenizer_pointer
 
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):

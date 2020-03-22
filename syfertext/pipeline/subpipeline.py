@@ -99,27 +99,49 @@ class SubPipeline(AbstractObject):
 
     def __call__(
         self,
-        input: Union[str, String, Doc],
-        # input_id: Union[str, int],
+        input: Union[str, String, Doc] = None,
+        input_id: Union[str, int] = None,
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
+
+        only one of `input` and `input_id` could be specified,
+        not both.
 
         Args:
             input (str, String, Doc): The input on which the 
                 subpipeline operates. It could be either the text 
                 or it could be the Doc to modify.
+            input_id (str, int): The ID of the input on which 
+                the subpipeline components operate.
 
-        Return:
+        Returns:
             (int, str, Doc): Either the modified Doc object,
                 or the ID of that Doc object (str or int).
         """
 
+        # Either the `input` or the `input_id` should be specified, they can
+        # be neither  both None nor both specified at the same time
+        # 
+        assert (
+            input is not None or input_id is not None
+        ), "Arguments `input` and `input_id` cannot be both None"
+
+        assert (
+            input is None or input_id is None
+        ), "Arguments `input` and `input_id` cannot be both specified"
+
+
+        # If `input` is not specified, then get the input using its ID
+        if input is None:
+            input = self.owner.get_obj(input_id)
+            
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
+
 
         # If the Language object using this subpipeline
         # is located on a different worker, then
@@ -235,7 +257,7 @@ class SubPipeline(AbstractObject):
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
-                Required by PySyft serde, but unused here.
+
         Returns:
             (SubPipeline): The SubPipeline object.
         """
@@ -265,8 +287,9 @@ class SubPipeline(AbstractObject):
         # Create the subpipeline object and set the client ID
         subpipeline = SubPipeline(id=id, pipes=pipes)
 
-        # Important: the
+        # Set some key properties
         subpipeline.client_id = client_id
+        subpipeline.owner = worker
         subpipeline.pipe_names = pipe_names
 
         return subpipeline
