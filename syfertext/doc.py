@@ -157,7 +157,10 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_encrypted_vector(
-        self, *workers: BaseWorker, crypto_provider: BaseWorker = None, requires_grad: bool = True,
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
