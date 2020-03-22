@@ -1,5 +1,8 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
+from syft.generic.pointers.string_pointer import StringPointer
 from syft.workers.base import BaseWorker
+
+from ...pointers.doc_pointer import DocPointer
 
 from typing import Union, Dict, List
 
@@ -39,3 +42,41 @@ class SubPipelinePointer(ObjectPointer):
             id=id,
             garbage_collect_data=garbage_collect_data,
         )
+
+
+    def __call__(
+            self,
+            pointer: Union[StringPointer, DocPointer]
+    ):
+        """Forwards the call to the `__call__` method of the
+        `SubPipeline` object it points to. 
+        This forwarding mecanism is needed when the SubPipeline is
+        located on a remote worker.
+
+        Args:
+            pointer: A pointer to the PySyft `String` to be tokenized or 
+                to the `Doc` object to by modified.
+        """
+
+        # Make sure that the String of Doc to process is located on the
+        # same worker as the SubPipeline object.
+        assert (
+            pointer.location == self.location
+        ), "The `String` or `Doc`  objects to process do not belong to the same worker"
+
+        # Get the ID of the remote object pointed to by `pointer`.
+        input_id_at_location = pointer.id_at_location
+
+
+        # Create the command message to is used to forward the method
+        # call.
+        args = []
+        kwargs = {"input_id": input_id_at_location}
+
+        command = ("__call__", self.id_at_location, args, kwargs)
+
+        # Send the command
+        response = self.owner.send_command(self.location, command)
+
+        return response
+        

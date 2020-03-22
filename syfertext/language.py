@@ -22,7 +22,6 @@ class BaseDefaults(object):
         """
            Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
-
         Todo:
             I started by a very simple Vocab class that
             contains only a variable called 'vectors' of type DICT to hold word vectors
@@ -35,13 +34,19 @@ class BaseDefaults(object):
         return vocab
 
     @classmethod
-    def create_tokenizer(cls, vocab,) -> Tokenizer:
+    def create_tokenizer(
+        cls,
+        vocab,
+    ) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
+
         """
 
         # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab,)
+        tokenizer = Tokenizer(
+            vocab,
+        )
 
         return tokenizer
 
@@ -77,8 +82,8 @@ class Language(AbstractObject):
 
         # Initialize the subpipeline template
         # It only contains the tokenizer at initialization
-        self.pipeline_template = [{"remote": True, "name": "tokenizer"}]
-
+        self.pipeline_template = [{'remote': True, 'name': 'tokenizer'}]
+        
         super(Language, self).__init__(
             id=id, owner=owner, tags=tags, description=description
         )
@@ -122,7 +127,7 @@ class Language(AbstractObject):
             # pipe template to it
             else:
                 subpipeline_template = dict(
-                    remote=pipe_template["remote"], names=[pipe_template["name"]]
+                    remote=pipe_template["remote"], names= [pipe_template["name"]]
                 )
 
                 self.subpipeline_templates.append(subpipeline_template)
@@ -299,13 +304,12 @@ class Language(AbstractObject):
 
         # Reset the pipeline.
         self._reset_pipeline()
-
+        
         return pipe
 
-    def _run_subpipeline_from_template(
-        self,
-        template_index: int,
-        input=Union[str, String, StringPointer, Doc, DocPointer],
+    def _run_subpipeline_from_template(self,
+                                       template_index: int,
+                                       input = Union[str, String, StringPointer, Doc, DocPointer]
     ) -> Union[Doc, DocPointer]:
         """Runs the subpipeline at position `template_index` of
         self.pipeline on the appropriate worker. 
@@ -341,6 +345,7 @@ class Language(AbstractObject):
         else:
             location_id = self.owner.id
 
+
         # Create a new SubPipeline object if one doesn't already exist on the
         # worker where the input is located
         if location_id not in self.pipeline[template_index]:
@@ -349,13 +354,14 @@ class Language(AbstractObject):
             subpipeline_template = self.subpipeline_templates[template_index]
 
             # Is the pipeline a remote one?
-            remote = subpipeline_template["remote"]
-
+            remote = subpipeline_template['remote']
+            
             # Instantiate a subpipeline and load the subpipeline template
             subpipeline = SubPipeline()
-
+            
             subpipeline.load_template(
-                template=subpipeline_template, factories=self.factories
+                template = subpipeline_template,
+                factories = self.factories
             )
 
             # Add the subpipeline to the pipeline
@@ -363,13 +369,14 @@ class Language(AbstractObject):
 
             # Send the subpipeline to the worker where the input is located
             if (
-                isinstance(input, ObjectPointer)
-                and input.location != self.owner  # Is the input remote?
-                and remote  # Is the subpipeline is sendable?
+                    isinstance(input, ObjectPointer) and # Is the input remote?
+                    input.location != self.owner and
+                    remote # Is the subpipeline is sendable?
             ):
-                self.pipeline[template_index][location_id] = self.pipeline[
-                    template_index
-                ][location_id].send(input.location)
+                self.pipeline[template_index][location_id] = self.pipeline[template_index][location_id].send(
+                    input.location
+                )
+
 
         # Apply the subpipeline and get the doc or the Doc id.
         # If a Doc ID is obtained, this signifies the ID of the
@@ -379,9 +386,11 @@ class Language(AbstractObject):
         # If the doc is of type str or int, this means that a
         # DocPointer should be created
         if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
-
+            
             doc = DocPointer(
-                location=input.location, id_at_location=doc_or_id, owner=self.owner
+                location = input.location,
+                id_at_location = doc_or_id,
+                owner = self.owner
             )
 
         # This is of type Doc then
@@ -390,7 +399,7 @@ class Language(AbstractObject):
 
         # return the doc
         return doc
-
+        
     def __call__(
         self, text: Union[str, String, StringPointer]
     ) -> Union[Doc, DocPointer]:
@@ -408,11 +417,12 @@ class Language(AbstractObject):
 
         # Runs the first subpipeline.
         # The first subpipeline is the one that has the tokenizer
-        doc = self._run_subpipeline_from_template(template_index=0, input=text)
+        doc = self._run_subpipeline_from_template(template_index=0, input=text
+        )
 
         # Apply the the rest of subpipelines sequentially
         # Each subpipeline will modify the document `doc` inplace
-        for i, subpipeline in enumerate(self.pipeline[1:], start=1):
+        for i, subpipeline in enumerate(self.pipeline[1:], start = 1):
             doc = self._run_subpipeline_from_template(template_index=i, input=doc)
 
         # return the Doc object
