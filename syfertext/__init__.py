@@ -11,15 +11,11 @@ import os
 
 
 def load(
-    model_name,
-    owner: BaseWorker,
-    id: int = None,
-    tags: Set[str] = None,
-    description: str = None,
+    model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
 ):
-    """Loads the specified language model `model_name` and returns a Language object. 
+    """Loads the specified language model `model_name` and returns a Language object.
 
-    If it is the first time the language model `model_name` is loaded, it is downloaded 
+    If it is the first time the language model `model_name` is loaded, it is downloaded
     prior to loading.
 
     Args:

@@ -15,9 +15,7 @@ class Token:
         # notice that stop_position refers to one position after `token_meta.end_pos`.
         # this is practical for indexing
         self.start_pos = token_meta.start_pos
-        self.stop_pos = (
-            token_meta.end_pos + 1 if token_meta.end_pos is not None else None
-        )
+        self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
         self.is_space = token_meta.is_space
         self.space_after = token_meta.space_after
 
@@ -32,8 +30,7 @@ class Token:
     def __str__(self):
 
         # The call to `str()` in the following is to account for the case
-        # when text is of type String or StringPointer (which are Syft string
-        # types)
+        # when text is of type String or StringPointer (which are Syft string types)
         return self.text
 
     def set_attribute(self, name: str, value: object):

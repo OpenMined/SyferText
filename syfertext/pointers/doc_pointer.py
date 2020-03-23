@@ -74,11 +74,7 @@ class DocPointer(ObjectPointer):
 
         # Simplify the attributes
         location_id = pickle.dumps(doc_pointer.location.id)
-        tags = (
-            [pickle.dumps(tag) for tag in doc_pointer.tags]
-            if doc_pointer.tags
-            else None
-        )
+        tags = [pickle.dumps(tag) for tag in doc_pointer.tags] if doc_pointer.tags else None
         description = pickle.dumps(doc_pointer.description)
 
         return (
@@ -104,14 +100,7 @@ class DocPointer(ObjectPointer):
         """
 
         # Get the typle elements
-        (
-            location_id,
-            id_at_location,
-            id,
-            garbage_collect_data,
-            tags,
-            description,
-        ) = simple_obj
+        (location_id, id_at_location, id, garbage_collect_data, tags, description) = simple_obj
 
         # Unpickle
         location_id = pickle.loads(location_id)

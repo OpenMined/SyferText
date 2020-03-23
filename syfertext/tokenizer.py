@@ -22,9 +22,9 @@ class TokenMeta(object):
             start_pos (int): The start index of the token in the Doc text.
             end_pos (int): The end index of the token in the Doc text (the end index is
                 part of the token).
-            space_after (bool): Whether the token is followed by a single white 
+            space_after (bool): Whether the token is followed by a single white
                 space (True) or not (False).
-            is_space (bool): Whether the token itself is composed of only white 
+            is_space (bool): Whether the token itself is composed of only white
                 spaces (True) or not (false).
 
         """
@@ -51,14 +51,14 @@ class Tokenizer(AbstractObject):
         description: str = None,
     ):
         """Initialize the Tokenizer object
-           
+
         Args:
-            vocab (str or Vocab object) : If str, this should be the name of the language model 
+            vocab (str or Vocab object) : If str, this should be the name of the language model
                 to build the Vocab object from. such as 'en_core_web_lg' . This is useful when
                 the Tokenizer object is sent to a remote worker. So it can rebuild
                 its Vocab object from scratch instead of send the Vocab object to
                 the remote worker which might take too much network traffic.
-            
+
             id (int) : The id of the Tokenizer object.
             owner (BaseWorker) : The worker on which the Tokenizer object lives.
             client_id (str) : The id of the worker on which the Language object using this
@@ -80,14 +80,12 @@ class Tokenizer(AbstractObject):
         else:
             self.client_id = owner.id
 
-        super(Tokenizer, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
+        super(Tokenizer, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     def __call__(self, text: Union[String, str] = None, text_id: int = None):
         """The real tokenization procedure takes place here.
 
-           As in the spaCy library. This is not exactly equivalent to 
+           As in the spaCy library. This is not exactly equivalent to
            text.split(' '). Because tokens can be whitle spaces if two or
            more consecutive white spaces are found.
 
@@ -111,9 +109,7 @@ class Tokenizer(AbstractObject):
         """
 
         # Either the `text` or the `text_id` should be specified, they cannot be both None
-        assert (
-            text is not None or text_id is not None
-        ), "`text` and `text_id` cannot be both None"
+        assert text is not None or text_id is not None, "`text` and `text_id` cannot be both None"
 
         # Create a document that will hold meta data of tokens
         # By meta data I mean the start and end positions of each token
@@ -148,10 +144,7 @@ class Tokenizer(AbstractObject):
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    start_pos=pos,
-                    end_pos=i - 1,
-                    space_after=is_current_space,
-                    is_space=is_space,
+                    start_pos=pos, end_pos=i - 1, space_after=is_current_space, is_space=is_space
                 )
 
                 # Append the token to the document
@@ -195,10 +188,7 @@ class Tokenizer(AbstractObject):
 
             # Create a pointer to the above Doc object
             doc_pointer = Doc.create_pointer(
-                doc,
-                location=self.owner,
-                id_at_location=doc.id,
-                garbage_collect_data=False,
+                doc, location=self.owner, id_at_location=doc.id, garbage_collect_data=False
             )
 
             return doc_pointer
@@ -206,7 +196,7 @@ class Tokenizer(AbstractObject):
         return doc
 
     def send(self, location: BaseWorker):
-        """Sends this tokenizer object to the worker specified by 'location'. 
+        """Sends this tokenizer object to the worker specified by 'location'.
            and returns a pointer to that tokenizer as a TokenizerPointer object.
 
         Args:
