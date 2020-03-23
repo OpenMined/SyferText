@@ -183,26 +183,3 @@ class Doc(AbstractObject):
         )
 
         return doc_vector
-
-    def get_encrypted_vector(self):
-        """Get the mean of the vectors of each Token in this documents.
-
-        Args:
-            workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
-            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
-
-        Returns:
-            Tensor: A tensor representing the SMPC-encrypted vector of this document.
-        """
-        assert (
-            len(workers) > 1
-        ), "You need at least two workers in order to encrypt the vector with SMPC"
-
-        # Storing the average of vectors of each in-vocabulary token's vectors
-        doc_vector = self.vector
-
-        # Create a Syft/Torch tensor
-        doc_vector = torch.Tensor(doc_vector)
-
-        return doc_vector
