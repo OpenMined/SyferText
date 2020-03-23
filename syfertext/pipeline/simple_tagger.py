@@ -26,13 +26,13 @@ class SimpleTagger:
                    this attribute will be accessible through the attribute
                    `._` of Token objects. Example `token_object._.<attribute>
                lookups (set, list or dict): If of type `list` of `set`, it should contain
-                   the tokens that are to be searched for and tagged in the Doc 
+                   the tokens that are to be searched for and tagged in the Doc
                    object's text. Example: ['the', 'myself', ...]
                    If of type `dict`, the keys should be the tokens texts to be
                    tagged, and values should hold a single tag for each such token.
                    Example: tagging stop words {'the': True, 'myself' : True}.
                tag (object, optional): If `lookups` is of type `list`, then this
-                   will be the tag assigned to all matched tokens. It will be 
+                   will be the tag assigned to all matched tokens. It will be
                    ignored if `lookups` if of type `dict`.
                default_tag: (object, optional): The default tag to be assigned
                    in case the token text maches no entry in `lookups`.
@@ -50,9 +50,7 @@ class SimpleTagger:
             self.lookups = self._desensitize_lookups(lookups)
 
         # If `lookups` is a `list`, convert it to a `set`
-        self.lookups = (
-            set(self.lookups) if isinstance(self.lookups, list) else self.lookups
-        )
+        self.lookups = set(self.lookups) if isinstance(self.lookups, list) else self.lookups
 
         self.case_sensitive = case_sensitive
         self.tag = tag
@@ -77,9 +75,9 @@ class SimpleTagger:
                lookups (set, list or dict): Check out the docstring of `__init__()`.
 
            Returns:
-               A transformed version  of `lookup` where all token texts are in 
+               A transformed version  of `lookup` where all token texts are in
                lower case.
- 
+
         """
 
         # Replace dict keys with lower-case versions

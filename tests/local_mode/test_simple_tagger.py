@@ -20,16 +20,8 @@ text = "The quiCk broWn Fox jUmps over thE lazY Dog . I will tokenizE thiS phras
 dict_lookups = [
     ({"The": True, "myselF": True, "jumps": "verb", "with": "prep"}, False, True),
     ({"The": True, "myselF": True, "jumps": "verb", "with": "prep"}, False, False),
-    (
-        {},
-        "tag me",
-        True,
-    ),  # This is supposed to tag all words with the same tag 'tag me'
-    (
-        {},
-        "tag me",
-        False,
-    ),  # This is supposed to tag all words with the same tag 'tag me'
+    ({}, "tag me", True),  # This is supposed to tag all words with the same tag 'tag me'
+    ({}, "tag me", False),  # This is supposed to tag all words with the same tag 'tag me'
 ]
 
 list_set_lookups = [

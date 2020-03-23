@@ -90,9 +90,7 @@ class Language(AbstractObject):
 
         self.tokenizers = dict()
 
-        super(Language, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
+        super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     def make_doc(self, text: Union[str, String, StringPointer]):
         """Creates a Tokenizer object and uses it to tokenize 'text'. The tokens
@@ -117,9 +115,7 @@ class Language(AbstractObject):
 
             # Send the tokenizer to the "worker" where the string to be tokenized is located
             if isinstance(text, StringPointer) and text.location != self.owner:
-                self.tokenizers[location_id] = self.tokenizers[location_id].send(
-                    text.location
-                )
+                self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
 
         doc = self.tokenizers[location_id](text)
 
