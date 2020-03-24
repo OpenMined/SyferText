@@ -24,6 +24,7 @@ class SimpleTagger:
     ):
         """Initialize the SimpleTagger object.
 
+
         Args:
             attribute (str): The name of the attribute that will hold the tag.
                 this attribute will be accessible through the attribute
@@ -53,9 +54,7 @@ class SimpleTagger:
             self.lookups = self._desensitize_lookups(lookups)
 
         # If `lookups` is a `list`, convert it to a `set`
-        self.lookups = (
-            set(self.lookups) if isinstance(self.lookups, list) else self.lookups
-        )
+        self.lookups = set(self.lookups) if isinstance(self.lookups, list) else self.lookups
 
         self.case_sensitive = case_sensitive
         self.tag = tag
@@ -94,6 +93,7 @@ class SimpleTagger:
 
         Args:
             lookups (set, list or dict): Check out the docstring of `__init__()`.
+
 
         Returns:
             A transformed version  of `lookup` where all token texts are in 

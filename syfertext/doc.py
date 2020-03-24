@@ -23,9 +23,7 @@ class Doc(AbstractObject):
         description: str = None,
     ):
 
-        super(Doc, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
+        super(Doc, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
         self.vocab = vocab
         self.text = text
@@ -125,9 +123,9 @@ class Doc(AbstractObject):
     def vector(self):
         """
         Get document vector as an average of in-vocabulary token's vectors
-        
+
         Returns:
-          doc_vector: document vector 
+          doc_vector: document vector
         """
 
         # Accumulate the vectors here
@@ -157,10 +155,7 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_encrypted_vector(
-        self,
-        *workers: BaseWorker,
-        crypto_provider: BaseWorker = None,
-        requires_grad: bool = True,
+        self, *workers: BaseWorker, crypto_provider: BaseWorker = None, requires_grad: bool = True
     ):
         """Get the mean of the vectors of each Token in this documents.
 

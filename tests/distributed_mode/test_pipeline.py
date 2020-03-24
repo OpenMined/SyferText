@@ -23,12 +23,7 @@ def test_subpipeline_is_not_recreated_in_remote_workers():
     # (3 to Bob, 1 to Alice)
     texts = [String(text) for text in ["hello", "syfertext", "private", "nlp"]]
 
-    texts_ptr = [
-        texts[0].send(bob),
-        texts[1].send(bob),
-        texts[2].send(alice),
-        texts[3].send(bob),
-    ]
+    texts_ptr = [texts[0].send(bob), texts[1].send(bob), texts[2].send(alice), texts[3].send(bob)]
 
     # The first time a text owned by `bob` is tokenized, a `SubPipeline` object is
     # created by the `nlp` object and sent to `bob`. The `nlp` object keeps a

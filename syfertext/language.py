@@ -81,9 +81,7 @@ class Language(AbstractObject):
         # Intialize the main pipeline
         self._reset_pipeline()
 
-        super(Language, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
+        super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     @property
     def pipe_names(self) -> List[str]:
@@ -359,6 +357,7 @@ class Language(AbstractObject):
             subpipeline.load_template(
                 template=subpipeline_template, factories=self.factories
             )
+
 
             # Add the subpipeline to the pipeline
             self.pipeline[template_index][location_id] = subpipeline

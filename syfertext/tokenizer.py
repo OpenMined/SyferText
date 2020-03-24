@@ -22,9 +22,9 @@ class TokenMeta(object):
             start_pos (int): The start index of the token in the Doc text.
             end_pos (int): The end index of the token in the Doc text (the end index is
                 part of the token).
-            space_after (bool): Whether the token is followed by a single white 
+            space_after (bool): Whether the token is followed by a single white
                 space (True) or not (False).
-            is_space (bool): Whether the token itself is composed of only white 
+            is_space (bool): Whether the token itself is composed of only white
                 spaces (True) or not (false).
 
         """
@@ -45,7 +45,7 @@ class Tokenizer:
         self, vocab: Union[Vocab, str],
     ):
         """Initialize the Tokenizer object
-           
+
         Args:
             vocab (str or Vocab) :If str, this should be the name of the 
                 language model to build the Vocab object from. such as 
@@ -68,12 +68,13 @@ class Tokenizer:
         objects using subpipeline templates.
         """
 
+
         return Tokenizer(vocab=self.vocab)
 
     def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
 
-           As in the spaCy library. This is not exactly equivalent to 
+           As in the spaCy library. This is not exactly equivalent to
            text.split(' '). Because tokens can be whitle spaces if two or
            more consecutive white spaces are found.
 
@@ -126,10 +127,7 @@ class Tokenizer:
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    start_pos=pos,
-                    end_pos=i - 1,
-                    space_after=is_current_space,
-                    is_space=is_space,
+                    start_pos=pos, end_pos=i - 1, space_after=is_current_space, is_space=is_space
                 )
 
                 # Append the token to the document
@@ -162,6 +160,7 @@ class Tokenizer:
 
                 # Append the token to the document
                 doc.container.append(token_meta)
+
 
         return doc
 

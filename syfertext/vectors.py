@@ -22,7 +22,7 @@ class Vectors:
 
     def _load_vectors(self):
         """Loads the embedding vectors of the vocabulary string from disk.
-           
+
         Returns:
             vectors (array): a numpy array which as much rows as words in the vocabulary.
                                 the number of columns is equal to the vector's dimensions.
