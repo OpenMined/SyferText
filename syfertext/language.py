@@ -44,11 +44,10 @@ class BaseDefaults(object):
     ):
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
-
-           Todo:
-               this is a Tokenizer object similar as in spacy but is not nearly as sophisticated
-               as that of spacy. It creates tokens as strings seprated by spaces, infix, prefix and suffixs.
-               And it can handle exceptions and special cases.Of course, more features should   be added later.
+        
+        This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
+        infixes, suffixes, token exceptions and special case into account. And it can
+        handle exceptions and special cases. Of course, more features should be added later.
         """
 
         # Instantiate the Tokenizer object and return it
