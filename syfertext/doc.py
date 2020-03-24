@@ -136,6 +136,12 @@ class Doc(AbstractObject):
         # Count the tokens that have vectors
         vector_count = 0
 
+        excluded_tokens = (
+            {**self.excluded_tokens, **excluded_tokens}
+            if excluded_tokens is not None
+            else self.excluded_tokens
+        )
+
         for token in self:
             if isinstance(excluded_tokens, dict):  # Check if token has attribute to be excluded
                 # TODO: Add Support for lists
@@ -206,4 +212,4 @@ class Doc(AbstractObject):
     def del_excluded_tokens(self):
         del self._excluded_tokens
 
-    excluded_tokens = property(get_encrypted_vector, set_excluded_tokens, del_excluded_tokens)
+    excluded_tokens = property(get_excluded_tokens, set_excluded_tokens, del_excluded_tokens)
