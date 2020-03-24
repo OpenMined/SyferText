@@ -56,9 +56,7 @@ class SubPipeline(AbstractObject):
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_template(
-        self,
-        template: Dict[str, Union[bool, List[str]]],
-        factories: Dict[str, callable],
+        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable],
     ):
         """Loads the subpipeline template.
 

@@ -68,7 +68,6 @@ class Tokenizer:
         objects using subpipeline templates.
         """
 
-
         return Tokenizer(vocab=self.vocab)
 
     def __call__(self, text: Union[String, str]):
@@ -160,7 +159,6 @@ class Tokenizer:
 
                 # Append the token to the document
                 doc.container.append(token_meta)
-
 
         return doc
 

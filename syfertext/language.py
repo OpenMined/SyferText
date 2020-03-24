@@ -102,8 +102,7 @@ class Language(AbstractObject):
         # tokenizer. The tokenizer alway has 'remote' set
         # to True.
         subpipeline_template = dict(
-            remote=self.pipeline_template[0]["remote"],
-            names=[self.pipeline_template[0]["name"]],
+            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]],
         )
 
         # Initialize the subpipeline templates list as a class property
@@ -303,9 +302,7 @@ class Language(AbstractObject):
         return pipe
 
     def _run_subpipeline_from_template(
-        self,
-        template_index: int,
-        input=Union[str, String, StringPointer, Doc, DocPointer],
+        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer],
     ) -> Union[Doc, DocPointer]:
         """Runs the subpipeline at position `template_index` of
         self.pipeline on the appropriate worker. 
@@ -354,10 +351,7 @@ class Language(AbstractObject):
             # Instantiate a subpipeline and load the subpipeline template
             subpipeline = SubPipeline()
 
-            subpipeline.load_template(
-                template=subpipeline_template, factories=self.factories
-            )
-
+            subpipeline.load_template(template=subpipeline_template, factories=self.factories)
 
             # Add the subpipeline to the pipeline
             self.pipeline[template_index][location_id] = subpipeline
@@ -368,9 +362,9 @@ class Language(AbstractObject):
                 and input.location != self.owner  # Is the input remote?
                 and remote  # Is the subpipeline is sendable?
             ):
-                self.pipeline[template_index][location_id] = self.pipeline[
-                    template_index
-                ][location_id].send(input.location)
+                self.pipeline[template_index][location_id] = self.pipeline[template_index][
+                    location_id
+                ].send(input.location)
 
         # Apply the subpipeline and get the doc or the Doc id.
         # If a Doc ID is obtained, this signifies the ID of the
@@ -381,9 +375,7 @@ class Language(AbstractObject):
         # DocPointer should be created
         if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
 
-            doc = DocPointer(
-                location=input.location, id_at_location=doc_or_id, owner=self.owner
-            )
+            doc = DocPointer(location=input.location, id_at_location=doc_or_id, owner=self.owner)
 
         # This is of type Doc then
         else:
@@ -392,9 +384,7 @@ class Language(AbstractObject):
         # return the doc
         return doc
 
-    def __call__(
-        self, text: Union[str, String, StringPointer]
-    ) -> Union[Doc, DocPointer]:
+    def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
         """The text is tokenized and  pipeline components are called 
         here, and the Doc object is returned.
 
