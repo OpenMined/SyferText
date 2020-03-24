@@ -181,8 +181,13 @@ class Doc(AbstractObject):
 
             include_token = True
             if excluded_tokens is not None:
-                include_token = all([getattr(token._, key) not in excluded_tokens[key] for key in excluded_tokens.keys() if hasattr(token._, key)])
-
+                include_token = all(
+                    [
+                        getattr(token._, key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if hasattr(token._, key)
+                    ]
+                )
 
             if token.has_vector and include_token:
                 # Increment the vector counter
@@ -204,7 +209,7 @@ class Doc(AbstractObject):
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
-        excluded_tokens: Dict = None
+        excluded_tokens: Dict = None,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
