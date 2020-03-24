@@ -177,7 +177,7 @@ class Doc(AbstractObject):
 
         for token in self:
 
-            # Get the vector of the token if one exists and is token is not excluded
+            # Get the vector of the token if one exists and if token is not excluded
             exclude_token = all([getattr(token._, key) not in excluded_tokens[key] for key in excluded_tokens.keys() if hasattr(token._, key)])
 
             if token.has_vector and exclude_token:
