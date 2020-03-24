@@ -82,7 +82,9 @@ class Tokenizer(AbstractObject):
 
         super(Tokenizer, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-    def __call__(self, text: Union[String, str] = None, text_id: int = None):
+    def __call__(
+        self, text: Union[String, str] = None, text_id: int = None, excluded_tokens: dict = None
+    ):
         """The real tokenization procedure takes place here.
 
            As in the spaCy library. This is not exactly equivalent to
@@ -120,7 +122,7 @@ class Tokenizer(AbstractObject):
         if text is None:
             text = self.owner.get_obj(text_id)
 
-        doc = Doc(self.vocab, text, owner=self.owner)
+        doc = Doc(self.vocab, text, owner=self.owner, excluded_tokens=excluded_tokens)
 
         # The number of characters in the text
         text_size = len(text)

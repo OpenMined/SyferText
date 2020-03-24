@@ -21,6 +21,7 @@ class Doc(AbstractObject):
         owner: BaseWorker = None,
         tags: List[str] = None,
         description: str = None,
+        excluded_tokens: dict = None,
     ):
 
         super(Doc, self).__init__(id=id, owner=owner, tags=tags, description=description)
@@ -37,6 +38,8 @@ class Doc(AbstractObject):
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
         self._ = Underscore()
+
+        self._excluded_tokens = excluded_tokens
 
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
@@ -193,3 +196,7 @@ class Doc(AbstractObject):
         )
 
         return doc_vector
+
+    def exclude_tokens(self, exclude: dict = None, inplace=True):
+        if inplace:
+            self.excluded_tokens = exclude

@@ -92,7 +92,7 @@ class Language(AbstractObject):
 
         super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-    def make_doc(self, text: Union[str, String, StringPointer]):
+    def make_doc(self, text: Union[str, String, StringPointer], excluded_tokens):
         """Creates a Tokenizer object and uses it to tokenize 'text'. The tokens
         are stored in a Doc object which is then returned.
         """
@@ -117,19 +117,19 @@ class Language(AbstractObject):
             if isinstance(text, StringPointer) and text.location != self.owner:
                 self.tokenizers[location_id] = self.tokenizers[location_id].send(text.location)
 
-        doc = self.tokenizers[location_id](text)
+        doc = self.tokenizers[location_id](text, excluded_tokens=excluded_tokens)
 
         # Return the Doc object containing the tokens
         return doc
 
-    def __call__(self, text: Union[str, String, StringPointer]):
+    def __call__(self, text: Union[str, String, StringPointer], excluded_tokens: dict = None):
         """Here is where the real work is done. The pipeline components
         are called here, and the Doc object containing their results is created
         here too.
         """
 
         # create the Doc object with the tokenized text in it
-        doc = self.make_doc(text)
+        doc = self.make_doc(text, excluded_tokens)
 
         # TODO: Other pipline components should be called here and attach
         # their results to tokens in 'doc'
