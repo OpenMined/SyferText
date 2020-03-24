@@ -5,7 +5,7 @@ import logging
 import urllib.request as request
 from tqdm import tqdm
 from pathlib import Path
-
+from typing import Pattern, Match
 
 # Files to download for each language model
 # TODO: Downloading language models should be handled
@@ -132,11 +132,15 @@ def _download_model(model_name: str, model_path: str):
     prog_bar.close()
 
 
-def compile_prefix_regex(entries: str):
+def compile_prefix_regex(entries: str) -> Match:
     """Compile a sequence of prefix rules into a regex object.
-    entries (tuple): The prefix rules, e.g. spacy.lang.punctuation.TOKENIZER_PREFIXES.
-    Returns (re.Pattern): The regex object. to be used for Tokenizer.prefix_search.
+    Args:
+        entries (tuple): The prefix rules, e.g. syfertext.punctuation.TOKENIZER_PREFIXES.
+
+    Returns:
+        The regex object. to be used for Tokenizer.prefix_search.
     """
+
     if "(" in entries:
         # Handle deprecated data
         expression = "|".join(
@@ -148,19 +152,27 @@ def compile_prefix_regex(entries: str):
         return re.compile(expression)
 
 
-def compile_suffix_regex(entries: str):
+def compile_suffix_regex(entries: str) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
-    entries (tuple): The suffix rules, e.g. spacy.lang.punctuation.TOKENIZER_SUFFIXES.
-    Returns (re.Pattern): The regex object. to be used for Tokenizer.suffix_search.
+    Args:
+        entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
+
+    Returns:
+        The regex object. to be used for Tokenizer.suffix_search.
     """
+
     expression = "|".join([piece + "$" for piece in entries if piece.strip()])
     return re.compile(expression)
 
 
-def compile_infix_regex(entries: str):
+def compile_infix_regex(entries: str) -> Pattern:
     """Compile a sequence of infix rules into a regex object.
-    entries (tuple): The infix rules, e.g. spacy.lang.punctuation.TOKENIZER_INFIXES.
-    Returns (re.Pattern): The regex object. to be used for Tokenizer.infix_finditer.
+    Args:
+        entries (tuple): The infix rules, e.g. syfertext.punctuation.TOKENIZER_INFIXES.
+
+    Returns:
+        The regex object. to be used for Tokenizer.infix_finditer.
     """
+
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
