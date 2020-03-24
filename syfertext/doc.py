@@ -119,13 +119,12 @@ class Doc(AbstractObject):
             # Yield a Token object
             yield self[i]
 
-    @property
-    def vector(self):
+    def get_vector(self, excluded_tokens: dict = None):
         """
         Get document vector as an average of in-vocabulary token's vectors
 
         Returns:
-          doc_vector: document vector
+            doc_vector: document vector
         """
 
         # Accumulate the vectors here
@@ -135,6 +134,15 @@ class Doc(AbstractObject):
         vector_count = 0
 
         for token in self:
+            if isinstance(excluded_tokens, dict):  # Check if token has attribute to be excluded
+                # TODO: Add Support for lists
+                values = [getattr(token._, attribute, None) for attribute in excluded_tokens.keys()]
+                bools = [
+                    value in exclude_value
+                    for value, exclude_value in zip(values, excluded_tokens.values())
+                ]
+                if any(bools):
+                    continue
 
             # Get the vector of the token if one exists
             if token.has_vector:
@@ -153,6 +161,8 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
 
         return doc_vector
+
+    vector = property(get_vector)
 
     def get_encrypted_vector(
         self, *workers: BaseWorker, crypto_provider: BaseWorker = None, requires_grad: bool = True
