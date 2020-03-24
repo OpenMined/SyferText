@@ -3,6 +3,10 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .exceptions import ObjectNotCallableError
+from .exceptions import DuplicateNameError
+from .exceptions import InvalidPositionError
+from .exceptions import PipelineComponentNotFoundError
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -33,20 +37,20 @@ class BaseDefaults(object):
         return vocab
 
     @classmethod
-    def create_tokenizer(cls, vocab,) -> Tokenizer:
+    def create_tokenizer(cls, vocab) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
 
         """
 
         # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab,)
+        tokenizer = Tokenizer(vocab)
 
         return tokenizer
 
 
 class Language(AbstractObject):
-    """Inspired by spaCy Language class. 
+    """Inspired by spaCy Language class.
 
     Orchestrates the interactions between different components of the pipeline
     to accomplish core text-processing task.
@@ -94,7 +98,7 @@ class Language(AbstractObject):
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
     def _parse_pipeline_template(self):
-        """Parses the `pipeline_template` property to 
+        """Parses the `pipeline_template` property to
         create the `subpipeline_templates` property.
         """
 
@@ -102,7 +106,7 @@ class Language(AbstractObject):
         # tokenizer. The tokenizer alway has 'remote' set
         # to True.
         subpipeline_template = dict(
-            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]],
+            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]]
         )
 
         # Initialize the subpipeline templates list as a class property
@@ -153,8 +157,8 @@ class Language(AbstractObject):
         first: bool = False,
         last: bool = True,
     ):
-        """Adds a pipe template to a subpipeline tempaltes. 
-           
+        """Adds a pipe template to a subpipeline tempaltes.
+
         A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
         Few main steps are carried out here:
 
@@ -168,12 +172,12 @@ class Language(AbstractObject):
                                      {'remote': False, 'name': <pipe_4_name>}]
 
         2- The pipeline template is parsed into a list or subpipeline templates.
-           Each subpipeline template is an aggregation of adjacent pipes with 
+           Each subpipeline template is an aggregation of adjacent pipes with
            the same value for 'remote'
            Here is an example of how the subpipeline template list for the above
            pipeline template would look like:
-        
-           self.subpipeline_templates = [{'remote': True, 'names': ['tokenizer', 
+
+           self.subpipeline_templates = [{'remote': True, 'names': ['tokenizer',
                                                                     'pipe_1_name',
                                                                     'pipe_2_name']},
                                          {'remote': False, 'name': ['pipe_3_name',
@@ -184,7 +188,7 @@ class Language(AbstractObject):
            there are subpipelines:
 
            self.pipeline = [dict(), dict()]
-                                                               
+
 
         Args:
             component (callable): This is a callable that takes a Doc object and modifies
@@ -198,16 +202,16 @@ class Language(AbstractObject):
                 is to be added. Defaults to None.
             after (str): The name of the pipeline component after which the new component
                 is to be added. Defaults to None.
-            first (bool): if set to True, the new pipeline component will be add as the 
+            first (bool): if set to True, the new pipeline component will be add as the
                 first element of the pipeline (after the tokenizer). Defaults to False.
-            last (bool): if set to True, the new pipeline component will be add as the 
+            last (bool): if set to True, the new pipeline component will be add as the
                 last element of the pipeline (after the tokenizer). Defaults to True.
 
         """
 
         # The component argument must be callable
-        # [TODO] An exception with a custom error message should be thrown
-        assert hasattr(component, "__call__"), "Argument `component` is not a callable."
+        if not hasattr(component, "__call__"):
+            raise ObjectNotCallableError(param_name="component")
 
         # Make sure the `component` argument is an object that has a `factory()` method
         assert hasattr(
@@ -216,22 +220,18 @@ class Language(AbstractObject):
         # [TODO] The following requirement should be relaxed and a name should be
         # automatically assigned in case `name` is None. This would be convenient
         # as done by spaCy
+
         assert (
             isinstance(name, str) and len(name) >= 1
         ), "Argument `name` should be of type `str` with at least one character."
 
-        # [TODO] Add custom error message
-        assert (
-            name not in self.pipe_names
-        ), "Pipeline component name '{}' that you have chosen is already used by another pipeline component.".format(
-            name
-        )
+        # Raise Error if name is already used by another component in pipeline
+        if name in self.pipe_names:
+            raise DuplicateNameError(name)
 
         # Make sure only one of 'before', 'after', 'first' or 'last' is set
-        # [TODO] Add custom error message
-        assert (
-            sum([bool(before), bool(after), bool(first), bool(last)]) < 2
-        ), "Only one among arguments 'before', 'after', 'first' or 'last' should be set."
+        if sum([bool(before), bool(after), bool(first), bool(last)]) != 1:
+            raise InvalidPositionError(before=before, after=after, first=first, last=last)
 
         # Add the new pipe component to the list of factories
         self.factories[name] = component
@@ -241,7 +241,7 @@ class Language(AbstractObject):
         pipe_template = dict(remote=remote, name=name)
 
         # Add the pipe template at the right position
-        if last or not any([before, after, first]):
+        if last:
             self.pipeline_template.append(pipe_template)
 
         elif first:
@@ -257,12 +257,6 @@ class Language(AbstractObject):
             self.pipeline_template.insert(
                 index=self.pipe_names.index(after) + 1, element=pipe_template
             )
-        else:
-            # [TODO] Raise exception with custom error message
-            assert (
-                False
-            ), "component cannot be added to the pipeline, \
-                please double check argument values of the `add_pipe` method call."
 
         # Reset the pipeline.
         # The instance variable that will be affected is:
@@ -276,14 +270,13 @@ class Language(AbstractObject):
             name (str): The name of the pipeline component to remove.
 
         Returns:
-            The removed pipe 
+            The removed pipe
 
         """
 
-        # [TODO] Add custom error message
-        assert (
-            name in self.pipe_names
-        ), "No pipeline component with the specified name '{}' was found".format(name)
+        # Make sure component with given name is in pipeline
+        if name not in self.pipe_names:
+            raise PipelineComponentNotFoundError(name)
 
         # Get the index of the pipeline to be removed in the
         # self.pipeline list
@@ -302,33 +295,33 @@ class Language(AbstractObject):
         return pipe
 
     def _run_subpipeline_from_template(
-        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer],
+        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer]
     ) -> Union[Doc, DocPointer]:
         """Runs the subpipeline at position `template_index` of
-        self.pipeline on the appropriate worker. 
- 
+        self.pipeline on the appropriate worker.
+
         The worker on which the subpipeline is run is either the
         the same worker on which `input` lives, if the `remote`
         property of the subpipeline template is True. Or, it is the
         local worker if `remote` is False.
 
-        If no subpipeline is yet created for the specified worker, 
+        If no subpipeline is yet created for the specified worker,
         one is created using the template, and added to the pipeline.
 
         Args:
-            template_index (int): The index of the subpipeline 
+            template_index (int): The index of the subpipeline
                 template in `self.subpipelines_templates`
             input (str, String, StringPointer, Doc, DocPointer):
                 The input on which the subpipeline operates.
                 It can be either the text to tokenize (or a pointer
                 to it) for the subpipeline at index 0, or it could
-                be the Doc (or its pointer) for all subsequent 
+                be the Doc (or its pointer) for all subsequent
                 subpipelines.
 
         Returns:
-            (Doc or DocPointer): The new or updated Doc object or 
+            (Doc or DocPointer): The new or updated Doc object or
                a pointer to a Doc object.
-        
+
         """
 
         # Get the location ID of the worker where the text to be tokenized,
@@ -385,11 +378,11 @@ class Language(AbstractObject):
         return doc
 
     def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
-        """The text is tokenized and  pipeline components are called 
+        """The text is tokenized and  pipeline components are called
         here, and the Doc object is returned.
 
         Args:
-            text (str, String or StringPointer): the text to be tokenized and 
+            text (str, String or StringPointer): the text to be tokenized and
         processed by the pipeline components.
 
         Returns:
