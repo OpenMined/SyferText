@@ -197,6 +197,13 @@ class Doc(AbstractObject):
 
         return doc_vector
 
-    def exclude_tokens(self, exclude: dict = None, inplace=True):
-        if inplace:
-            self.excluded_tokens = exclude
+    def get_excluded_tokens(self):
+        return self._excluded_tokens
+
+    def set_excluded_tokens(self, excluded_tokens: dict = None):
+        self._excluded_tokens = excluded_tokens
+
+    def del_excluded_tokens(self):
+        del self._excluded_tokens
+
+    excluded_tokens = property(get_encrypted_vector, set_excluded_tokens, del_excluded_tokens)
