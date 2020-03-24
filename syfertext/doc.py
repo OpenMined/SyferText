@@ -164,7 +164,7 @@ class Doc(AbstractObject):
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values of their attributes,
                                     the keys are the attributes names and they index lists values.
                                         Example: {'attribute1_name' : [value1, value2],
-                                                    'attribute2_name', [v1, v2], ....}
+                                                    'attribute2_name': [v1, v2], ....}
 
         Returns:
           doc_vector: document vector ignoring excluded tokens
@@ -178,9 +178,13 @@ class Doc(AbstractObject):
         for token in self:
 
             # Get the vector of the token if one exists and if token is not excluded
-            exclude_token = all([getattr(token._, key) not in excluded_tokens[key] for key in excluded_tokens.keys() if hasattr(token._, key)])
 
-            if token.has_vector and exclude_token:
+            include_token = True
+            if excluded_tokens is not None:
+                include_token = all([getattr(token._, key) not in excluded_tokens[key] for key in excluded_tokens.keys() if hasattr(token._, key)])
+
+
+            if token.has_vector and include_token:
                 # Increment the vector counter
                 vector_count += 1
 
@@ -193,9 +197,6 @@ class Doc(AbstractObject):
         else:
             # Create the final Doc vector
             doc_vector = vectors / vector_count
-
-
-
         return doc_vector
 
     def get_encrypted_vector(
