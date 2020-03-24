@@ -1,3 +1,4 @@
+import warnings
 from .token import Token
 import syft
 import torch
@@ -39,7 +40,7 @@ class Doc(AbstractObject):
         # using the `self.set_attribute` method
         self._ = Underscore()
 
-        self._excluded_tokens = excluded_tokens
+        self._excluded_tokens = dict() if excluded_tokens is None else excluded_tokens
 
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
@@ -122,7 +123,7 @@ class Doc(AbstractObject):
             # Yield a Token object
             yield self[i]
 
-    def get_vector(self, excluded_tokens: dict = None):
+    def get_vector(self, excluded_tokens: dict = None, ignore_warnings=False):
         """
         Get document vector as an average of in-vocabulary token's vectors
 
@@ -145,9 +146,19 @@ class Doc(AbstractObject):
         for token in self:
             if isinstance(excluded_tokens, dict):  # Check if token has attribute to be excluded
                 # TODO: Add Support for lists
-                values = [getattr(token._, attribute, None) for attribute in excluded_tokens.keys()]
+                values = list()
+
+                for attribute in excluded_tokens.keys():
+                    value = getattr(token._, attribute, "")
+                    if value == "" and not ignore_warnings:
+                        warnings.warn(
+                            f"Custom attribute '{attribute}' queried but not present in document",
+                            Warning,
+                        )
+                    values += [value]
+
                 bools = [
-                    value in exclude_value
+                    value == exclude_value
                     for value, exclude_value in zip(values, excluded_tokens.values())
                 ]
                 if any(bools):
