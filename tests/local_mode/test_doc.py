@@ -1,30 +1,51 @@
 import syft as sy
 import torch
+import pytest
 import syfertext
-
-import numpy as np
+from syfertext.pipeline import SimpleTagger
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
+dict_lookups = [
+    ({"on": "preposition", "your": "pronoun", "left": "noun"}, True, {"custom": "noun"}),
+    ({"on": "preposition", "your": "pronoun", "left": "noun"}, False, {"custom": "noun"}),
+]
 
-def test_avg_vector_valid_token():
+
+@pytest.mark.parametrize("lookups, with_get_vector, exclude", dict_lookups)
+def test_avg_vector_valid_token(lookups, with_get_vector, exclude):
     """Test that the average vector of valid tokens match the expected result"""
 
-    doc = nlp("on your left")
-    actual = doc.vector
+    if with_get_vector:
+        doc = nlp("on your left")
+    else:
+        doc = nlp("on your left", exclude)
+
+    tagger = SimpleTagger("custom", lookups, default_tag="test")
+    tagger(doc)
+
+    if with_get_vector:
+        actual = doc.get_vector(excluded_tokens=exclude)
+    else:
+        actual = doc.vector
+
     vectors = None
 
     # Count the tokens that have vectors
     vector_count = 0
 
     for token in doc:
+        values = [getattr(token._, attribute, "") for attribute in exclude.keys()]
+
+        bools = [value == exclude_value for value, exclude_value in zip(values, exclude.values())]
+        if any(bools):
+            continue
 
         # Get the vector of the token if one exists
         if token.has_vector:
-
             # Increment the vector counter
             vector_count += 1
 
@@ -59,7 +80,6 @@ def test_avg_vector_non_valid():
 
         # Get the vector of the token if one exists
         if token.has_vector:
-
             # Increment the vector counter
             vector_count += 1
 
