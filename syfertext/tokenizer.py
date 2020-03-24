@@ -10,7 +10,7 @@ from syft.workers.base import BaseWorker
 from syft.generic.string import String
 
 import pickle
-from typing import List, Union
+from typing import List, Union, Tuple
 
 
 class TokenMeta(object):
@@ -120,7 +120,7 @@ class Tokenizer(AbstractObject):
             'I  love apples ' gives four tokens: 'I', ' ', 'love', 'apples'
             ' I love ' gives three tokens: ' ', 'I', 'love' (yes a single white space
             at the beginning is considered a token)
-            'T love-apples' gives 4 tokens: 'I', 'love', '-', 'apples'(infix is 
+            'I love-apples' gives 4 tokens: 'I', 'love', '-', 'apples'(infix is 
             tokenized seprately)
         Tokenizing this ways helps reconstructing the original string
         without loss of white spaces.
@@ -177,15 +177,19 @@ class Tokenizer(AbstractObject):
                     space_after=is_current_space,
                     is_space=is_space,
                 )
+
+                #if is_space is True that means detected token is composed of only whitespaces
+                #so we dont need to check for prefix, infixes etc.
                 if is_space:
+
                     # Append the token to the document
                     doc.container.append(token_meta)
-
                 else:
+
                     # Process substring for prefix, infix, suffix and exception cases
                     span = str(text[pos:i])
 
-                    doc = self.tokenize_(span, token_meta, doc)
+                    doc = self._tokenize(span, token_meta, doc)
 
                 # Adjust the position 'pos' against which
                 # we compare the currently visited chararater
@@ -202,6 +206,7 @@ class Tokenizer(AbstractObject):
 
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
+
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
@@ -210,13 +215,18 @@ class Tokenizer(AbstractObject):
                     space_after=is_current_space,
                     is_space=is_space,
                 )
+
+                #if is_space is True that means detected token is composed of only whitespaces
+                #so we dont need to check for prefix, infixes etc.
                 if is_space:
+
                     # Append the token to the document
                     doc.container.append(token_meta)
                 else:
+
                     # Process substring for prefix, infix, suffix and exception cases
                     span = str(text[pos:None])
-                    doc = self.tokenize_(span, token_meta, doc)
+                    doc = self._tokenize(span, token_meta, doc)
 
         # If the Language object using this tokenizer lives on a different worker
         # (self.client_id != self.owner.id)
@@ -238,12 +248,12 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def tokenize_(self, substring, token_meta_global, doc):
+    def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """ Tokenize each substring formed after spliting affixes and processing 
             exceptions(special cases). Returns Doc object.
         Args:
             substring (str) : The substring to tokenize.
-            token_meta_globa (TokenMeta) : The TokenMeta object of original substring
+            token_meta (TokenMeta) : The TokenMeta object of original substring
                 before spliting affixes and special cases.
             doc (Doc): Document object. 
 
@@ -252,8 +262,8 @@ class Tokenizer(AbstractObject):
                 affixes and exceptions.
         """
 
-        pos = token_meta_global.start_pos
-        space_after = token_meta_global.space_after
+        pos = token_meta.start_pos
+        space_after = token_meta.space_after
         (
             substring,
             pos,
@@ -261,8 +271,8 @@ class Tokenizer(AbstractObject):
             suffixes,
             infixes,
             special_tokens,
-        ) = self.split_affixes(substring, pos)
-        doc = self.attach_tokens(
+        ) = self._split_affixes(substring, pos)
+        doc = self._attach_tokens(
             doc,
             substring,
             pos,
@@ -275,7 +285,8 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def split_affixes(self, substring, start_pos):
+    def _split_affixes(self, substring: str, start_pos: int)-> Tuple[str, int, List[TokenMeta],
+         List[TokenMeta], List[TokenMeta], List[TokenMeta]]:
         """Process substring for tokenizinf prefixes, infixes, suffixes and exceptions.
         Args:
             substring (str) : The substring to tokenize.
@@ -303,7 +314,7 @@ class Tokenizer(AbstractObject):
                 if substring in self.special_cases:
                     break
                 if self.find_prefix(substring):
-                    token_meta, substring, pos = self.get_prefix_token_meta(
+                    token_meta, substring, pos = self._get_prefix_token_meta(
                         substring, pos
                     )
                     if token_meta:
@@ -312,33 +323,33 @@ class Tokenizer(AbstractObject):
                     if substring in self.special_cases:
                         break
                 if self.find_suffix(substring):
-                    token_meta, substring = self.get_suffix_token_meta(substring, pos)
+                    token_meta, substring = self._get_suffix_token_meta(substring, pos)
                     if token_meta:
                         # Append the suffix token meta to the suffixes list to be added in doc container
                         suffixes.append(token_meta)
 
             if substring in self.special_cases:
                 # special cases token meta list to be added in doc container
-                special_tokens = self.get_special_cases_token_meta(substring, pos)
+                special_tokens = self._get_special_cases_token_meta(substring, pos)
                 substring = ""
 
             elif self.find_infix(substring):
-                infixes = self.get_infix_token_meta(substring, pos)
+                infixes = self._get_infix_token_meta(substring, pos)
                 substring = ""
 
         return substring, pos, prefixes, suffixes, infixes, special_tokens
 
-    def attach_tokens(
+    def _attach_tokens(
         self,
-        doc,
-        substring,
-        start_pos,
-        space_after,
-        prefixes,
-        suffixes,
-        infixes,
-        special_tokens,
-    ):
+        doc: Doc,
+        substring: str,
+        start_pos: int,
+        space_after: bool,
+        prefixes: List[TokenMeta],
+        suffixes: List[TokenMeta],
+        infixes: List[TokenMeta],
+        special_tokens: List[TokenMeta],
+    )-> Doc:
         """Attach all the TokenMeta objects in Doc object's container. Returns Doc object.
         Args:
             doc (Doc) : Original Document
@@ -383,7 +394,7 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def get_prefix_token_meta(self, substring, pos):
+    def _get_prefix_token_meta(self, substring: str, pos: int)-> Tuple[TokenMeta, str, int]:
         """Makes token meta data for substring which are prefixes.
         Args:
             substring (str): The substring to tokenize.
@@ -411,7 +422,7 @@ class Tokenizer(AbstractObject):
         substring = substring[pre_len:]
         return token_meta, substring, pos
 
-    def get_suffix_token_meta(self, substring, pos):
+    def _get_suffix_token_meta(self, substring: str, pos: int)-> Tuple[TokenMeta, str]:
         """Makes token meta data for substring which are suffixes.
         Args:
             substring (str): The substring to tokenize.
@@ -439,7 +450,7 @@ class Tokenizer(AbstractObject):
         substring = substring[:-suff_len]
         return token_meta, substring
 
-    def get_infix_token_meta(self, substring, pos):
+    def _get_infix_token_meta(self, substring: str, pos: int)-> List[TokenMeta]:
         """Makes list of token meta data for substring which are infixes.
         Args:
             substring (str): The substring to tokenize.
@@ -500,7 +511,7 @@ class Tokenizer(AbstractObject):
 
         return infix_tokens_metas
 
-    def get_special_cases_token_meta(self, substring, pos):
+    def _get_special_cases_token_meta(self, substring: str, pos: int)-> List[TokenMeta]:
         """Makes list of token meta data for substring which are exceptions(special cases).
         Args:
             substring (str): The substring to tokenize.
@@ -527,7 +538,7 @@ class Tokenizer(AbstractObject):
             pos = end_pos + 1
         return special_cases_tokens_meta
 
-    def find_infix(self, str):
+    def find_infix(self, str: str):
         """Find internal split points of the string, such as hyphens.
         str (String): The string to segment.
         Returns (list): A list of `re.MatchObject` objects that have `.start()`
@@ -538,7 +549,7 @@ class Tokenizer(AbstractObject):
             return 0
         return list(self.infix_finditer(str))
 
-    def find_prefix(self, str):
+    def find_prefix(self, str: str)-> int:
         """Find the length of a prefix that should be segmented from the
         string, or None if no prefix rules match.
         str (String): The string to segment.
@@ -549,7 +560,7 @@ class Tokenizer(AbstractObject):
         match = self.prefix_search(str)
         return (match.end() - match.start()) if match is not None else 0
 
-    def find_suffix(self, str):
+    def find_suffix(self, str: str)-> int:
         """Find the length of a suffix that should be segmented from the
         string, or None if no suffix rules match.
         str (String): The string to segment.
