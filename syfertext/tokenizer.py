@@ -251,6 +251,7 @@ class Tokenizer(AbstractObject):
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """ Tokenize each substring formed after spliting affixes and processing 
             exceptions(special cases). Returns Doc object.
+
         Args:
             substring (str) : The substring to tokenize.
             token_meta (TokenMeta) : The TokenMeta object of original substring
@@ -258,8 +259,8 @@ class Tokenizer(AbstractObject):
             doc (Doc): Document object. 
 
         Returns:    
-            doc (Doc): Document with all the TokenMeta objects of every token after spliting 
-                affixes and exceptions.
+            Document with all the TokenMeta objects of every token after spliting 
+            affixes and exceptions.
         """
 
         pos = token_meta.start_pos
@@ -291,17 +292,18 @@ class Tokenizer(AbstractObject):
         str, int, List[TokenMeta], List[TokenMeta], List[TokenMeta], List[TokenMeta]
     ]:
         """Process substring for tokenizinf prefixes, infixes, suffixes and exceptions.
+
         Args:
             substring (str) : The substring to tokenize.
             start_pos (int) : The pointer to location of start of substring in text.
 
         Returns:    
-            substring (str): The substring to tokenize.
-            start_pos (int): The pointer to location of start of substring in text.
-            prefixes (List[TokenMeta])  : The list of prefixes TokenMeta objects.
-            suffixes (List[TokenMeta])  : The list of suffixes TokenMeta objects.
-            infixes (List[TokenMeta])  : The list of infixes TokenMeta objects.
-            special_tokens (List[TokenMeta])  : The list of special tokens TokenMeta objects.
+            substring: The substring to tokenize.
+            start_pos: The pointer to location of start of substring in text.
+            prefixes: The list of prefixes TokenMeta objects.
+            suffixes: The list of suffixes TokenMeta objects.
+            infixes: The list of infixes TokenMeta objects.
+            special_tokens: The list of special tokens TokenMeta objects.
         """
         suffixes = []
         prefixes = []
@@ -354,6 +356,7 @@ class Tokenizer(AbstractObject):
         special_tokens: List[TokenMeta],
     ) -> Doc:
         """Attach all the TokenMeta objects in Doc object's container. Returns Doc object.
+
         Args:
             doc (Doc) : Original Document
             substring (str): The substring to tokenize.
@@ -363,9 +366,10 @@ class Tokenizer(AbstractObject):
             suffixes (List[TokenMeta])  : The list of suffixes TokenMeta objects.
             infixes (List[TokenMeta])  : The list of infixes TokenMeta objects.
             special_tokens (List[TokenMeta])  : The list of special tokens TokenMeta objects.
+
         Returns:
-            doc (Doc): Document with all the TokenMeta objects of every token after spliting 
-                affixes and exceptions.
+            Document with all the TokenMeta objects of every token after spliting 
+            affixes and exceptions.
         """
 
         if len(prefixes):
@@ -401,14 +405,15 @@ class Tokenizer(AbstractObject):
         self, substring: str, pos: int
     ) -> Tuple[TokenMeta, str, int]:
         """Makes token meta data for substring which are prefixes.
+
         Args:
             substring (str): The substring to tokenize.
             pos (int): The pointer to location of start of substring in text.
 
         Returns:
-            token_meta (TokenMeta) : The TokenMeta object with token meta data of prefix.
-            substring (str): The updated substring after removing prefix.
-            pos (int): The pointer to location of start of updated substring in text.
+            token_meta: The TokenMeta object with token meta data of prefix.
+            substring: The updated substring after removing prefix.
+            pos: The pointer to location of start of updated substring in text.
         """
         pre_len = self.find_prefix(substring)
         # break if pattern matches the empty string
@@ -429,13 +434,14 @@ class Tokenizer(AbstractObject):
 
     def _get_suffix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str]:
         """Makes token meta data for substring which are suffixes.
+
         Args:
             substring (str): The substring to tokenize.
             pos (int): The pointer to location of start of substring in text.
 
         Returns:
-            token_meta (TokenMeta) : The TokenMeta object with token meta data of suffix.
-            substring (str): The updated substring after removing suffix.
+            token_meta: The TokenMeta object with token meta data of suffix.
+            substring: The updated substring after removing suffix.
         """
         suff_len = self.find_suffix(substring)
 
@@ -457,12 +463,13 @@ class Tokenizer(AbstractObject):
 
     def _get_infix_token_meta(self, substring: str, pos: int) -> List[TokenMeta]:
         """Makes list of token meta data for substring which are infixes.
+
         Args:
             substring (str): The substring to tokenize.
             pos (int): The pointer to location of start of substring in text.
 
         Returns:
-            infix_tokens_metas (List[TokenMeta]): the list of infixes TokenMeta 
+            infix_tokens_metas: the list of infixes TokenMeta 
             objects with tokens meta data of infixes.
         """
         infixes = self.find_infix(substring)
@@ -520,6 +527,7 @@ class Tokenizer(AbstractObject):
         self, substring: str, pos: int
     ) -> List[TokenMeta]:
         """Makes list of token meta data for substring which are exceptions(special cases).
+
         Args:
             substring (str): The substring to tokenize.
             pos (int): The pointer to location of start of substring in text.
@@ -547,8 +555,12 @@ class Tokenizer(AbstractObject):
 
     def find_infix(self, str: str) -> List[Match]:
         """Find internal split points of the string, such as hyphens.
-        str (String): The string to segment.
-        Returns (list): A list of `re.MatchObject` objects that have `.start()`
+        
+        Args:
+            str (String): The string to segment.
+
+        Returns:
+            A list of `re.MatchObject` objects that have `.start()`
             and `.end()` methods, denoting the placement of internal segment
             separators, e.g. hyphens.
         """
@@ -559,8 +571,12 @@ class Tokenizer(AbstractObject):
     def find_prefix(self, str: str) -> int:
         """Find the length of a prefix that should be segmented from the
         string, or None if no prefix rules match.
-        str (String): The string to segment.
-        Returns (int): The length of the prefix if present, otherwise `None`.
+
+        Args:
+            str (String): The string to segment.
+            
+        Returns:
+            The length of the prefix if present, otherwise `None`.
         """
         if self.prefix_search is None:
             return 0
@@ -570,8 +586,12 @@ class Tokenizer(AbstractObject):
     def find_suffix(self, str: str) -> int:
         """Find the length of a suffix that should be segmented from the
         string, or None if no suffix rules match.
-        str (String): The string to segment.
-        Returns (int): The length of the suffix if present, otherwise `None`.
+
+        Args:
+            str (String): The string to segment.
+
+        Returns:
+            The length of the suffix if present, otherwise `None`.
         """
         if self.suffix_search is None:
             return 0
