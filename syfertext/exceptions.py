@@ -1,8 +1,9 @@
-from syfertext.doc import Doc
-from syfertext.pipeline import SubPipeline
-from syfertext.pointers.doc_pointer import DocPointer
-from syfertext.pipeline.pointers import SubPipelinePointer
 from syft.generic.pointers.string_pointer import StringPointer
+
+from .doc import Doc
+from .pipeline import SubPipeline
+from .pointers.doc_pointer import DocPointer
+from .pipeline.pointers import SubPipelinePointer
 
 from typing import Union
 
@@ -70,7 +71,7 @@ class PipelineComponentNotFoundError(Exception):
         super().__init__(message)
 
 
-class SubPipelineNotCollocatedException(Exception):
+class SubPipelineNotCollocatedError(Exception):
     """Raised when a String to be tokenized or Doc object to be modified
     by a SubPipeline object is not on the same machine as SubPipeline object.
     The goal is to provide as useful input as possible to help the user
