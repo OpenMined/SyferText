@@ -9,6 +9,7 @@ from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 from typing import List
+from typing import Set
 from typing import Union
 from .underscore import Underscore
 
@@ -122,8 +123,7 @@ class Doc(AbstractObject):
 
     @property
     def vector(self):
-        """
-        Get document vector as an average of in-vocabulary token's vectors
+        """Get document vector as an average of in-vocabulary token's vectors
 
         Returns:
           doc_vector: document vector
@@ -155,20 +155,22 @@ class Doc(AbstractObject):
 
         return doc_vector
 
-    def get_vector(self, excluded_tokens: Dict = None):
-        """
-        Get document vector as an average of in-vocabulary token's vectors,
+    def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
+        """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
 
         Args
-            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values of their attributes,
-                                    the keys are the attributes names and they index lists values.
-                                        Example: {'attribute1_name' : [value1, value2],
-                                                    'attribute2_name': [v1, v2], ....}
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
+                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
 
         Returns:
-          doc_vector: document vector ignoring excluded tokens
+            doc_vector: document vector ignoring excluded tokens
         """
+
+        # if the excluded_token dict in None all token are included
+        if excluded_tokens is None:
+            return self.vector
 
         vectors = None
 
@@ -180,14 +182,14 @@ class Doc(AbstractObject):
             # Get the vector of the token if one exists and if token is not excluded
 
             include_token = True
-            if excluded_tokens is not None:
-                include_token = all(
-                    [
-                        getattr(token._, key) not in excluded_tokens[key]
-                        for key in excluded_tokens.keys()
-                        if hasattr(token._, key)
-                    ]
-                )
+
+            include_token = all(
+                [
+                    getattr(token._, key) not in excluded_tokens[key]
+                    for key in excluded_tokens.keys()
+                    if hasattr(token._, key)
+                ]
+            )
 
             if token.has_vector and include_token:
                 # Increment the vector counter
@@ -209,7 +211,7 @@ class Doc(AbstractObject):
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
-        excluded_tokens: Dict = None,
+        excluded_tokens: Dict[str, Set[object]] = None,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
@@ -217,6 +219,9 @@ class Doc(AbstractObject):
             workers (sequence of BaseWorker): A sequence of remote workers from .
             crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
+                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
@@ -226,7 +231,7 @@ class Doc(AbstractObject):
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
         # Storing the average of vectors of each in-vocabulary token's vectors
-        doc_vector = self.vector
+        doc_vector = self.get_vector(excluded_tokens)
 
         # Create a Syft/Torch tensor
         doc_vector = torch.Tensor(doc_vector)
