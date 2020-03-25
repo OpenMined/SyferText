@@ -1,3 +1,12 @@
+from syfertext.doc import Doc
+from syfertext.pipeline import SubPipeline
+from syfertext.pointers.doc_pointer import DocPointer
+from syfertext.pipeline.pointers import SubPipelinePointer
+from syft.generic.pointers.string_pointer import StringPointer
+
+from typing import Union
+
+
 class ObjectNotCallableError(Exception):
     """Exception raised when a wrong object is added to pipeline
     This exception is raised when an object which doesn't
@@ -58,4 +67,111 @@ class PipelineComponentNotFoundError(Exception):
             + "Please provide name of a component"
             + "available in pipeline"
         )
+        super().__init__(message)
+
+
+class SubPipelineNotCollocatedException(Exception):
+    """Raised when a String to be tokenized or Doc object to be modified
+    by a SubPipeline object is not on the same machine as SubPipeline object.
+    The goal is to provide as useful input as possible to help the user
+    identify which objects are where so that they can debug
+    which one needs to be moved."""
+
+    def __init__(
+        self,
+        object_a: Union[str, StringPointer, Doc, DocPointer],
+        object_b: Union[SubPipeline, SubPipelinePointer],
+        attr="a method",
+    ):
+
+        # Might need to consider this later
+        # if hasattr(object_a, "child") and object_b.is_wrapper:
+        #     object_a = object_.child
+        #
+        # if hasattr(object_b, "child") and object_b.is_wrapper:
+        #     object_b = object_b.child
+
+        # Object_a type is used in constructing relevant messages
+        if isinstance(object_a, str) or isinstance(object_a, StringPointer):
+            obj_a_type = "String"
+            action = "tokenize"
+        elif isinstance(object_a, Doc) or isinstance(object_a, DocPointer):
+            obj_a_type = "Doc"
+            action = "modify"
+
+        if (isinstance(object_a, StringPointer) or isinstance(object_a, DocPointer)) and isinstance(
+            object_b, SubPipelinePointer
+        ):
+            message = (
+                "You tried to "
+                + action
+                + obj_a_type
+                + " object using pipeline by calling"
+                + attr
+                + " on the SubPipeline object."
+                + " But they are not on the same machine!"
+                + obj_a_type
+                + " object is on"
+                + str(object_a.location)
+                + " while the SubPipeline component is on "
+                + str(object_b.location)
+                + ". Use a combination of .move(), .get(), and/or .send() to co-locate them to the same machine."
+            )
+        elif isinstance(object_a, StringPointer) or isinstance(object_a, DocPointer):
+            message = (
+                "You tried to "
+                + action
+                + obj_a_type
+                + " object using pipeline by calling"
+                + attr
+                + " on the SubPipeline object. But "
+                + obj_a_type
+                + " object is located on another machine (is a"
+                + obj_a_type
+                + "Pointer"
+                + "). Call .get() on the "
+                + obj_a_type
+                + "Pointer"
+                + " or .send("
+                + str(object_a.location.id)
+                + ") on the SubPipeline component.\n"
+                + obj_a_type
+                + " object: "
+                + str(object_a)
+                + "\nSubPipeline component : "
+                + str(object_b)
+            )
+        elif isinstance(object_b, SubPipelinePointer):
+            message = (
+                "You tried to "
+                + action
+                + obj_a_type
+                + " object using pipeline by calling"
+                + attr
+                + " on the SubPipeline object. But "
+                + " SubPipeline component is located on another machine (is a SubPipelinePointer)."
+                + " Call .get() on the SubPipelinePointer or .send("
+                + str(object_b.location.id)
+                + ") on the "
+                + obj_a_type
+                + " object.\n"
+                + obj_a_type
+                + " object: "
+                + str(object_a)
+                + "\nSubPipeline component : "
+                + str(object_b)
+            )
+        else:
+            message = (
+                "You tried to "
+                + action
+                + obj_a_type
+                + " object using pipeline by calling"
+                + attr
+                + " on the SubPipeline object. But "
+                + "they are not on the same machine!!"
+                + " Try calling .send(), .move(), and/or .get() on these objects to get them to the same"
+                + "worker before calling methods that involve them working together."
+            )
+
         super().__init__(message)
