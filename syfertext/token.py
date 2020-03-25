@@ -55,6 +55,37 @@ class Token:
         """Get the token vector"""
         return self.doc.vocab.vectors[self.text]
 
+    @property
+    def vector_norm(self):
+        """The L2 norm of the token's vector representation.
+
+        Returns: 
+            Tensor: The L2 norm of the vector representation.
+        """
+
+        vector = torch.tensor(self.vector)
+        total = (vector ** 2).sum()
+
+        return torch.sqrt(total)
+
+    def similarity(self, other):
+        """Make a cosine similarity between tokens' vectors.
+        
+        Args:
+            other (Token): The Token to compare with.
+        
+        Returns:
+            Tensor: A cosine similarity score. Higher is more similar.
+        """
+
+        assert (
+            self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
+        ), "one of the token is invalid"
+
+        return torch.dot(torch.tensor(self.vector), torch.tensor(other.vector)) / (
+            self.vector_norm * other.vector_norm
+        )
+
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """Get the mean of the vectors of each Token in this documents.
 
