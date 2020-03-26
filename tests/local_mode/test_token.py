@@ -27,25 +27,14 @@ def test_non_valid_token_norm_is_zero():
     assert norm == 0.0
 
 
-def test_similarity_bw_valid_tokens():
-    """Test that the similarity of valid tokens is not zero"""
+def test_similarity_tokens():
+    """Test that the similarity of valid tokens"""
     doc = nlp("hello banana")
     token1 = doc[0]
     token2 = doc[1]
 
-    sim = token1.similarity(token2).item()
+    # check commutativity of similarity
+    assert token1.similarity(token2) == token2.similarity(token1)
 
-    # check that similarity is not zero for two valid unequal token
-    assert sim != 0.0
-
-
-def test_similarity_bw_same_valid_tokens():
-    """Test that the similarity of valid equal tokens is one"""
-    doc = nlp("banana banana")
-    token1 = doc[0]
-    token2 = doc[1]
-
-    sim = token1.similarity(token2).item()
-
-    # check that norm is one for equal valid tokens
-    assert sim == 1.0
+    # check if similarity is in valid range
+    assert -1.0 < token1.similarity(token2).item() < 1.0
