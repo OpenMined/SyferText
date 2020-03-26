@@ -108,3 +108,14 @@ def test_update_custom_attr_doc():
 
     # now check the updated attribute
     assert hasattr(doc._, "my_custom_tag") and doc._.my_custom_tag == "new_tag"
+
+
+def test_doc_similarity():
+    """Test similarity between two Doc objects"""
+
+    doc1 = nlp("Joey doesnt share food")
+    doc2 = nlp("we were on a break")
+
+    assert doc1.similarity(doc2) == doc2.similarity(doc1)
+
+    assert -1 <= doc1.similarity(doc2).item() <= 1

@@ -37,4 +37,4 @@ def test_similarity_tokens():
     assert token1.similarity(token2) == token2.similarity(token1)
 
     # check if similarity is in valid range
-    assert -1.0 < token1.similarity(token2).item() < 1.0
+    assert -1.0 <= token1.similarity(token2).item() <= 1.0
