@@ -3,32 +3,30 @@ from .utils import hash_string
 
 class StringStore:
     """ StringStore object acts as a lookup table.
-        It looks up strings by 64-bit hashes 
+        It looks up strings by 64-bit hashes
     """
 
     def __init__(self, strings=None):
         """Create the StringStore object
-        
+
         Args:
-            strings (list): List of Strings to add to store 
+            strings (list): List of Strings to add to store
         """
         self.key_to_str = {}
         self.str_to_key = {}
 
         if strings is not None:  # load strings
             for word in strings:
-                key = hash_string(word)
-                self.key_to_str[key] = word
-                self.str_to_key[word] = key
+                self.add(word)
 
     def __contains__(self, string):
         """Check whether string is in the store
-        
+
         Args:
             string (str): string to check
 
         Returns:
-            Boolean: True if string in store else False 
+            Boolean: True if string in store else False
         """
 
         return string in self.str_to_key.keys()
@@ -38,7 +36,7 @@ class StringStore:
 
         Args:
             string (str): The string to add
-        
+
         Returns:
             key (int): hash key for corresponding string
         """
@@ -86,6 +84,4 @@ class StringStore:
             return key
 
         else:  # [TODO] Add custom SyferText error messgage
-            raise TypeError(
-                f"key is of type {type(string_or_id)}; Expected type str or int"
-            )
+            raise TypeError(f"key is of type {type(string_or_id)}; Expected type str or int")

@@ -23,9 +23,7 @@ class Doc(AbstractObject):
         description: str = None,
     ):
 
-        super(Doc, self).__init__(
-            id=id, owner=owner, tags=tags, description=description
-        )
+        super(Doc, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
         self.vocab = vocab
 
@@ -120,11 +118,47 @@ class Doc(AbstractObject):
             # Yield a Token object
             yield self[i]
 
-    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+    @property
+    def vector(self):
+        """
+        Get document vector as an average of in-vocabulary token's vectors
+
+        Returns:
+          doc_vector: document vector
+        """
+
+        # Accumulate the vectors here
+        vectors = None
+
+        # Count the tokens that have vectors
+        vector_count = 0
+
+        for token in self:
+
+            # Get the vector of the token if one exists
+            if token.has_vector:
+
+                # Increment the vector counter
+                vector_count += 1
+
+                # Cumulate token's vector by summing them
+                vectors = token.vector if vectors is None else vectors + token.vector
+
+        # If no tokens with vectors were found, just get the default vector(zeros)
+        if vector_count == 0:
+            doc_vector = self.vocab.vectors.default_vector
+        else:
+            # Create the final Doc vector
+            doc_vector = vectors / vector_count
+
+        return doc_vector
+
+    def get_encrypted_vector(
+        self, *workers: BaseWorker, crypto_provider: BaseWorker = None, requires_grad: bool = True
+    ):
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
-            self (Doc): current document.
             workers (sequence of BaseWorker): A sequence of remote workers from .
             crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
@@ -136,29 +170,8 @@ class Doc(AbstractObject):
             len(workers) > 1
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
-        # Accumulate the vectors here
-        vectors = None
-
-        # Count the tokens that have vectors
-        vector_count = 0
-
-        for token in self:
-
-            # Get the encypted vector of the token if one exists
-            if token.has_vector:
-
-                # Increment the vector counter
-                vector_count += 1
-
-                # cumulate token's vector by summing them
-                vectors = token.vector if vectors is None else vectors + token.vector
-
-        # if no tokens with vectors were found, just get the default vector (zeros)
-        if vector_count == 0:
-            doc_vector = self.vocab.vectors.default_vector
-        else:
-            # Create the final Doc vector
-            doc_vector = vectors / vector_count
+        # Storing the average of vectors of each in-vocabulary token's vectors
+        doc_vector = self.vector
 
         # Create a Syft/Torch tensor
         doc_vector = torch.Tensor(doc_vector)
