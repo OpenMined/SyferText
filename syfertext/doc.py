@@ -4,11 +4,12 @@ import torch
 
 hook = syft.TorchHook(torch)
 
-from typing import Dict
+
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 from typing import List
+from typing import Dict
 from typing import Set
 from typing import Union
 from .underscore import Underscore
@@ -168,6 +169,9 @@ class Doc(AbstractObject):
             doc_vector: document vector ignoring excluded tokens
         """
 
+        # enforcing that the excluded_tokens dict indexes, by the name of the attributes, sets of values.
+        excluded_tokens = {attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens}
+
         # if the excluded_token dict in None all token are included
         if excluded_tokens is None:
             return self.vector
@@ -231,7 +235,7 @@ class Doc(AbstractObject):
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
         # Storing the average of vectors of each in-vocabulary token's vectors
-        doc_vector = self.get_vector(excluded_tokens)
+        doc_vector = self.get_vector(excluded_tokens=excluded_tokens)
 
         # Create a Syft/Torch tensor
         doc_vector = torch.Tensor(doc_vector)
