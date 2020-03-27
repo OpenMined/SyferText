@@ -2,16 +2,23 @@ import syft as sy
 import torch
 import syfertext
 
+from syft.generic.string import String
 from syfertext.pipeline import SimpleTagger
+
 from syfertext.exceptions import DuplicateNameError
 from syfertext.exceptions import ObjectNotCallableError
 from syfertext.exceptions import InvalidPositionError
 from syfertext.exceptions import PipelineComponentNotFoundError
+from syfertext.exceptions import SubPipelineNotCollocatedError
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
+
+# initialise workers
+bob = sy.VirtualWorker(hook, id="bob")
+alice = sy.VirtualWorker(hook, id="alice")
 
 # Create a simple tagger
 tagger = SimpleTagger(attribute="noun", lookups=["I", "You"])

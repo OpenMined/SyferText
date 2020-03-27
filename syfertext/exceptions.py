@@ -1,9 +1,8 @@
 from syft.generic.pointers.string_pointer import StringPointer
 
+import syfertext
 from .doc import Doc
-from .pipeline import SubPipeline
-from .pointers.doc_pointer import DocPointer
-from .pipeline.pointers import SubPipelinePointer
+from syfertext.pointers.doc_pointer import DocPointer
 
 from typing import Union
 
@@ -78,12 +77,7 @@ class SubPipelineNotCollocatedError(Exception):
     identify which objects are where so that they can debug
     which one needs to be moved."""
 
-    def __init__(
-        self,
-        object_a: Union[str, StringPointer, Doc, DocPointer],
-        object_b: Union[SubPipeline, SubPipelinePointer],
-        attr="a method",
-    ):
+    def __init__(self, object_a, object_b, attr="a method"):
 
         # Might need to consider this later
         # if hasattr(object_a, "child") and object_b.is_wrapper:
@@ -99,9 +93,12 @@ class SubPipelineNotCollocatedError(Exception):
         elif isinstance(object_a, Doc) or isinstance(object_a, DocPointer):
             obj_a_type = "Doc"
             action = "modify"
+        else:
+            obj_a_type = "String/Doc"
+            action = "process"
 
         if (isinstance(object_a, StringPointer) or isinstance(object_a, DocPointer)) and isinstance(
-            object_b, SubPipelinePointer
+            object_b, syfertext.pipeline.pointers.SubPipelinePointer
         ):
             message = (
                 "You tried to "
@@ -142,7 +139,7 @@ class SubPipelineNotCollocatedError(Exception):
                 + "\nSubPipeline component : "
                 + str(object_b)
             )
-        elif isinstance(object_b, SubPipelinePointer):
+        elif isinstance(object_b, syfertext.pipeline.pointers.SubPipelinePointer):
             message = (
                 "You tried to "
                 + action

@@ -3,6 +3,7 @@ from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
+from .utils import get_lang_model
 
 import syft
 import syft.serde.msgpack.serde as serde
@@ -38,7 +39,7 @@ def load(
     """
 
     # If the language model does not exist, download it
-    utils.get_lang_model(model_name)
+    get_lang_model(model_name)
 
     # Instantiate a Language object
     nlp = Language(model_name, id=id, owner=owner, tags=tags, description=description)
