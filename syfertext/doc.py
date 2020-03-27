@@ -170,7 +170,9 @@ class Doc(AbstractObject):
         """
 
         # enforcing that the excluded_tokens dict indexes, by the name of the attributes, sets of values.
-        excluded_tokens = {attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens}
+        excluded_tokens = {
+            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+        }
 
         # if the excluded_token dict in None all token are included
         if excluded_tokens is None:
