@@ -179,7 +179,7 @@ class Doc(AbstractObject):
 
         assert (
             self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
-        ), "one of the token is invalid"
+        ), "one or both of the tokens is invalid"
 
         return torch.dot(torch.tensor(self.vector), torch.tensor(other.vector)) / (
             self.vector_norm * other.vector_norm
