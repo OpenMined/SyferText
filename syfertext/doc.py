@@ -173,7 +173,7 @@ class Doc(AbstractObject):
         if excluded_tokens is None:
             return self.vector
 
-        # enforcing that the excluded_tokens dict indexes, by the name of the attributes, sets of values.
+        # enforcing that the values of the excluded_tokens dict are sets, not lists.
         excluded_tokens = {
             attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
         }
