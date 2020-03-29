@@ -26,7 +26,7 @@ class Vocab:
         # mapping between all strings known to the vocabulary and
         # their hashes. It can be used to retrieve a string given its hash
         # key, or vice versa.
-        self.store = StringStore(sstrings=strings)
+        self.store = StringStore(strings=strings)
 
         # Create the Vectors object
         self.vectors = Vectors(model_name)
