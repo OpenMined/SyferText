@@ -132,10 +132,10 @@ class Tokenizer:
                 # from the text
                 token_meta = TokenMeta(
                     # get hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos == (i - 1)
+                    # substring of text from start_pos == pos to end_pos + 1 == (i - 1) + 1
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos : (i - 1)])],
+                    hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
                     start_pos=pos,
                     end_pos=i - 1,
                     space_after=is_current_space,
