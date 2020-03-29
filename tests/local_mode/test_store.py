@@ -6,7 +6,7 @@ from syfertext.string_store import StringStore
 # Create a torch hook for PySyft
 hook = syft.TorchHook(torch)
 
-# Initialise a StringStore obejct
+# Initialise a StringStore object with a list of strings
 strings = ["I", "have", "an", "apple"]
 store = StringStore(strings=strings)
 
@@ -15,11 +15,13 @@ def test_add_init_strings_to_store():
 
     # Iterate over words in strings
     for word in strings:
+
         # Check if word is added to store
         assert word in store
 
-        # Check hash value for corresponding word
         hash_key = store[word]
+
+        # Check hash value for corresponding word
         assert isinstance(hash_key, int)
 
 

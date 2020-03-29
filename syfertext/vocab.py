@@ -22,9 +22,11 @@ class Vocab:
         # have vectors for
         strings = self.load_strings()
 
-        # StringStore object acts as a lookup table for known strings
-        # Stores strings encoded as hash values to save memory
-        self.store = StringStore(strings)
+        # Create a `StringStore` object which acts like a lookup table
+        # mapping between all strings known to the vocabulary and
+        # their hashes. It can be used to retrieve a string given its hash
+        # key, or vice versa.
+        self.store = StringStore(sstrings=strings)
 
         # Create the Vectors object
         self.vectors = Vectors(model_name)
