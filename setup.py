@@ -11,9 +11,9 @@ setup(
     keywords="nlp smpc secure multi-party computation federated learning deep learning artificial intelligence secure model sharin natural language processing spacy spaCy",
     classifier=["Programming Language :: Python :: 3.6", "Operating System :: OS Independent"],
     license="Apache-2.0",
-    version="0.1.0.dev1",
+    version="0.1.0.dev2",
     packages=find_packages(),
-    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft==0.2.3", "requests==2.22.0"],
+    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft==0.2.4", "requests==2.22.0"],
     extras_require={
         "test": [
             "black>=19.10b0",

@@ -109,7 +109,7 @@ def test_update_custom_attr_doc():
     # now check the updated attribute
     assert hasattr(doc._, "my_custom_tag") and doc._.my_custom_tag == "new_tag"
 
-
+ 
 def test_doc_similarity():
     """Test similarity between two Doc objects"""
 
@@ -119,3 +119,25 @@ def test_doc_similarity():
     assert doc1.similarity(doc2) == doc2.similarity(doc1)
 
     assert -1 <= doc1.similarity(doc2).item() <= 1
+
+ 
+def test_exclude_tokens_on_attr_values_doc():
+    """Test that the get_vector method ignores tokens based on the excluded_tokens dict"""
+
+    doc = nlp("Joey doesnt ever share food")
+    doc_excluding_tokens = nlp("Joey doesnt share food")
+
+    # add custom_attr to the last token, the word ever
+    token = doc[2]
+    token.set_attribute(name="attribute1_name", value="value1")
+
+    # initialize the excluded_tokens dict
+    excluded_tokens = {"attribute1_name": {"value1", "value2"}, "attribute2_name": {"v1", "v2"}}
+
+    # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing,
+    # all() is needed because equals for numpy arrays returns an array of booleans.
+    assert all(doc.get_vector(excluded_tokens) == doc_excluding_tokens.get_vector())
+
+    # checks if get_vector without excluded_tokens returns a different vector for doc
+    # and doc with the word to exclude already missing.
+    assert any(doc.get_vector() != doc_excluding_tokens.get_vector())
