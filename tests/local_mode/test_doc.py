@@ -132,4 +132,3 @@ def test_exclude_tokens_on_attr_values_doc():
     # and doc with the word to exclude already missing.
     assert any(doc.get_vector() != doc_excluding_tokens.get_vector())
 
-test_exclude_tokens_on_attr_values_doc()
