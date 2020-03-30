@@ -620,22 +620,13 @@ _other_exc = {
         {ORTH: "Not", LEMMA: "not", NORM: "not", TAG: "RB"},
         {ORTH: "ve", LEMMA: "have", NORM: "have", TAG: "VB"},
     ],
-    "cannot": [
-        {ORTH: "can", LEMMA: "can", TAG: "MD"},
-        {ORTH: "not", LEMMA: "not", TAG: "RB"},
-    ],
+    "cannot": [{ORTH: "can", LEMMA: "can", TAG: "MD"}, {ORTH: "not", LEMMA: "not", TAG: "RB"},],
     "Cannot": [
         {ORTH: "Can", LEMMA: "can", NORM: "can", TAG: "MD"},
         {ORTH: "not", LEMMA: "not", TAG: "RB"},
     ],
-    "gonna": [
-        {ORTH: "gon", LEMMA: "go", NORM: "going"},
-        {ORTH: "na", LEMMA: "to", NORM: "to"},
-    ],
-    "Gonna": [
-        {ORTH: "Gon", LEMMA: "go", NORM: "going"},
-        {ORTH: "na", LEMMA: "to", NORM: "to"},
-    ],
+    "gonna": [{ORTH: "gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"},],
+    "Gonna": [{ORTH: "Gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"},],
     "gotta": [{ORTH: "got"}, {ORTH: "ta", LEMMA: "to", NORM: "to"}],
     "Gotta": [{ORTH: "Got", NORM: "got"}, {ORTH: "ta", LEMMA: "to", NORM: "to"}],
     "let's": [{ORTH: "let"}, {ORTH: "'s", LEMMA: PRON_LEMMA, NORM: "us"}],
