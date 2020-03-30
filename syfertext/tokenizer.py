@@ -7,7 +7,6 @@ from .underscore import Underscore
 from .utils import hash_string
 
 
-
 import re
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -221,7 +220,6 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """ Tokenize each substring formed after spliting affixes and processing 
             exceptions(special cases). Returns Doc object.
@@ -239,32 +237,18 @@ class Tokenizer(AbstractObject):
 
         pos = token_meta.start_pos
         space_after = token_meta.space_after
-        (
-            substring,
-            pos,
-            prefixes,
-            suffixes,
-            infixes,
-            special_tokens,
-        ) = self._split_affixes(substring, pos)
+        (substring, pos, prefixes, suffixes, infixes, special_tokens,) = self._split_affixes(
+            substring, pos
+        )
         doc = self._attach_tokens(
-            doc,
-            substring,
-            pos,
-            space_after,
-            prefixes,
-            suffixes,
-            infixes,
-            special_tokens,
+            doc, substring, pos, space_after, prefixes, suffixes, infixes, special_tokens,
         )
 
         return doc
 
     def _split_affixes(
         self, substring: str, start_pos: int
-    ) -> Tuple[
-        str, int, List[TokenMeta], List[TokenMeta], List[TokenMeta], List[TokenMeta]
-    ]:
+    ) -> Tuple[str, int, List[TokenMeta], List[TokenMeta], List[TokenMeta], List[TokenMeta]]:
         """Process substring for tokenizinf prefixes, infixes, suffixes and exceptions.
 
         Args:
@@ -293,9 +277,7 @@ class Tokenizer(AbstractObject):
                 if substring in self.special_cases:
                     break
                 if self.find_prefix(substring):
-                    token_meta, substring, pos = self._get_prefix_token_meta(
-                        substring, pos
-                    )
+                    token_meta, substring, pos = self._get_prefix_token_meta(substring, pos)
                     if token_meta:
                         # Append the suffix tokenmeta to the suffixes list to be added in doc container
                         prefixes.append(token_meta)
@@ -375,9 +357,7 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def _get_prefix_token_meta(
-        self, substring: str, pos: int
-    ) -> Tuple[TokenMeta, str, int]:
+    def _get_prefix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
         """Makes token meta data for substring which are prefixes.
 
         Args:
@@ -497,9 +477,7 @@ class Tokenizer(AbstractObject):
 
         return infix_tokens_metas
 
-    def _get_special_cases_token_meta(
-        self, substring: str, pos: int
-    ) -> List[TokenMeta]:
+    def _get_special_cases_token_meta(self, substring: str, pos: int) -> List[TokenMeta]:
         """Makes list of token meta data for substring which are exceptions(special cases).
 
         Args:

@@ -94,12 +94,8 @@ _latin_l_extendedB = (
 _latin_extendedB = r"\u0180-\u01BF\u01C4-\u024F"
 
 # special characters - Uighur, Uralic Phonetic
-_latin_u_extendedC = (
-    r"\u2C60\u2C62-\u2C64\u2C67\u2C69\u2C6B\u2C6D-\u2C70\u2C72\u2C75\u2C7E\u2C7F"
-)
-_latin_l_extendedC = (
-    r"\u2C61\u2C65\u2C66\u2C68\u2C6A\u2C6C\u2C71\u2C73\u2C74\u2C76-\u2C7B"
-)
+_latin_u_extendedC = r"\u2C60\u2C62-\u2C64\u2C67\u2C69\u2C6B\u2C6D-\u2C70\u2C72\u2C75\u2C7E\u2C7F"
+_latin_l_extendedC = r"\u2C61\u2C65\u2C66\u2C68\u2C6A\u2C6C\u2C71\u2C73\u2C74\u2C76-\u2C7B"
 _latin_extendedC = r"\u2C60-\u2C7B\u2C7E\u2C7F"
 
 # special characters - phonetic, Mayan, Medieval
@@ -154,10 +150,7 @@ _latin_diacritics = r"\u1E00-\u1EFF"
 
 # all lower latin classes
 LATIN_LOWER_BASIC = (
-    _latin_l_standard
-    + _latin_l_standard_fullwidth
-    + _latin_l_supplement
-    + _latin_l_extendedA
+    _latin_l_standard + _latin_l_standard_fullwidth + _latin_l_supplement + _latin_l_extendedA
 )
 LATIN_LOWER = (
     LATIN_LOWER_BASIC
@@ -171,10 +164,7 @@ LATIN_LOWER = (
 
 # all upper latin classes
 LATIN_UPPER_BASIC = (
-    _latin_u_standard
-    + _latin_u_standard_fullwidth
-    + _latin_u_supplement
-    + _latin_u_extendedA
+    _latin_u_standard + _latin_u_standard_fullwidth + _latin_u_supplement + _latin_u_extendedA
 )
 LATIN_UPPER = (
     LATIN_UPPER_BASIC
@@ -185,9 +175,7 @@ LATIN_UPPER = (
 )
 
 # all latin classes
-LATIN_BASIC = (
-    _latin_standard + _latin_standard_fullwidth + _latin_supplement + _latin_extendedA
-)
+LATIN_BASIC = _latin_standard + _latin_standard_fullwidth + _latin_supplement + _latin_extendedA
 LATIN = (
     LATIN_BASIC
     + _latin_extendedB
@@ -225,16 +213,7 @@ _upper = LATIN_UPPER + _russian_upper + _tatar_upper + _greek_upper + _ukrainian
 _lower = LATIN_LOWER + _russian_lower + _tatar_lower + _greek_lower + _ukrainian_lower
 
 _uncased = (
-    _bengali
-    + _hebrew
-    + _persian
-    + _sinhala
-    + _hindi
-    + _kannada
-    + _tamil
-    + _telugu
-    + _hangul
-    + _cjk
+    _bengali + _hebrew + _persian + _sinhala + _hindi + _kannada + _tamil + _telugu + _hangul + _cjk
 )
 
 ALPHA = group_chars(LATIN + _russian + _tatar + _greek + _ukrainian + _uncased)
@@ -253,9 +232,7 @@ _currency = r"\$ £ € ¥ ฿ US\$ C\$ A\$ ₽ ﷼ ₴"
 # These expressions contain various unicode variations, including characters
 # used in Chinese (see #1333, #1340, #1351) – unless there are cross-language
 # conflicts, spaCy's base tokenizer should handle all of those by default
-_punct = (
-    r"… …… , : ; \! \? ¿ ؟ ¡ \( \) \[ \] \{ \} < > _ # \* & 。 ？ ！ ， 、 ； ： ～ · । ، ۔ ؛ ٪"
-)
+_punct = r"… …… , : ; \! \? ¿ ؟ ¡ \( \) \[ \] \{ \} < > _ # \* & 。 ？ ！ ， 、 ； ： ～ · । ، ۔ ؛ ٪"
 _quotes = r'\' " ” “ ` ‘ ´ ’ ‚ , „ » « 「 」 『 』 （ ） 〔 〕 【 】 《 》 〈 〉'
 _hyphens = "- – — -- --- —— ~"
 
