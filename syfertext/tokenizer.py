@@ -378,7 +378,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object that can be later used to retrieve the token
         # from the text
         token_meta = TokenMeta(
-            hash_key=self.vocab.store[str(substring[ : pre_len])],
+            hash_key=self.vocab.store[str(substring[:pre_len])],
             start_pos=pos,
             end_pos=end_pos,
             space_after=False,  # for the last token space after will be updated explicitely according to the original substring.
@@ -409,7 +409,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object that can be later used to retrieve the token
         # from the text
         token_meta = TokenMeta(
-            hash_key=self.vocab.store[str(substring[ len(substring)-suff_len: ])],
+            hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
             start_pos=pos_suffix,
             end_pos=end_pos_suffix,
             space_after=False,  # for the last token space after will be updated explicitely in end.
@@ -471,7 +471,7 @@ class Tokenizer(AbstractObject):
             pos = end_pos + 1
             end_pos = pos + len(substring[offset:]) - 1
             token_meta = TokenMeta(
-                hash_key=self.vocab.store[str(substring[offset : ])],
+                hash_key=self.vocab.store[str(substring[offset:])],
                 start_pos=pos,
                 end_pos=end_pos,
                 space_after=False,  # for the last token space after will be updated explicitely in end.
