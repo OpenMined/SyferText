@@ -1,6 +1,7 @@
 from .doc import Doc
 from .vocab import Vocab
 from .underscore import Underscore
+from .utils import hash_string
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -15,10 +16,13 @@ class TokenMeta(object):
        This allows to create a Token object when needed.
     """
 
-    def __init__(self, start_pos: int, end_pos: int, space_after: bool, is_space: bool):
+    def __init__(
+        self, hash_key: int, start_pos: int, end_pos: int, space_after: bool, is_space: bool
+    ):
         """Initializes a TokenMeta object
 
         Args:
+            hash_key(int): hash value of the string stored by the Token object
             start_pos (int): The start index of the token in the Doc text.
             end_pos (int): The end index of the token in the Doc text (the end index is
                 part of the token).
@@ -28,6 +32,9 @@ class TokenMeta(object):
                 spaces (True) or not (false).
 
         """
+
+        # stores the hash of the hash of the string
+        self.orth = hash_key
 
         self.start_pos = start_pos
         self.end_pos = end_pos
@@ -41,19 +48,17 @@ class TokenMeta(object):
 
 
 class Tokenizer:
-    def __init__(
-        self, vocab: Union[Vocab, str],
-    ):
+    def __init__(self, vocab: Union[Vocab, str]):
         """Initialize the Tokenizer object
 
         Args:
-            vocab (str or Vocab) :If str, this should be the name of the 
-                language model to build the Vocab object from. such as 
-                'en_core_web_lg'. This is useful when the Tokenizer 
+            vocab (str or Vocab) :If str, this should be the name of the
+                language model to build the Vocab object from. such as
+                'en_core_web_lg'. This is useful when the Tokenizer
                 object is sent to a remote worker. So it can rebuild
                 its Vocab object from scratch instead of sending the Vocab object to
                 the remote worker which might take too much network traffic.
-    
+
 
         """
 
@@ -126,7 +131,15 @@ class Tokenizer:
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    start_pos=pos, end_pos=i - 1, space_after=is_current_space, is_space=is_space
+                    # get hash key for string stored in the TokenMeta object, where string is
+                    # substring of text from start_pos == pos to end_pos + 1 == (i - 1) + 1
+                    # Note: If the store doesn't contain string, then it is added to store
+                    # and the corresponding key is returned back
+                    hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
+                    start_pos=pos,
+                    end_pos=i - 1,
+                    space_after=is_current_space,
+                    is_space=is_space,
                 )
 
                 # Append the token to the document
@@ -151,6 +164,11 @@ class Tokenizer:
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
+                    # hash key for string stored in the TokenMeta object, where string is
+                    # substring of text from start_pos == pos to end_pos == None
+                    # Note: If the store doesn't contain string, then it is added to store
+                    # and the corresponding key is returned back
+                    hash_key=self.vocab.store[str(text[pos:])],
                     start_pos=pos,
                     end_pos=None,  # text[pos:None] ~ text[pos:]
                     space_after=is_current_space,
@@ -193,6 +211,6 @@ class Tokenizer:
         model_name = pickle.loads(model_name)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(vocab=model_name,)
+        tokenizer = Tokenizer(vocab=model_name)
 
         return tokenizer

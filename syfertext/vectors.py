@@ -100,7 +100,7 @@ class Vectors:
         if not self.has_vector(word):
             return self.default_vector
 
-        # Get the vector row correponding to the hash
+        # Get the vector row corresponding to the hash
         row = self.key2row[key]
 
         # Get the vector
