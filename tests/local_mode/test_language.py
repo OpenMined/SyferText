@@ -61,4 +61,3 @@ def test_correctness_of_tokens_created():
     excep = "U.S.A"
 
     assert len(nlp(excep)) == 1  # ['U.S.A']
-

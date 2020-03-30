@@ -125,10 +125,9 @@ def test_exclude_tokens_on_attr_values_doc():
 
     # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing,
     # all() is needed because equals for numpy arrays returns an array of booleans.
-  
+
     assert all(doc.get_vector(excluded_tokens) == doc_excluding_tokens.get_vector())
 
     # checks if get_vector without excluded_tokens returns a different vector for doc
     # and doc with the word to exclude already missing.
     assert any(doc.get_vector() != doc_excluding_tokens.get_vector())
-
