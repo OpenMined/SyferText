@@ -132,7 +132,7 @@ def _download_model(model_name: str, model_path: str):
     prog_bar.close()
 
 
-def compile_prefix_regex(entries: str)-> Pattern:
+def compile_prefix_regex(entries: str) -> Pattern:
     """Compile a sequence of prefix rules into a regex object.
     Args:
         entries (tuple): The prefix rules, e.g. syfertext.punctuation.TOKENIZER_PREFIXES.
@@ -152,7 +152,7 @@ def compile_prefix_regex(entries: str)-> Pattern:
         return re.compile(expression)
 
 
-def compile_suffix_regex(entries: str)-> Pattern:
+def compile_suffix_regex(entries: str) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
     Args:
         entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
@@ -165,7 +165,7 @@ def compile_suffix_regex(entries: str)-> Pattern:
     return re.compile(expression)
 
 
-def compile_infix_regex(entries: str)-> Pattern:
+def compile_infix_regex(entries: str) -> Pattern:
     """Compile a sequence of infix rules into a regex object.
     Args:
         entries (tuple): The infix rules, e.g. syfertext.punctuation.TOKENIZER_INFIXES.
