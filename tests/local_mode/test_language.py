@@ -21,7 +21,7 @@ def test_vector_valid_token_is_not_zero():
 def test_vector_non_valid_token_is_zero():
     """Test that the vector of non valid token is all zeros"""
 
-    doc = nlp("non-valid-token")
+    doc = nlp("outofvocabularytoken")
     actual = doc[0].vector
     zeros = np.zeros(actual.shape)
 
