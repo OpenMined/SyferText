@@ -31,12 +31,12 @@ def hash_string(string):
 
 def get_lang_model(model_name: str):
     """Downloads the specified language model `model_name` if not already done.
-      
-     Checks if the language folder named `model_name` is present. If not, it 
+
+     Checks if the language folder named `model_name` is present. If not, it
      creates it and downloads the language model files  inside.
 
      Todo:
-         This is an intial version to how language models are dealt 
+         This is an intial version to how language models are dealt
          with. it should be revisited later.
     """
 

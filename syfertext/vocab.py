@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from .vectors import Vectors
+from .string_store import StringStore
 
 
 class Vocab:
@@ -17,19 +18,21 @@ class Vocab:
 
         self.model_path = os.path.join(dirname, "SyferText", model_name)
 
-        # Create the 'strings' list that holds all of the words that the Vocab object knows and
+        # Create the 'strings' list that holds words that the Vocab object knows and
         # have vectors for
-        self.strings = self.load_strings()
+        strings = self.load_strings()
+
+        # Create a `StringStore` object which acts like a lookup table
+        # mapping between all strings known to the vocabulary and
+        # their hashes. It can be used to retrieve a string given its hash
+        # key, or vice versa.
+        self.store = StringStore(strings=strings)
 
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
     def load_strings(self):
-        """
-           load the pickled list of words that the Vocab object knows and has vectors fot.
-
-           # TODO: this should be later replaced by an object of StringStore as in spaCy
-        """
+        """load the pickled list of words that the Vocab object knows and has vectors for"""
 
         words_path = os.path.join(self.model_path, "words")
 

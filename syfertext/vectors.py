@@ -22,12 +22,12 @@ class Vectors:
 
     def _load_vectors(self):
         """Loads the embedding vectors of the vocabulary string from disk.
-           
-           Returns:
-                vectors (array): a numpy array which as much rows as words in the vocabulary.
-                                 the number of columns is equal to the vector's dimensions.
-                default_vector (array): a numpy array of size (number of vector's dimensions,)
-                                        this vector is used for out-of-vocabulary tokens.
+
+        Returns:
+            vectors (array): a numpy array which as much rows as words in the vocabulary.
+                                the number of columns is equal to the vector's dimensions.
+            default_vector (array): a numpy array of size (number of vector's dimensions,)
+                                    this vector is used for out-of-vocabulary tokens.
         """
 
         # Get the path to the file where vectors are stored
@@ -46,8 +46,8 @@ class Vectors:
     def _load_key2row(self):
         """Loads the key2row dictionary from disk.
 
-           Returns:
-               key2row (dict): a dictionary that maps a hash to a word.
+        Returns:
+            key2row (dict): a dictionary that maps a hash to a word.
         """
 
         # Create the path to the file where hash keys to row indices
@@ -63,11 +63,11 @@ class Vectors:
     def has_vector(self, word):
         """Checks whether 'word' has a vector or not in self.data
 
-           Args:
-               word (str): the word to which we wish to test whether a vector exists or not.
+        Args:
+            word (str): the word to which we wish to test whether a vector exists or not.
 
-           Returns:
-               True if a vector for 'word' already exists in self.data.
+        Returns:
+            True if a vector for 'word' already exists in self.data.
         """
 
         # Create the word hash key
@@ -84,13 +84,13 @@ class Vectors:
     def __getitem__(self, word):
         """takes a word as a string and returns the corresponding vector
 
-           Args:
-               word (str): the word to which we wish to return a vector.
+        Args:
+            word (str): the word to which we wish to return a vector.
 
 
-           Returns:
-               The vector embedding of the word.
-               if no vector is found, self.default_vector is returned.
+        Returns:
+            The vector embedding of the word.
+            if no vector is found, self.default_vector is returned.
         """
 
         # Create the word hash key
@@ -100,7 +100,7 @@ class Vectors:
         if not self.has_vector(word):
             return self.default_vector
 
-        # Get the vector row correponding to the hash
+        # Get the vector row corresponding to the hash
         row = self.key2row[key]
 
         # Get the vector

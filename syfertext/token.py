@@ -7,15 +7,25 @@ hook = sy.TorchHook(torch)
 
 
 class Token:
-    def __init__(
-        self, doc, start_pos: int, stop_pos: int, is_space: bool, space_after: bool
-    ):
+    def __init__(self, doc, token_meta: "TokenMeta"):
 
         self.doc = doc
-        self.start_pos = start_pos
-        self.stop_pos = stop_pos
-        self.is_space = is_space
-        self.space_after = space_after
+
+        # corresponding hash value of this token
+        self.orth = token_meta.orth
+
+        # The start and stop positions of the token in self.text
+        # notice that stop_position refers to one position after `token_meta.end_pos`.
+        # this is practical for indexing
+        self.start_pos = token_meta.start_pos
+        self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
+        self.is_space = token_meta.is_space
+        self.space_after = token_meta.space_after
+
+        # Initialize the Underscore object (inspired by spaCy)
+        # This object will hold all the custom attributes set
+        # using the `self.set_attribute` method
+        self._ = token_meta._
 
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
@@ -23,19 +33,20 @@ class Token:
     def __str__(self):
 
         # The call to `str()` in the following is to account for the case
-        # when text is of type String or StringPointer (which are Syft string
-        # types)
+        # when text is of type String or StringPointer (which are Syft string types)
         return self.text
 
-    @property
-    def orth(self):
-        """Get the corresponding hash value of this token"""
-        return hash_string(str(self))
+    def set_attribute(self, name: str, value: object):
+        """Creates a custom attribute with the name `name` and
+           value `value` in the Underscore object `self._`
+        """
+
+        setattr(self._, name, value)
 
     @property
     def text(self):
         """Get the token text"""
-        return str(self.doc.text[self.start_pos : self.stop_pos])
+        return str(self.doc.vocab.store[self.orth])
 
     @property
     def vector(self):
