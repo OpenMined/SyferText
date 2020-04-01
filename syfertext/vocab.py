@@ -18,15 +18,12 @@ class Vocab:
 
         self.model_path = os.path.join(dirname, "SyferText", model_name)
 
-        # Create the 'strings' list that holds words that the Vocab object knows and
-        # have vectors for
-        strings = self.load_strings()
-
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
         # their hashes. It can be used to retrieve a string given its hash
         # key, or vice versa.
-        self.store = StringStore(strings=strings)
+        # Only strings that are encountered will be stored here
+        self.store = StringStore()
 
         # Create the Vectors object
         self.vectors = Vectors(model_name)
