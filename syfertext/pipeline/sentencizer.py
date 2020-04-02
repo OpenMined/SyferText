@@ -49,6 +49,10 @@ class Sentencizer:
 
             is_in_punct_chars = token.text in self.punct_chars
 
+            # always set the start of doc to be start of a sentence
+            if i == 0:
+                doc.container[i].is_sent_start = True
+
             # if we just saw a punctuation and current char is not a punctuation
             if seen_period and not is_in_punct_chars:
 
