@@ -13,6 +13,7 @@ from typing import Dict
 from typing import Set
 from typing import Union
 from .underscore import Underscore
+from .span import Span
 
 
 class Doc(AbstractObject):
@@ -56,24 +57,40 @@ class Doc(AbstractObject):
 
         setattr(self._, name, value)
 
-    def __getitem__(self, key: int):
-        """Returns a Token object at position `key`.
+    def __getitem__(self, key):
+        """Returns a Token object at position `key` or Span object using slice.
 
         Args:
-            key (int): the index of the token to return.
-                Example: 0 -> first token, 1 -> second token
+            key (int or slice): The index of the token within the span, or slice of
+            the span to get.
 
         Returns:
-            Token: the token at index key
+            Token or Span
         """
+        if isinstance(key,int):
+            idx = 0
+            if key < 0 :
+                idx = len(self) + key
+            else:
+                idx = key
+            
+            # Get the corresponding TokenMeta object
+            token_meta = self.container[idx]
 
-        # Get the corresponding TokenMeta object
-        token_meta = self.container[key]
+            # Create a Token object
+            token = Token(doc=self, token_meta=token_meta)
 
-        # Create a Token object
-        token = Token(doc=self, token_meta=token_meta)
+            return token
 
-        return token
+        if isinstance(key,slice):
+            start, end = key.start, key.stop # TODO create a normalize slice function here
+
+            # how to handle empty ranges and negative slicing?
+            assert 0 <= start < end and end <= len(self), "Not a valid slice"
+
+            # return the span object
+            return Span(self, start, end)
+
 
     @staticmethod
     def create_pointer(
