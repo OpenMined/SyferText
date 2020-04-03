@@ -8,18 +8,19 @@ from syft.workers.base import BaseWorker
 
 from typing import List, Dict, Set, Union
 
-from .doc import Doc
 from .underscore import Underscore
+from .utils import normalize_slice
 
 
 # TODO: Extend span as child of AbstaractObject ?
 # TODO: Extend span as child of Doc as most of the functions are same ?
 
+
 class Span:
     """A slice from a Doc object.
     """
 
-    def __init__(self, doc , start : int, end : int):
+    def __init__(self, doc: "Doc", start: int, end: int):
         """Create a `Span` object from the slice `doc[start : end]`.
 
         Args:
@@ -34,7 +35,11 @@ class Span:
 
         self.doc = doc
         self.start = start
-        self.end = end  # TODO: What if the end is None object ? like doc[1:]
+
+        # we dont need to handle `None` here
+        # it will be handled by normalize slice
+        # Invalid ranges handled by normalize function
+        self.end = end
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -68,22 +73,20 @@ class Span:
             Token or Span at index key
         """
 
-        if isinstance(key,int):
-            if key < 0 :
+        if isinstance(key, int):
+            if key < 0:
                 return self.doc[self.end + key]
             else:
                 return self.doc[self.start + key]
 
-        if isinstance(key,slice):
-            # TODO create a normalize slice function here to handle negative slices
-            start, end = key.start, key.stop
+        if isinstance(key, slice):
+
+            # normalize to handle negative slicing
+            start, end = normalize_slice(len(self), key.start, key.stop, key.step)
 
             # shift the origin
             start += self.start
             end += self.start
-
-            # how to handle empty ranges ?
-            assert self.start <= start < self.end and start < end <= self.end, "Not a valid slice"
 
             return Span(self.doc, start, end)
 
@@ -93,14 +96,11 @@ class Span:
 
     def __iter__(self):
         """Allows to loop over tokens in `Span.doc`"""
-        for i in range(self.start,self.end):
+
+        for i in range(len(self)):
 
             # Yield a Token object
-            yield self[i] 
-
-    def _normalize_slice(inp : slice):
-        # TODO : Complete this function
-        pass
+            yield self[i]
 
     @property
     def vector(self):
@@ -133,7 +133,6 @@ class Span:
             span_vector = vectors / vector_count
 
         return span_vector
-
 
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get Span vector as an average of in-vocabulary token's vectors,
@@ -190,28 +189,30 @@ class Span:
             span_vector = vectors / vector_count
         return span_vector
 
-
-def as_doc(self, owner: BaseWorker = None): # tags: List[str] = None, description: str = None):
+    def as_doc(self, owner: BaseWorker = None):  # tags: List[str] = None, description: str = None):
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
-        Args:
-            owner (BaseWorker) :  An optional BaseWorker object to specify the worker
-                                on which the new doc object is located. By default, it is
-                                located on the same worker as the span
+            Args:
+                owner (BaseWorker) :  An optional BaseWorker object to specify the worker
+                                    on which the new doc object is located. By default, it is
+                                    located on the same worker as the span
 
-        Returns (Doc): 
-            The new `Doc` copy of the span.
-        """
+            Returns (Doc): 
+                The new `Doc` copy of the span.
+            """
 
         # Owner on which new doc object will be located
         owner = owner if owner else self.doc.owner
 
+        # handle circular imports
+        from .doc import Doc
+
         # Create a new doc object on the required location
-        doc = Doc(self.doc.vocab, owner = owner)
+        doc = Doc(self.doc.vocab, text=None, owner=owner)
 
         # Iterate over the token_meta present in span
-        for token in self:
+        for idx in range(self.start, self.end):
             # Add token meta object to the new doc
-            doc.container.append(token)
+            doc.container.append(self.doc.container[idx])
 
         return doc
