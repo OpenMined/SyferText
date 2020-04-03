@@ -23,7 +23,7 @@ class Token:
         self.doc = doc
 
         # corresponding hash value of this token
-        self.hash = hash
+        self.orth = hash
 
         self.space_after = space_after
         self.is_space = is_space
@@ -51,7 +51,7 @@ class Token:
     @property
     def text(self):
         """Get the token text"""
-        return str(self.doc.vocab.store[self.hash])
+        return str(self.doc.vocab.store[self.orth])
 
     @property
     def vector(self):
