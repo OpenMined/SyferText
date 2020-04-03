@@ -1,37 +1,42 @@
-from .utils import hash_string
-
 import syft as sy
 import torch
 
 hook = sy.TorchHook(torch)
 
+from .underscore import Underscore
+
 
 class Token:
-    def __init__(self, doc, token_meta: "TokenMeta"):
+    def __init__(self, doc: "Doc", hash: int, space_after: bool, is_space: bool):
+        """Initializes a Token object
+
+        Args:
+            doc (Doc): Doc object which stores this token in it's container
+            hash (int): hash value of the string stored by the Token object
+            space_after (bool): Whether the token is followed by a single white
+                space (True) or not (False).
+            is_space (bool): Whether the token itself is composed of only white
+                spaces (True) or not (false).
+
+        """
 
         self.doc = doc
 
         # corresponding hash value of this token
-        self.orth = token_meta.orth
+        self.hash = hash
 
-        # The start and stop positions of the token in self.text
-        # notice that stop_position refers to one position after `token_meta.end_pos`.
-        # this is practical for indexing
-        self.start_pos = token_meta.start_pos
-        self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
-        self.is_space = token_meta.is_space
-        self.space_after = token_meta.space_after
+        self.space_after = space_after
+        self.is_space = is_space
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
-        self._ = token_meta._
+        self._ = Underscore()
 
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
 
     def __str__(self):
-
         # The call to `str()` in the following is to account for the case
         # when text is of type String or StringPointer (which are Syft string types)
         return self.text
@@ -46,7 +51,7 @@ class Token:
     @property
     def text(self):
         """Get the token text"""
-        return str(self.doc.vocab.store[self.orth])
+        return str(self.doc.vocab.store[self.hash])
 
     @property
     def vector(self):

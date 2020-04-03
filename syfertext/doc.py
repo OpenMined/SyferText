@@ -19,7 +19,6 @@ class Doc(AbstractObject):
     def __init__(
         self,
         vocab,
-        text,
         id: int = None,
         owner: BaseWorker = None,
         tags: List[str] = None,
@@ -67,11 +66,8 @@ class Doc(AbstractObject):
             Token: the token at index key
         """
 
-        # Get the corresponding TokenMeta object
-        token_meta = self.container[key]
-
-        # Create a Token object
-        token = Token(doc=self, token_meta=token_meta)
+        # Get the token object
+        token = self.container[key]
 
         return token
 
