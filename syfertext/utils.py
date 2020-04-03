@@ -69,3 +69,29 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
 
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
+    prog_bar.close()
+
+
+def normalize_slice(length, start, stop, step=None):
+
+    assert step is None or step == 1, "Not a valid Slice"
+
+    if start is None:
+        start = 0
+
+    elif start < 0:
+        start += length
+
+    start = min(length, max(0, start))
+
+    if stop is None:
+        stop = length
+
+    elif stop < 0:
+        stop += length
+
+    stop = min(length, max(start, stop))
+
+    assert start < stop, "Empty range"
+
+    return start, stop

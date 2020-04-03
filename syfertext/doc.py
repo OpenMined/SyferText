@@ -15,6 +15,7 @@ from typing import Set
 from typing import Union
 from .underscore import Underscore
 from .span import Span
+from .utils import normalize_slice
 
 
 class Doc(AbstractObject):
@@ -67,13 +68,13 @@ class Doc(AbstractObject):
         Returns:
             Token or Span
         """
-        if isinstance(key,int):
+        if isinstance(key, int):
             idx = 0
-            if key < 0 :
+            if key < 0:
                 idx = len(self) + key
             else:
                 idx = key
-            
+
             # Get the corresponding TokenMeta object
             token_meta = self.container[idx]
 
@@ -82,15 +83,13 @@ class Doc(AbstractObject):
 
             return token
 
-        if isinstance(key,slice):
-            start, end = key.start, key.stop # TODO create a normalize slice function here
+        if isinstance(key, slice):
 
-            # how to handle empty ranges and negative slicing?
-            assert 0 <= start < end and end <= len(self), "Not a valid slice"
+            # normalize slice to handle negative slicing
+            start, end = normalize_slice(len(self), key.start, key.stop, key.step)
 
             # return the span object
             return Span(self, start, end)
-
 
     @staticmethod
     def create_pointer(
