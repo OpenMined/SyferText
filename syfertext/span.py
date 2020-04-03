@@ -16,11 +16,20 @@ from .utils import normalize_slice
 # TODO: Extend span as child of Doc as most of the functions are same ?
 
 
-class Span:
+class Span(AbstractObject):
     """A slice from a Doc object.
     """
 
-    def __init__(self, doc: "Doc", start: int, end: int):
+    def __init__(
+        self, 
+        doc: "Doc", 
+        start: int, 
+        end: int,
+        id: int = None,
+        owner: BaseWorker = None,
+        tags: List[str] = None,
+        description: str = None,
+    ):
         """Create a `Span` object from the slice `doc[start : end]`.
 
         Args:
@@ -32,6 +41,7 @@ class Span:
             The newly constructed object.
 
         """
+        super(Span, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
         self.doc = doc
         self.start = start
@@ -90,6 +100,41 @@ class Span:
 
             return Span(self.doc, start, end)
 
+    @staticmethod
+    def create_pointer(
+        span,
+        location: BaseWorker = None,
+        id_at_location: (str or int) = None,
+        register: bool = False,
+        owner: BaseWorker = None,
+        ptr_id: (str or int) = None,
+        garbage_collect_data: bool = True,
+    ):
+        """Creates a SpanPointer object that points to a Span object living in the the worker 'location'.
+
+        Returns:
+            SpanPointer: pointer object to a Span
+        """
+
+        # I put the import here in order to avoid circular imports
+        from .pointers.span_pointer import SpanPointer
+
+        if id_at_location is None:
+            id_at_location = span.id
+
+        if owner is None:
+            owner = span.owner
+
+        span_pointer = SpanPointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
+
+        return span_pointer
+
     def __len__(self):
         """Return the number of tokens in the Span."""
         return self.end - self.start
@@ -101,7 +146,7 @@ class Span:
 
             # Yield a Token object
             yield self[i]
-
+    
     @property
     def vector(self):
         """Get span vector as an average of in-vocabulary token's vectors
