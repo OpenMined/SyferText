@@ -1,50 +1,13 @@
 from .doc import Doc
 from .vocab import Vocab
-from .underscore import Underscore
-from .utils import hash_string
 
+from .token import Token
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 
 import pickle
 from typing import List, Union
-
-
-class TokenMeta(object):
-    """This class holds some meta data about a token from the text held by a Doc object.
-       This allows to create a Token object when needed.
-    """
-
-    def __init__(
-        self, hash_key: int, start_pos: int, end_pos: int, space_after: bool, is_space: bool
-    ):
-        """Initializes a TokenMeta object
-
-        Args:
-            hash_key(int): hash value of the string stored by the Token object
-            start_pos (int): The start index of the token in the Doc text.
-            end_pos (int): The end index of the token in the Doc text (the end index is
-                part of the token).
-            space_after (bool): Whether the token is followed by a single white
-                space (True) or not (False).
-            is_space (bool): Whether the token itself is composed of only white
-                spaces (True) or not (false).
-
-        """
-
-        # stores the hash of the hash of the string
-        self.orth = hash_key
-
-        self.start_pos = start_pos
-        self.end_pos = end_pos
-        self.space_after = space_after
-        self.is_space = is_space
-
-        # Initialize the Underscore object (inspired by spaCy)
-        # This object will hold all the custom attributes set
-        # using the `self.set_attribute` method
-        self._ = Underscore()
 
 
 class Tokenizer:
@@ -58,8 +21,6 @@ class Tokenizer:
                 object is sent to a remote worker. So it can rebuild
                 its Vocab object from scratch instead of sending the Vocab object to
                 the remote worker which might take too much network traffic.
-
-
         """
 
         if isinstance(vocab, Vocab):
@@ -107,7 +68,7 @@ class Tokenizer:
         # I do not assign the Doc here any owner, this will
         # be done by the SupPipeline object that operates
         # this tokenizer.
-        doc = Doc(self.vocab, text)
+        doc = Doc(self.vocab)
 
         # The number of characters in the text
         text_size = len(text)
@@ -128,25 +89,23 @@ class Tokenizer:
             is_current_space = char.isspace()
             if is_current_space != is_space:
 
-                # Create the TokenMeta object that can be later used to retrieve the token
-                # from the text
-                token_meta = TokenMeta(
+                # Create the token object
+                token = Token(
                     # get hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos + 1 == (i - 1) + 1
+                    # substring of text from start_pos = pos to end_pos = (i - 1) + 1
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
-                    start_pos=pos,
-                    end_pos=i - 1,
+                    doc=doc,
+                    hash=self.vocab.store[str(text[pos : (i - 1) + 1])],
                     space_after=is_current_space,
                     is_space=is_space,
                 )
 
                 # Append the token to the document
-                doc.container.append(token_meta)
+                doc.container.append(token)
 
                 # Adjust the position 'pos' against which
-                # we compare the currently visited chararater
+                # we compare the currently visited character
                 if is_current_space:
                     pos = i + 1
                 else:
@@ -161,22 +120,20 @@ class Tokenizer:
             # Create the last token if the end of the string is reached
             if i == text_size - 1 and pos <= i:
 
-                # Create the TokenMeta object that can be later used to retrieve the token
-                # from the text
-                token_meta = TokenMeta(
+                # Create the token object
+                token = Token(
                     # hash key for string stored in the TokenMeta object, where string is
                     # substring of text from start_pos == pos to end_pos == None
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos:])],
-                    start_pos=pos,
-                    end_pos=None,  # text[pos:None] ~ text[pos:]
+                    doc=doc,
+                    hash=self.vocab.store[str(text[pos:])],
                     space_after=is_current_space,
                     is_space=is_space,
                 )
 
                 # Append the token to the document
-                doc.container.append(token_meta)
+                doc.container.append(token)
 
         return doc
 
