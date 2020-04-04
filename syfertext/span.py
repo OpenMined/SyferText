@@ -21,9 +21,9 @@ class Span(AbstractObject):
     """
 
     def __init__(
-        self, 
-        doc: "Doc", 
-        start: int, 
+        self,
+        doc: "Doc",
+        start: int,
         end: int,
         id: int = None,
         owner: BaseWorker = None,
@@ -146,7 +146,7 @@ class Span(AbstractObject):
 
             # Yield a Token object
             yield self[i]
-    
+
     @property
     def vector(self):
         """Get span vector as an average of in-vocabulary token's vectors

@@ -127,8 +127,9 @@ def _download_model(model_name: str):
                     # Downloading the file finished
                     break
     prog_bar.close()
-    
+
     return tmp_model_path
+
 
 def normalize_slice(length, start, stop, step=None):
 
