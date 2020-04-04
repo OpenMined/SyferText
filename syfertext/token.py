@@ -11,6 +11,9 @@ class Token:
 
         self.doc = doc
 
+        # corresponding hash value of this token
+        self.orth = token_meta.orth
+
         # The start and stop positions of the token in self.text
         # notice that stop_position refers to one position after `token_meta.end_pos`.
         # this is practical for indexing
@@ -41,14 +44,9 @@ class Token:
         setattr(self._, name, value)
 
     @property
-    def orth(self):
-        """Get the corresponding hash value of this token"""
-        return hash_string(str(self))
-
-    @property
     def text(self):
         """Get the token text"""
-        return str(self.doc.text[self.start_pos : self.stop_pos])
+        return str(self.doc.vocab.store[self.orth])
 
     @property
     def vector(self):

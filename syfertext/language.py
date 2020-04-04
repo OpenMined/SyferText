@@ -292,10 +292,6 @@ class Language(AbstractObject):
         # Delete the pipe using its index
         pipe = self.pipeline_template.pop(pipe_index)
 
-        # Parse the pipeline template again
-        # to create the subpipeline templates
-        self._parse_pipeline_template()
-
         # Reset the pipeline.
         self._reset_pipeline()
 

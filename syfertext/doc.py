@@ -29,7 +29,6 @@ class Doc(AbstractObject):
         super(Doc, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
         self.vocab = vocab
-        self.text = text
 
         # This list is populated in the __call__ method of the Tokenizer object.
         # Its members are objects of the TokenMeta class defined in the tokenizer.py
