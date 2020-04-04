@@ -70,6 +70,7 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
     prog_bar.close()
+    return tmp_model_path
 
 
 def normalize_slice(length, start, stop, step=None):
