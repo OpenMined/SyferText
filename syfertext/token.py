@@ -49,6 +49,17 @@ class Token:
         return str(self.doc.vocab.store[self.orth])
 
     @property
+    def text_with_ws(self):
+        """Get the text with trailing whitespace if it exists"""
+        if self.space_after:
+            return self.text + " "
+        else:
+            return self.text
+
+    def __repr__(self):
+        return self.text
+
+    @property
     def vector(self):
         """Get the token vector"""
         return self.doc.vocab.vectors[self.text]

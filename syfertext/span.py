@@ -147,6 +147,10 @@ class Span(AbstractObject):
             # Yield a Token object
             yield self[i]
 
+    def __repr__(self):
+        """Returns the text of the span with whitespaces"""
+        return "".join(token.text_with_ws for token in self)
+
     @property
     def vector(self):
         """Get span vector as an average of in-vocabulary token's vectors
