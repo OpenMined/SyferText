@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import unicodedata
 import re
 
+import attrs
+
 
 _like_email = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)").match
 _tlds = set(
@@ -216,28 +218,30 @@ def is_oov(string):
     return True
 
 
+
+
 LEX_ATTRS = {
-    'LOWER': lower,
-    'NORM': lower,
-    'PREFIX': prefix,
-    'SUFFIX': suffix,
-    'IS_ALPHA': is_alpha,
-    'IS_DIGIT': is_digit,
-    'IS_LOWER': is_lower,
-    'IS_SPACE': is_space,
-    'IS_TITLE': is_title,
-    'IS_UPPER': is_upper,
-    'IS_STOP': is_stop,
-    'IS_OOV': is_oov,
-    'LIKE_EMAIL': like_email,
-    'LIKE_NUM': like_num,
-    'IS_PUNCT': is_punct,
-    'IS_ASCII': is_ascii,
-    'SHAPE': word_shape,
-    'IS_BRACKET': is_bracket,
-    'IS_QUOTE': is_quote,
-    'IS_LEFT_PUNCT': is_left_punct,
-    'IS_RIGHT_PUNCT': is_right_punct,
-    'IS_CURRENCY': is_currency,
-    'LIKE_URL': like_url,
+    attrs.LOWER: lower,
+    attrs.NORM: lower,
+    attrs.PREFIX: prefix,
+    attrs.SUFFIX: suffix,
+    attrs.IS_ALPHA: is_alpha,
+    attrs.IS_DIGIT: is_digit,
+    attrs.IS_LOWER: is_lower,
+    attrs.IS_SPACE: is_space,
+    attrs.IS_TITLE: is_title,
+    attrs.IS_UPPER: is_upper,
+    attrs.IS_STOP: is_stop,
+    attrs.IS_OOV: is_oov,
+    attrs.LIKE_EMAIL: like_email,
+    attrs.LIKE_NUM: like_num,
+    attrs.IS_PUNCT: is_punct,
+    attrs.IS_ASCII: is_ascii,
+    attrs.SHAPE: word_shape,
+    attrs.IS_BRACKET: is_bracket,
+    attrs.IS_QUOTE: is_quote,
+    attrs.IS_LEFT_PUNCT: is_left_punct,
+    attrs.IS_RIGHT_PUNCT: is_right_punct,
+    attrs.IS_CURRENCY: is_currency,
+    attrs.LIKE_URL: like_url,
 }

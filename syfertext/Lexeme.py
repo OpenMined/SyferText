@@ -1,10 +1,32 @@
+from attrs import IS_ALPHA, IS_ASCII, IS_DIGIT, IS_LOWER, IS_PUNCT, IS_SPACE
+from attrs import IS_TITLE, IS_UPPER, LIKE_URL, LIKE_NUM, LIKE_EMAIL, IS_STOP
+from attrs import IS_BRACKET, IS_QUOTE, IS_LEFT_PUNCT, IS_RIGHT_PUNCT
+from attrs import IS_CURRENCY, IS_OOV, PROB
 
-def class Lexeme:
+
+class LexemeMeta(object):
+    """This class holds some meta data about a Lexeme from the text held by a Doc object.
+       This allows to create aLexeme object when needed.
+    """
+    def __init__(self):
+        """Initializes a LexemeMeta object
+        """
+        self.flags
+        self.lang
+        self.id
+        self.length
+        self.orth
+        self.lower
+        self.norm
+        self.shape
+        self.prefix
+        self.suffix
+
+
+
+class Lexeme:
     """An entry in the vocabulary. A `Lexeme` has no string context – it's a
-    word-type, as opposed to a word token.  It therefore has no part-of-speech
-    tag, dependency parse, or lemma (lemmatization depends on the
-    part-of-speech tag).
-    DOCS: https://spacy.io/api/lexeme
+    word-type, as opposed to a word token.  
     """
     def __init__(self, Vocab vocab, orth):
         """Create a Lexeme object.
@@ -14,21 +36,48 @@ def class Lexeme:
         """
         self.vocab = vocab
         self.orth = orth
+        #To do implement get_by_orth in Vocab class
+        self.c = vocab.get_by_orth(orth)
         
     @staticmethod
-    def set_lex_attr(Lexeme lex,  name,  value):
-        setattr(lex,name,value)
+    def set_lex_attr(LexemeMeta lex, name, value):
+        if name < 65:
+            Lexeme.set_flag(lex, name, value)
+        elif name == ID:
+            lex.id = value
+        elif name == LOWER:
+            lex.lower = value
+        elif name == SHAPE:
+            lex.shape = value
+        elif name == PREFIX:
+            lex.prefix = value
+        elif name == SUFFIX:
+            lex.suffix = value
+        elif name == LANG:
+            lex.lang = value
 
     @staticmethod
-    def check_lex_attr(Lexeme lex, name):
-        getattr(lex,name, default= False)
+    def check_flag(LexemeMeta lex, flag_id) :
+        one = 1
+        if lex.flags & (one << flag_id):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def set_flag(LexemeMeta lex, flag_id, value) :
+        one = 1
+        if value:
+            lex.flags |= one << flag_id
+        else:
+            lex.flags &= ~(one << flag_id)
     
 
     @property
     def has_vector(self):
         """RETURNS (bool): Whether a word vector is associated with the object.
         """
-        return self.vocab.has_vector(self.orth)
+        return self.vocab.has_vector(self.c.orth)
 
     @property
     def vector_norm(self):
@@ -36,306 +85,213 @@ def class Lexeme:
         vector = self.vector
         return numpy.sqrt((vector**2).sum())
 
-    property vector:
-        """A real-valued meaning representation.
-        RETURNS (numpy.ndarray[ndim=1, dtype='float32']): A 1D numpy array
-            representing the lexeme's semantics.
-        """
-        def __get__(self):
-            length = self.vocab.vectors_length
-            if length == 0:
-                raise ValueError(Errors.E010)
-            return self.vocab.get_vector(self.c.orth)
 
-        def __set__(self, vector):
-            if len(vector) != self.vocab.vectors_length:
-                raise ValueError(Errors.E073.format(new_length=len(vector),
-                                                    length=self.vocab.vectors_length))
-            self.vocab.set_vector(self.orth, vector)
-    #To do
-    # add Rank
+    @property
+    def vector(self):
+        #To do add custom error message, and functionality of setting a vector.
+        return self.vocab.get_vector(self.c.orth)
 
+    @property 
+    def rank(self):
+    """RETURNS (unicode): Sequential ID of the lexemes's lexical type, used
+        to index into tables, e.g. for word vectors."""
+        return self.c.id
+    
     @property
     def orth_(self):
         """RETURNS (unicode): The original verbatim text of the lexeme
             (identical to `Lexeme.text`). Exists mostly for consistency with
             the other attributes."""
-        return self.vocab.strings[self.orth]
+        return self.vocab.strings[self.c.orth]
 
     @property
     def text(self):
         """RETURNS (unicode): The original verbatim text of the lexeme."""
         return self.orth_
 
-    property lower:
+    @property 
+    def lower(self):
         """RETURNS (unicode): Lowercase form of the lexeme."""
-        def __get__(self):
-            return self.lower
+        return self.c.lower
 
-        def __set__(self, x):
-            self.lower = x
-
-    property norm:
+        
+    @property 
+    def norm(self):
         """RETURNS (uint64): The lexemes's norm, i.e. a normalised form of the
             lexeme text.
         """
-        def __get__(self):
-                return self.norm
+        return self.c.norm
 
-        def __set__(self, x):
-            self.norm = x
-
-    property shape:
+    @property 
+    def shape(self):
         """RETURNS (uint64): Transform of the word's string, to show
             orthographic features.
         """
-        def __get__(self):
-            return self.shape
+        return self.c.shape
 
-        def __set__(self, x):
-            self.shape = x
-
-    property prefix:
+    @property 
+    def prefix(self):
         """RETURNS (uint64): Length-N substring from the start of the word.
             Defaults to `N=1`.
         """
-        def __get__(self):
-            return self.prefix
+        return self.c.prefix
 
-        def __set__(self, x):
-            self.prefix = x
-
-    property suffix:
+    @property 
+    def suffix(self):
         """RETURNS (uint64): Length-N substring from the end of the word.
             Defaults to `N=3`.
         """
-        def __get__(self):
-            return self.suffix
+        return self.c.suffix
 
-        def __set__(self, x):
-            self.suffix = x
-
-    property lang:
+    @property 
+    def lang:
         """RETURNS (uint64): Language of the parent vocabulary."""
-        def __get__(self):
-            return self.lang
+        return self.c.lang
 
-        def __set__(self, x):
-            self.lang = x
-
-
-    property lower_:
+    @property 
+    def lower_(self):
         """RETURNS (unicode): Lowercase form of the word."""
-        def __get__(self):
-            return self.vocab.strings[self.lower]
+        return self.vocab.strings[self.lower]
 
-        def __set__(self, x):
-            self.lower = self.vocab.strings.add(x)
-
-    property norm_:
+    @property 
+    def norm_(self):
         """RETURNS (unicode): The lexemes's norm, i.e. a normalised form of the
             lexeme text.
         """
-        def __get__(self):
-            return self.vocab.strings[self.norm]
+        return self.vocab.strings[self.c.norm]
 
-        def __set__(self, x):
-            self.norm = self.vocab.strings.add(x)
-
-    property shape_:
+    @property 
+    def shape_(self):
         """RETURNS (unicode): Transform of the word's string, to show
             orthographic features.
         """
-        def __get__(self):
-            return self.vocab.strings[self.shape]
+        return self.vocab.strings[self.c.shape]
 
-        def __set__(self, x):
-            self.shape = self.vocab.strings.add(x)
-
-    property prefix_:
+    @property 
+    def prefix_(self):
         """RETURNS (unicode): Length-N substring from the start of the word.
             Defaults to `N=1`.
         """
-        def __get__(self):
-            return self.vocab.strings[self.prefix]
+        return self.vocab.strings[self.c.prefix]
 
-        def __set__(self, x):
-            self.prefix = self.vocab.strings.add(x)
-
-    property suffix_:
+    @property 
+    def suffix_(self):
         """RETURNS (unicode): Length-N substring from the end of the word.
             Defaults to `N=3`.
         """
-        def __get__(self):
-            return self.vocab.strings[self.suffix]
-
-        def __set__(self, x):
-            self.suffix = self.vocab.strings.add(x)
-
-    property lang_:
+        return self.vocab.strings[self.c.suffix]
+        
+    @property 
+    def lang_(self):
         """RETURNS (unicode): Language of the parent vocabulary."""
-        def __get__(self):
-            return self.vocab.strings[self.lang]
+        return self.vocab.strings[self.c.lang]
 
-        def __set__(self, x):
-            self.lang = self.vocab.strings.add(x)
 
-    property is_oov:
-        """RETURNS (bool): Whether the lexeme is out-of-vocabulary."""
-        def __get__(self):
-            return Lexeme.c(self.c, IS_OOV)
+    @property
+    def is_oov(self):
+        """RETURNS (bool): Whether the token is out-of-vocabulary."""
+        return Lexeme.c_check_flag(self.c, IS_OOV)
 
-        def __set__(self, attr_t x):
-            Lexeme.c_set_flag(self.c, IS_OOV, x)
-
-    property is_stop:
-        """RETURNS (bool): Whether the lexeme is a stop word."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_STOP)
-
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_STOP, x)
-
-    property is_alpha:
-        """RETURNS (bool): Whether the lexeme consists of alphabetic
-            characters. Equivalent to `lexeme.text.isalpha()`.
+    @property
+    def is_stop(self):
+        """RETURNS (bool): Whether the token is a stop word, i.e. part of a
+            "stop list" defined by the language data.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_ALPHA)
+        return Lexeme.c_check_flag(self.c, IS_STOP)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_ALPHA, x)
-
-    property is_ascii:
-        """RETURNS (bool): Whether the lexeme consists of ASCII characters.
-            Equivalent to `[any(ord(c) >= 128 for c in lexeme.text)]`.
+    @property
+    def is_alpha(self):
+        """RETURNS (bool): Whether the token consists of alpha characters.
+            Equivalent to `token.text.isalpha()`.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_ASCII)
+        return Lexeme.c_check_flag(self.c, IS_ALPHA)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_ASCII, x)
-
-    property is_digit:
-        """RETURNS (bool): Whether the lexeme consists of digits. Equivalent
-            to `lexeme.text.isdigit()`.
+    @property
+    def is_ascii(self):
+        """RETURNS (bool): Whether the token consists of ASCII characters.
+            Equivalent to `[any(ord(c) >= 128 for c in token.text)]`.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_DIGIT)
+        return Lexeme.c_check_flag(self.c, IS_ASCII)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_DIGIT, x)
-
-    property is_lower:
-        """RETURNS (bool): Whether the lexeme is in lowercase. Equivalent to
-            `lexeme.text.islower()`.
+    @property
+    def is_digit(self):
+        """RETURNS (bool): Whether the token consists of digits. Equivalent to
+            `token.text.isdigit()`.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_LOWER)
+        return Lexeme.c_check_flag(self.c, IS_DIGIT)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_LOWER, x)
-
-    property is_upper:
-        """RETURNS (bool): Whether the lexeme is in uppercase. Equivalent to
-            `lexeme.text.isupper()`.
+    @property
+    def is_lower(self):
+        """RETURNS (bool): Whether the token is in lowercase. Equivalent to
+            `token.text.islower()`.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_UPPER)
+        return Lexeme.c_check_flag(self.x, IS_LOWER)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_UPPER, x)
-
-    property is_title:
-        """RETURNS (bool): Whether the lexeme is in titlecase. Equivalent to
-            `lexeme.text.istitle()`.
+    @property
+    def is_upper(self):
+        """RETURNS (bool): Whether the token is in uppercase. Equivalent to
+            `token.text.isupper()`
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_TITLE)
+        return Lexeme.c_check_flag(self.c, IS_UPPER)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_TITLE, x)
-
-    property is_punct:
-        """RETURNS (bool): Whether the lexeme is punctuation."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_PUNCT)
-
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_PUNCT, x)
-
-    property is_space:
-        """RETURNS (bool): Whether the lexeme consist of whitespace characters.
-            Equivalent to `lexeme.text.isspace()`.
+    @property
+    def is_title(self):
+        """RETURNS (bool): Whether the token is in titlecase. Equivalent to
+            `token.text.istitle()`.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_SPACE)
+        return Lexeme.c_check_flag(self.c, IS_TITLE)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_SPACE, x)
+    @property
+    def is_punct(self):
+        """RETURNS (bool): Whether the token is punctuation."""
+        return Lexeme.c_check_flag(self.c, IS_PUNCT)
 
-    property is_bracket:
-        """RETURNS (bool): Whether the lexeme is a bracket."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_BRACKET)
+    @property
+    def is_space(self):
+        """RETURNS (bool): Whether the token consists of whitespace characters.
+            Equivalent to `token.text.isspace()`.
+        """
+        return Lexeme.c_check_flag(self.c, IS_SPACE)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_BRACKET, x)
+    @property
+    def is_bracket(self):
+        """RETURNS (bool): Whether the token is a bracket."""
+        return Lexeme.c_check_flag(self.c, IS_BRACKET)
 
-    property is_quote:
-        """RETURNS (bool): Whether the lexeme is a quotation mark."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_QUOTE)
+    @property
+    def is_quote(self):
+        """RETURNS (bool): Whether the token is a quotation mark."""
+        return Lexeme.c_check_flag(self.c, IS_QUOTE)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_QUOTE, x)
+    @property
+    def is_left_punct(self):
+        """RETURNS (bool): Whether the token is a left punctuation mark."""
+        return Lexeme.c_check_flag(self.c, IS_LEFT_PUNCT)
 
-    property is_left_punct:
-        """RETURNS (bool): Whether the lexeme is left punctuation, e.g. )."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_LEFT_PUNCT)
+    @property
+    def is_right_punct(self):
+        """RETURNS (bool): Whether the token is a right punctuation mark."""
+        return Lexeme.c_check_flag(self.c, IS_RIGHT_PUNCT)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_LEFT_PUNCT, x)
+    @property
+    def is_currency(self):
+        """RETURNS (bool): Whether the token is a currency symbol."""
+        return Lexeme.c_check_flag(self.c, IS_CURRENCY)
 
-    property is_right_punct:
-        """RETURNS (bool): Whether the lexeme is right punctuation, e.g. )."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_RIGHT_PUNCT)
+    @property
+    def like_url(self):
+        """RETURNS (bool): Whether the token resembles a URL."""
+        return Lexeme.c_check_flag(self.c, LIKE_URL)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_RIGHT_PUNCT, x)
-
-    property is_currency:
-        """RETURNS (bool): Whether the lexeme is a currency symbol, e.g. $, €."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, IS_CURRENCY)
-
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, IS_CURRENCY, x)
-
-    property like_url:
-        """RETURNS (bool): Whether the lexeme resembles a URL."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, LIKE_URL)
-
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, LIKE_URL, x)
-
-    property like_num:
-        """RETURNS (bool): Whether the lexeme represents a number, e.g. "10.9",
+    @property
+    def like_num(self):
+        """RETURNS (bool): Whether the token resembles a number, e.g. "10.9",
             "10", "ten", etc.
         """
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, LIKE_NUM)
+        return Lexeme.c_check_flag(self.c, LIKE_NUM)
 
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, LIKE_NUM, x)
-
-    property like_email:
-        """RETURNS (bool): Whether the lexeme resembles an email address."""
-        def __get__(self):
-            return Lexeme.c_check_flag(self.c, LIKE_EMAIL)
-
-        def __set__(self, bint x):
-            Lexeme.c_set_flag(self.c, LIKE_EMAIL, x)
+    @property
+    def like_email(self):
+        """RETURNS (bool): Whether the token resembles an email address."""
+        return Lexeme.c_check_flag(self.c, LIKE_EMAIL)
+    
