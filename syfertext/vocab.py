@@ -28,6 +28,8 @@ class Vocab:
         # key, or vice versa.
         self.store = StringStore(strings=strings)
 
+        #Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
+        self.lex_store = {}
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
@@ -40,3 +42,5 @@ class Vocab:
             strings = pickle.load(word_file)
 
         return strings
+
+
