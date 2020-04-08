@@ -30,7 +30,7 @@ def test_vector_non_valid_token_is_zero():
 
 
 def test_length_of_doc():
-    """Test that tokenizer creates right number of tokens are created"""
+    """Test that the tokenizer creates the right number of tokens."""
 
     doc = nlp("I #love  app-le.")
     actual = 8
@@ -41,7 +41,7 @@ def test_length_of_doc():
 
 
 def test_correctness_of_tokens_created():
-    """Test that tokens created by tokenizer are correct"""
+    """Test that tokens created by the tokenizer are correct"""
 
     doc = nlp("I 'love  app-le!")
     actual_tokens = ["I", "'", "love", " ", "app", "-", "le", "!"]
