@@ -25,7 +25,6 @@ def test_vector_valid_token_is_not_zero():
 def test_vector_non_valid_token_is_zero():
     """Test that the vector of non valid token is all zeros"""
 
-
     doc = nlp("outofvocabularytoken")
     actual = doc[0].vector
     zeros = np.zeros(actual.shape)
@@ -67,6 +66,7 @@ def test_correctness_of_tokens_created():
 
     assert len(nlp(excep)) == 1  # ['U.S.A']
 
+
 def test_language_model_download_path():
     """Tests that downloading a model returns a valid & correct path"""
 
@@ -81,4 +81,3 @@ def test_language_model_download_path():
 
     # check if the model path is the same as the expected path
     assert model_path == expected_model_path
-

@@ -13,7 +13,7 @@ from syft.workers.base import BaseWorker
 from syft.generic.string import String
 
 import pickle
-from collections import defaultdict 
+from collections import defaultdict
 from typing import List, Union, Tuple, Match, DefaultDict
 
 
@@ -62,29 +62,26 @@ class Tokenizer(AbstractObject):
         suffix_search=suffix_re.search,
         infix_finditer=infix_re.finditer,
     ):
-        """Initialize the Tokenizer object
+        """Initializes the `Tokenizer` object
            
-            Args:
-                vocab: str or Vocab object
-                        If str, this should be the name of the language model to build the 
-                        Vocab object from. such as 'en_core_web_lg'. This is useful when
-                        the Tokenizer object is sent to a remote worker. So it can rebuild
-                        its Vocab object from scratch instead of send the Vocab object to
-                        the remote worker which might take too much network traffic.
-                exceptions: Exceptions cases for the tokenizer.
-                    Example: "e.g.", "Jr." 
-
-                prefix_search: A function matching the signature of
-                        `re.compile(string).search` to match prefixes.
-                    Example: "@username" : "@" is a prefix
-
-                suffix_search: A function matching the signature of
-                        `re.compile(string).search` to match sufixes.
-                    Example: "Oh!" : "!" is s suffix
-
-                infix_finditer: A function matching the signature of
-                        `re.compile(string).finditer` to match infixes.
-                    Example: "Hell-o" : "-" is an infix
+        Args:
+            vocab (str or Vocab object): If `str`, this should be the name of the
+                language model to build the `Vocab` object from, such as
+                'en_core_web_lg'. This is useful when the `Tokenizer` object
+                is sent to a remote worker. So it can rebuild
+                its `Vocab` object from scratch instead of sending the `Vocab`
+                object to the remote worker which might take too much network traffic.
+            exceptions: Exception cases for the tokenizer.
+                Example: "e.g.", "Jr." 
+            prefix_search: A function matching the signature of
+                `re.compile(string).search` to match prefixes.
+                Example: "@username" : "@" is a prefix
+            suffix_search: A function matching the signature of
+                `re.compile(string).search` to match sufixes.
+                Example: "Oh!" : "!" is a suffix
+            infix_finditer: A function matching the signature of
+                `re.compile(string).finditer` to match infixes.
+                Example: "Hell-o" : "-" is an infix
         """
 
         self.prefix_search = prefix_search
@@ -115,7 +112,8 @@ class Tokenizer(AbstractObject):
         text.split(' '). Because tokens can be white spaces if two or
         more consecutive white spaces are found. Also, this tokenizer
         also takes affixes and exception cases into account.
-        Exampele:
+
+        Example:
             'I love apples' gives three tokens: 'I', 'love', 'apples'
             'I  love apples ' gives four tokens: 'I', ' ', 'love', 'apples'
             ' I love ' gives three tokens: ' ', 'I', 'love' (yes a single white space
@@ -255,19 +253,18 @@ class Tokenizer(AbstractObject):
         # Get the remaining substring, it's start pos relative to original text,
         # affixes containing list of TokenMeta for each type affix and
         # list of TokenMeta of exceptions after splitting the affixes.
-        substring, pos, affixes, exception_tokens = self._split_affixes( 
-            substring = substring, 
-            start_pos=pos
+        substring, pos, affixes, exception_tokens = self._split_affixes(
+            substring=substring, start_pos=pos
         )
 
-        # Attach all the `TokenMeta` objects formed as result of splitting 
-        # affixes in the doc container.
+        # Attach all the `TokenMeta` objects formed as result of splitting
+        # the affixes and exception cases in the doc container.
         doc = self._attach_tokens(
-            doc=doc, 
-            substring=substring, 
-            start_pos=pos, 
-            space_after=space_after, 
-            affixes=affixes, 
+            doc=doc,
+            substring=substring,
+            start_pos=pos,
+            space_after=space_after,
+            affixes=affixes,
             exception_tokens=exception_tokens,
         )
 
@@ -286,9 +283,10 @@ class Tokenizer(AbstractObject):
             substring: The substring to tokenize.
             start_pos: A pointer to the start position of the substring in the text.
             affixes: Dict holding TokenMeta lists of each affix 
-                types as result of splitting affixes
+                types as a result of splitting affixes
             exception_tokens: The list of exception tokens TokenMeta objects.
         """
+
         suffixes = []
         prefixes = []
         infixes = []
@@ -296,7 +294,7 @@ class Tokenizer(AbstractObject):
         pos = start_pos
         end_pos = pos
 
-        next_affix = ['prefix', 'suffix']
+        next_affix = ["prefix", "suffix"]
 
         # Dict holding TokenMeta lists of each affix types(prefix, suffix, infix)
         affixes = defaultdict(list)
@@ -304,40 +302,50 @@ class Tokenizer(AbstractObject):
         # The first element in the `next_affix` list is 'prefix'.
         # since we should start by finding prefixes, we fix the
         # index i = 0.
-        # Start by finding prefixes. 
+        # Start by finding prefixes.
         i = 0
 
-        # Loop until an empty substring is encountered
-        while self.find_prefix(substring) or self.find_suffix(substring):
+        # Holds the last value of `i` at the moment when either a prefix or a suffix is matched.
+        # If the difference between `i` and l`ast_i` is greater than 2, it means that neither a
+        # prefix nor a suffix is found.
+        last_i = 0
+
+        # In each iteration, `substring` is searched for a prefix first, then for a suffix, and thus
+        # alternatively. The loop terminates when an exception substring is encountered,
+        # or when the substring is not updated for 2 continuous iterations, i.e, when
+        # neither a prefix nor a suffix is matched in the substring.
+        while i - last_i <= 2:
 
             if substring in self.exceptions:
+                # Get a list of exception  `TokenMeta` objects to be added in the Doc container
+                exception_tokens, substring = self._get_exception_token_metas(substring, pos)
+
                 break
 
-            # Get affix type (prefix or suffix) 
-            affix_type = next_affix[i%2]
+            # Get affix type (prefix or suffix)
+            affix_type = next_affix[i % 2]
 
             affix_finder = getattr(self, f"find_{affix_type}")
-        
+
             if affix_finder(substring):
-                # Get the `TokenMeta` object of the affix along with updated 
-                # substring and start pos pointer after removing the affix  
-                token_meta, substring, pos = getattr(self, f'_get_{affix_type}_token_meta')(substring, pos)
-                
+                # Get the `TokenMeta` object of the affix along with updated
+                # substring and start pos pointer after removing the affix
+                token_meta, substring, pos = getattr(self, f"_get_{affix_type}_token_meta")(
+                    substring, pos
+                )
+
                 affixes[f"{affix_type}"].append(token_meta)
-             
+
+                last_i = i
+
             # Change the affix type.
             i += 1
 
-        # Check if substring is in exceptions
-        if substring in self.exceptions:
-            # Get a list of exception  `TokenMeta` objects to be added in the Doc container
-            exception_tokens, substring = self._get_exception_token_metas(substring, pos)
-
-        # Get infix TokenMeta objects if any.        
-        elif self.infix_matches(substring):
+        # Get infix TokenMeta objects if any.
+        if self.infix_matches(substring):
             infixes, substring, pos = self._get_infix_token_metas(substring, pos)
             affixes["infix"].extend(infixes)
-                
+
         return substring, pos, affixes, exception_tokens
 
     def _attach_tokens(
@@ -368,14 +376,14 @@ class Tokenizer(AbstractObject):
         """
 
         # Append the prefix TokenMeta list in doc
-        doc.container.extend(affixes['prefix'])
+        doc.container.extend(affixes["prefix"])
 
         # Append the exceptions TokenMeta list in doc
         doc.container.extend(exception_tokens)
 
         # If subtring is remaining after splitting all the affixes.
         if substring:
-            # Create the TokenMeta object 
+            # Create the TokenMeta object
             end_pos = start_pos + len(substring) - 1
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[(substring)],
@@ -387,12 +395,12 @@ class Tokenizer(AbstractObject):
 
             # Append the token to the document
             doc.container.append(token_meta)
-            
+
         # Append the infixes TokenMeta list in doc
-        doc.container.extend(affixes['infix'])
+        doc.container.extend(affixes["infix"])
 
         # Append the suffixes TokenMeta list in doc
-        doc.container.extend(reversed(affixes['suffix']))
+        doc.container.extend(reversed(affixes["suffix"]))
 
         # Get the last token and update it's space_after attr according to original substring's TokenMeta data
         doc.container[-1].space_after = space_after
@@ -411,10 +419,14 @@ class Tokenizer(AbstractObject):
             substring: The updated substring after removing prefix.
             pos: The pointer to the start position of new substring in the text.
         """
+
+        # Get the length of prefix match in the substring.
         pre_len = self.find_prefix(substring)
+
         # break if pattern matches the empty string
         if pre_len == 0:
             return None, substring, pos
+
         end_pos = pos + pre_len - 1
 
         # Create the TokenMeta object
@@ -428,11 +440,11 @@ class Tokenizer(AbstractObject):
 
         pos = end_pos + 1
 
-        # Update remaining substring after removing the prefix.
+        # Update the remaining substring after removing the prefix.
         substring = substring[pre_len:]
 
         return token_meta, substring, pos
-        
+
     def _get_suffix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
         """Makes TokenMeta data for substring suffixes.
 
@@ -445,15 +457,21 @@ class Tokenizer(AbstractObject):
             substring: The updated substring after removing the suffix.
             pos: The pointer to the start position of new `substring` in the text.
         """
+
+        # Get the length of suffix match in the substring.
         suff_len = self.find_suffix(substring)
 
         # break if pattern matches the empty string
         if suff_len == 0:
             return None, substring
+
+        # A pointer to the start of the suffix in the substring relative to the original text.
         pos_suffix = pos + len(substring) - suff_len
+
+        # A pointer to the end of the suffix in the substring relative to the original text.
         end_pos_suffix = pos_suffix + suff_len - 1
 
-        # Create the TokenMeta object 
+        # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
             start_pos=pos_suffix,
@@ -462,7 +480,7 @@ class Tokenizer(AbstractObject):
             is_space=False,
         )
 
-        # Update remaining substring after removing the suffix.
+        # Update the remaining substring after removing the suffix.
         substring = substring[:-suff_len]
 
         return token_meta, substring, pos
@@ -487,44 +505,44 @@ class Tokenizer(AbstractObject):
         # List to hold `TokenMeta` object of all infixes
         infix_tokens_metas = []
 
-        # List holding start and end position of tokens 
+        # List holding start and end position of tokens
         # created due to infixes relative to substring, starting at 0
         positions = [0]
 
         for match in infixes:
-            positions.extend([match.start(),match.end()])
+            positions.extend([match.start(), match.end()])
 
         # Adding the endpos of last token
         positions.append(len(substring))
 
-        for i in range(len(positions)-1):
+        for i in range(len(positions) - 1):
             # start and end postion of token relative to substring
-            start_pos = positions[i] 
-            end_pos = positions[i+1] 
+            start_pos = positions[i]
+            end_pos = positions[i + 1]
 
             # Check if at the end of the substring
             if start_pos == end_pos:
                 break
 
             else:
-                # Create the TokenMeta object 
+                # Create the TokenMeta object
                 # pos added to make `start_pos` and `end_pos` relative to orginal text.
                 token_meta = TokenMeta(
-                    hash_key=self.vocab.store[str(substring[start_pos : end_pos])],
-                    start_pos=start_pos+pos,
-                    end_pos=end_pos+pos,
+                    hash_key=self.vocab.store[str(substring[start_pos:end_pos])],
+                    start_pos=start_pos + pos,
+                    end_pos=end_pos + pos,
                     space_after=False,  #  For this token space_after will be updated explicitly in end.
                     is_space=False,
                 )
 
                 # Append the token to the infix_list
-                infix_tokens_metas.append(token_meta)           
-        
-        # We have already proccesed thr full substring so updating
-        # pos just to have similar structure to other _get_affix_meta. 
+                infix_tokens_metas.append(token_meta)
+
+        # We have already proccesed the full substring so updating
+        # pos just to have similar structure to other _get_affix_meta.
         pos = len(substring) + 1
 
-        # There is no remaining substring 
+        # There is no remaining substring
         substring = ""
 
         return infix_tokens_metas, substring, pos
@@ -542,6 +560,8 @@ class Tokenizer(AbstractObject):
             substring: The updated substring after processing the exceptions.
 
         """
+
+        # List to hold TokenMeta objects of exceptions found in the `substring`.
         exception_token_metas = []
 
         for e in self.exceptions[substring]:
@@ -579,8 +599,13 @@ class Tokenizer(AbstractObject):
                 and `.end()` methods, denoting the placement of internal 
                 segment separators, e.g. hyphens.
         """
+
+        # Return empty list if no infix matches are in substring.
         if self.infix_finditer is None:
             return []
+
+        # Return a list of MatchObject instances over all non-overlapping
+        # matches for the infixes in the substring.
         return list(self.infix_finditer(substring))
 
     def find_prefix(self, substring: str) -> int:
@@ -593,9 +618,15 @@ class Tokenizer(AbstractObject):
         Returns:
             The length of the prefix if present, otherwise 0.
         """
+
+        # Return 0 if no prefix match is found in substring.
         if self.prefix_search is None:
             return 0
+
+        # The MatchObject with the end and start postion of the prefix in the substring.
         match = self.prefix_search(substring)
+
+        # Return the length of the prefix match in the substring.
         return (match.end() - match.start()) if match is not None else 0
 
     def find_suffix(self, substring: str) -> int:
@@ -608,9 +639,15 @@ class Tokenizer(AbstractObject):
         Returns:
             The length of the suffix if present, otherwise 0.
         """
+
+        # Return 0 if no suffix match is found in substring.
         if self.suffix_search is None:
             return 0
+
+        # The MatchObject with the end and start postion of the suffix in the substring.
         match = self.suffix_search(substring)
+
+        # Return the length of the suffix match in the substring.
         return (match.end() - match.start()) if match is not None else 0
 
     @staticmethod

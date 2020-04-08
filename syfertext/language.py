@@ -38,7 +38,7 @@ class BaseDefaults(object):
         main container for annotated tokens.
         
         This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
-        infixes, suffixes, token exceptions case into account.
+        infixes, suffixes, tokenization exceptions into account.
         Of course, more features should be added later.
 
         """
