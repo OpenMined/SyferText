@@ -17,10 +17,6 @@ me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
-# initialise workers
-bob = sy.VirtualWorker(hook, id="bob")
-alice = sy.VirtualWorker(hook, id="alice")
-
 # Create a simple tagger
 tagger = SimpleTagger(attribute="pronoun", lookups=["he", "she"])
 
@@ -80,13 +76,15 @@ def test_invalid_position_error():
 def test_object_not_collocated_error():
 
     try:
+        bob = sy.VirtualWorker(hook, id="bob")
+
         nlp = syfertext.load("en_core_web_lg", owner=me)
         tagger = SimpleTagger(attribute="pronoun", lookups=["he", "she"])
 
         # Add a simple tagger with remote = False
         nlp.add_pipe(tagger, name="my tagger", remote=False)
 
-        text_ptr = String("Building SyferText").send(bob)
+        text_ptr = String("Building SyferText").send(bob)  # sent to bob
 
         # The tokenizer is initialised and sent to bob's machine
         # while the tagger resides on local machine
