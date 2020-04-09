@@ -1,9 +1,11 @@
 from syfertext.doc import Doc
+from syfertext.pointers import DocPointer
 from syfertext.token import Token
 from typing import Union
 
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
+from syfertext.exceptions import ObjectNotCollocatedError
 
 
 class SimpleTagger:
@@ -30,13 +32,13 @@ class SimpleTagger:
                 this attribute will be accessible through the attribute
                 `._` of Token objects. Example `token_object._.<attribute>
             lookups (set, list or dict): If of type `list` of `set`, it should contain
-                the tokens that are to be searched for and tagged in the Doc 
+                the tokens that are to be searched for and tagged in the Doc
                 object's text. Example: ['the', 'myself', ...]
                 If of type `dict`, the keys should be the tokens texts to be
                 tagged, and values should hold a single tag for each such token.
                 Example: tagging stop words {'the': True, 'myself' : True}.
             tag (object, optional): If `lookups` is of type `list`, then this
-                will be the tag assigned to all matched tokens. It will be 
+                will be the tag assigned to all matched tokens. It will be
                 ignored if `lookups` if of type `dict`.
             default_tag: (object, optional): The default tag to be assigned
                 in case the token text maches no entry in `lookups`.
@@ -76,6 +78,9 @@ class SimpleTagger:
 
     def __call__(self, doc: Doc):
 
+        if isinstance(doc, DocPointer):
+            raise ObjectNotCollocatedError("SimpleTagger")
+
         # Start tagging
         for token in doc:
 
@@ -96,9 +101,9 @@ class SimpleTagger:
 
 
         Returns:
-            A transformed version  of `lookup` where all token texts are in 
+            A transformed version  of `lookup` where all token texts are in
             lower case.
- 
+
         """
 
         # Replace dict keys with lower-case versions
@@ -139,7 +144,7 @@ class SimpleTagger:
 
     @staticmethod
     def simplify(worker: BaseWorker, simple_tagger: "SimpleTagger"):
-        """Simplifies a SimpleTagger object. 
+        """Simplifies a SimpleTagger object.
 
         Args:
             worker (BaseWorker): The worker on which the
@@ -149,7 +154,7 @@ class SimpleTagger:
 
         Returns:
             (tuple): The simplified SimpleTagger object.
-        
+
         """
 
         # Simplify the object properties
@@ -163,7 +168,7 @@ class SimpleTagger:
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
-        """Takes a simplified SimpleTagger object, details it 
+        """Takes a simplified SimpleTagger object, details it
            and returns a SimpleTagger object.
 
         Args:

@@ -70,6 +70,25 @@ class PipelineComponentNotFoundError(Exception):
         super().__init__(message)
 
 
+class ObjectNotCollocatedError(Exception):
+    """Raised when a Pipeline component is called to process a
+     DocPointer object pointing to data on a remote machine."""
+
+    def __init__(self, object_name):
+        message = (
+            "A local `"
+            + object_name
+            + "` can not operate on a remote Document."
+            + " Please set `remote` = True while adding"
+            + " it to the pipeline. Since "
+            + object_name
+            + " object is not a private object, sending"
+            + " it to a remote worker is safe."
+        )
+
+        super().__init__(message)
+
+
 class SubPipelineNotCollocatedError(Exception):
     """Raised when a String to be tokenized or Doc object to be modified
     by a SubPipeline object is not on the same machine as SubPipeline object.

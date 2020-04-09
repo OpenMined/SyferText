@@ -10,6 +10,7 @@ from syfertext.exceptions import ObjectNotCallableError
 from syfertext.exceptions import InvalidPositionError
 from syfertext.exceptions import PipelineComponentNotFoundError
 from syfertext.exceptions import SubPipelineNotCollocatedError
+from syfertext.exceptions import ObjectNotCollocatedError
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
@@ -21,7 +22,7 @@ bob = sy.VirtualWorker(hook, id="bob")
 alice = sy.VirtualWorker(hook, id="alice")
 
 # Create a simple tagger
-tagger = SimpleTagger(attribute="noun", lookups=["I", "You"])
+tagger = SimpleTagger(attribute="pronoun", lookups=["he", "she"])
 
 
 def test_duplicate_name_error():
@@ -74,3 +75,27 @@ def test_invalid_position_error():
 
     except Exception as e:
         assert isinstance(e, InvalidPositionError)
+
+
+def test_object_not_collocated_error():
+
+    try:
+        nlp = syfertext.load("en_core_web_lg", owner=me)
+        tagger = SimpleTagger(attribute="pronoun", lookups=["he", "she"])
+
+        # Add a simple tagger with remote = False
+        nlp.add_pipe(tagger, name="my tagger", remote=False)
+
+        text_ptr = String("Building SyferText").send(bob)
+
+        # The tokenizer is initialised and sent to bob's machine
+        # while the tagger resides on local machine
+        # cause it was added with remote = False.
+        # Hence after processing the text the tokenizer returns a
+        # DocPointer which is passed to tagger.
+        # The tagger can't process a DocPointer object, hence
+        # it will throw an ObjectNotCollocatedError
+        _ = nlp(text_ptr)
+
+    except Exception as e:
+        assert isinstance(e, ObjectNotCollocatedError)
