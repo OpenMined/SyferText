@@ -153,7 +153,7 @@ class Language(AbstractObject):
         first: bool = False,
         last: bool = True,
     ):
-        """Adds a pipe template to a subpipeline tempaltes. 
+        """Adds a pipe template to the pipeline template. 
            
         A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
         Few main steps are carried out here:
