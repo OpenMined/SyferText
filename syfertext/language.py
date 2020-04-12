@@ -36,6 +36,10 @@ class BaseDefaults(object):
     def create_tokenizer(cls, vocab,) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
+        
+        This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
+        infixes, suffixes, tokenization exceptions into account.
+        Of course, more features should be added later.
 
         """
 
