@@ -73,3 +73,8 @@ def test_dynamic_store_size():
 
     # Check that no string is present in store
     assert len(nlp.vocab.store) == 0
+
+    doc = nlp("quick brown fox jumps")
+
+    # Check that 4 strings have been added in store
+    assert len(nlp.vocab.store) == 4
