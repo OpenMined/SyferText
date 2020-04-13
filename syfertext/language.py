@@ -18,7 +18,7 @@ class BaseDefaults(object):
     """
 
     @classmethod
-    def create_vocab(cls, model_name) -> Vocab:
+    def create_vocab(cls, model_name,lex_attr_getters) -> Vocab:
         """
            Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
@@ -29,7 +29,7 @@ class BaseDefaults(object):
         """
 
         # Instantiate the Vocab object
-        vocab = Vocab(model_name)
+        vocab = Vocab(model_name, lex_attr_getters)
 
         return vocab
 
@@ -72,8 +72,10 @@ class Language(AbstractObject):
         # Define the default settings
         self.Defaults = BaseDefaults
 
+        self.lex_attr_getters = LEX_ATTRS
+
         # Create the vocabulary
-        self.vocab = self.Defaults.create_vocab(model_name)
+        self.vocab = self.Defaults.create_vocab(model_name, self.lex_attr_getters)
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
