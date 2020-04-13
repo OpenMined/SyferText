@@ -7,59 +7,23 @@ from .utils import hash_string
 
 
 class Vectors:
+    
     def __init__(self, model_name):
 
-        # Create the path to where the folder named 'model_name' is stored.
-        dirname = str(Path.home())
+        # Import the language model
+        model = importlib.import_module(model_name)
 
-        self.model_path = os.path.join(dirname, "SyferText", model_name)
-
+        # Import the dictionary of loaders:
+        # `vectors` or `key2row`
+        LOADER = getattr(model, 'LOADER')
+    
         # Load the array holding the word vectors
-        self.data, self.default_vector = self._load_vectors()
+        self.data, self.default_vector = LOADER['vectors']()
 
         # Load the mappings between word hashes and row indices in 'self.data'
-        self.key2row = self._load_key2row()
+        self.key2row = LOADER['key2row']()
 
-    def _load_vectors(self):
-        """Loads the embedding vectors of the vocabulary string from disk.
-
-        Returns:
-            vectors (array): a numpy array which as much rows as words in the vocabulary.
-                                the number of columns is equal to the vector's dimensions.
-            default_vector (array): a numpy array of size (number of vector's dimensions,)
-                                    this vector is used for out-of-vocabulary tokens.
-        """
-
-        # Get the path to the file where vectors are stored
-        vectors_path = os.path.join(self.model_path, "vectors")
-
-        # Unpickle the vectors
-        with open(vectors_path, "rb") as vectors_file:
-            vectors = pickle.load(vectors_file)
-
-        # Create a default vector that is returned
-        # when an out-of-vocabulary token is encountered
-        default_vector = np.zeros(vectors.shape[1], dtype=vectors.dtype)
-
-        return vectors, default_vector
-
-    def _load_key2row(self):
-        """Loads the key2row dictionary from disk.
-
-        Returns:
-            key2row (dict): a dictionary that maps a hash to a word.
-        """
-
-        # Create the path to the file where hash keys to row indices
-        # mappings are stored
-        key2row_path = os.path.join(self.model_path, "key2row")
-
-        # Unpickle the file
-        with open(key2row_path, "rb") as key2row_file:
-            key2row = pickle.load(key2row_file)
-
-        return key2row
-
+        
     def has_vector(self, word):
         """Checks whether 'word' has a vector or not in self.data
 
@@ -75,7 +39,6 @@ class Vectors:
 
         # if the key exists return True
         if key in self.key2row:
-
             return True
 
         else:
