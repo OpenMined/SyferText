@@ -3,6 +3,7 @@ from .utils import hash_string
 import syft as sy
 import torch
 
+
 hook = sy.TorchHook(torch)
 
 
@@ -14,12 +15,10 @@ class Token:
         # corresponding hash value of this token
         self.orth = token_meta.orth
 
-        # The start and stop positions of the token in self.text
-        # notice that stop_position refers to one position after `token_meta.end_pos`.
-        # this is practical for indexing
-        self.start_pos = token_meta.start_pos
-        self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
+        # Whether the token itself is composed of only white
         self.is_space = token_meta.is_space
+
+        # Whether the token is followed by a single white
         self.space_after = token_meta.space_after
 
         # Initialize the Underscore object (inspired by spaCy)
