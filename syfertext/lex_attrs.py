@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 import unicodedata
 import re
 
-import attrs
+from .attrs import Attributes
+
+attrs = Attributes()
 
 
 _like_email = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)").match

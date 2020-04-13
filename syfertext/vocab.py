@@ -1,12 +1,13 @@
 import pickle
 import os
 from pathlib import Path
+from typing import Union
 
 from .vectors import Vectors
 from .string_store import StringStore
 from .lexeme import Lexeme
 from .lexeme import LexemeMeta
-
+from .attrs import Attributes
 
 class Vocab:
     def __init__(self, model_name: str, lex_attr_getters=None):
@@ -32,6 +33,9 @@ class Vocab:
 
         #Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
         self.lex_store = {}
+
+        self.lex_attr_getters = lex_attr_getters
+
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
@@ -45,20 +49,31 @@ class Vocab:
 
         return strings
 
+    def get_vector(self, string_or_id:Union[str, int]):
+        """Retrieve a vector for a word in the vocabulary. Words can be looked
+        up by string or int ID. 
+        """
+        if isinstance(string_or_id, str):
+            string_or_id = self.strings.add(string_or_id)
+        
+        return self.vectors[string_or_id]
+
     def __iter__(self):
         """Iterate over the lexemes in the vocabulary.
         YIELDS (Lexeme): An entry in the vocabulary.
         """
-        for key, addr in self.lex_store.items():
-            lex = Lexeme(self, key)
-            yield lex
+        for orth, lex in self.lex_store.items():
+            lexeme = Lexeme(self,orth)
+            yield lexeme
 
     def __getitem__(self, id_or_string):
-        """Retrieve a string, given an int ID or a unicode string. If a
-        previously unseen unicode string is given, a new lexeme is created and
+        """Retrieve a string, given an int ID or a string. If a
+        previously unseen string is given, a new lexeme is created and
         stored.
-        id_or_string (int or unicode): The integer ID of a word, or its unicode
-        string. 
+
+        Args:
+            id_or_string (int or unicode): The integer ID of a word, or its string. 
+
         RETURNS (Lexeme): The lexeme indicated by the given ID.
         """
         
@@ -68,20 +83,18 @@ class Vocab:
             orth = id_or_string 
         return Lexeme(self, orth)
 
-     def __contains__(self, key):
-        """Check whether the string or int key has an entry in the vocabulary.
-        string (unicode): The ID string.
-        RETURNS (bool) Whether the string has an entry in the vocabulary.
-        DOCS: https://spacy.io/api/vocab#contains
-        """
-       
-        
+    def __contains__(self, key):
+        """Check whether the string or int key has an entry in the vocabulary."""
+          
         if isinstance(key, str):
-            orth = self.strings[key]
+            orth = self.store[key]
         else:
             orth = key
         lex = self.lex_store.get(orth)
-        return lex is not NULL
+        return lex is not None
+
+    def has_vector(self, string):
+        return self.vectors.has_vector(string)
 
 
     def get_by_orth(self, orth):
@@ -91,7 +104,7 @@ class Vocab:
         if orth == 0:
             return None
         lex = self.lex_store.get(orth)
-        if lex != NULL:
+        if lex != None:
             return lex
         else:
             return self._create_lex(self.store[orth])
@@ -106,11 +119,15 @@ class Vocab:
         if self.lex_attr_getters is not None:
             for attr, func in self.lex_attr_getters.items():
                 value = func(string)
+                
+                if attr == Attributes.IS_OOV:
+                    value = not self.has_vector(string)
+                
                 if isinstance(value, str):
-                    value = self.strings.add(value)
+                    value = self.store.add(value)
                 
                 if value:
-                    Lexeme.set_struct_attr(lex, attr, value)
+                    Lexeme.set_lex_attr(lex, attr, value)
         
         self.lex_store[lex.orth] =  lex
         

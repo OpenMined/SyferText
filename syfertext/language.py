@@ -72,6 +72,8 @@ class Language(AbstractObject):
         # Define the default settings
         self.Defaults = BaseDefaults
 
+        # Dict with lexical attributes id as key and correspondig 
+        # function to evaluate the lexical attribute
         self.lex_attr_getters = LEX_ATTRS
 
         # Create the vocabulary

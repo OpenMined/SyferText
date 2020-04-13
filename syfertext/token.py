@@ -5,6 +5,7 @@ from .lexeme import LexemeMeta
 
 import syft as sy
 import torch
+import numpy as np
 
 
 hook = sy.TorchHook(torch)
@@ -53,7 +54,7 @@ class Token:
 
     def __len__(self):
         """The number of unicode characters in the token, i.e. `token.text`.
-        RETURNS (int): The number of unicode characters in the token.
+        The number of unicode characters in the token.
         """
         return self.lex.length
 
@@ -90,185 +91,195 @@ class Token:
         )
 
         return vector
+    
+    # Following attributes are inspired from Spacy, they have similar behaviour as in spacy. 
+    # Some of the attributes are redundant but there to maintain consistency with other attributes
+
+    @property
+    def vector_norm(self):
+        """The L2 norm of the token's vector"""
+        vector = self.vector
+        return np.sqrt((vector**2).sum())
+    
+    @property
+    def text_with_ws(self):
+        """The text content of the token with the trailing whitespace(if any)."""
+        text = self.orth_
+
+        if self.is_space:
+            return text + " "
+        else:
+            return text
+    
+    @property
+    def lex_id(self):
+        """Sequential id of the token's lexical type. Used to index into words vector table"""
+        return self.lex.id
+
+    @property
+    def rank(self):
+        """The index to corresponding word vector in words vector table."""
+        return self.lex.id
 
     @property
     def lower(self):
-        """RETURNS (uint64): ID of the lowercase token text."""
+        """Orth id of the lowercase token text."""
         return self.lex.lower
 
     @property
     def shape(self):
-        """RETURNS (uint64): ID of the token's shape, a transform of the
+        """Orth id of the token's shape, a transform of the
             tokens's string, to show orthographic features (e.g. "Xxxx", "dd").
         """
         return self.lex.shape
 
     @property
     def prefix(self):
-        """RETURNS (uint64): ID of a length-N substring from the start of the
-            token. Defaults to `N=1`.
-        """
+        """Orth id of a length-1 substring from the start of the token."""
         return self.lex.prefix
 
     @property
     def suffix(self):
-        """RETURNS (uint64): ID of a length-N substring from the end of the
-            token. Defaults to `N=3`.
-        """
+        """Orth id of a length-N substring from the end of the token."""
         return self.lex.suffix
 
     @property
+    def lang(self):
+        """Orth id of the language of the parent document's vocabulary."""
+        return self.lex.lang
+
+    @property
     def whitespace_(self):
-        """RETURNS (unicode): The trailing whitespace character, if present."""
+        """The trailing whitespace character, if present."""
         return " " if self.space_after else ""
 
     @property
     def orth_(self):
-        """RETURNS (unicode): Verbatim text content (identical to
-            `Token.text`). Exists mostly for consistency with the other
+        """Text content (identical to `Token.text`).
+            Exists mostly for consistency with the other
             attributes.
         """
         return self.vocab.store[self.lex.orth]
 
     @property
     def lower_(self):
-        """RETURNS (unicode): The lowercase token text. Equivalent to
-            `Token.text.lower()`.
-        """
+        """The lowercase token text."""
         return self.vocab.store[self.lex.lower]
 
     @property
     def shape_(self):
-        """RETURNS (unicode): Transform of the tokens's string, to show
+        """Transform of the tokens's string, to show
             orthographic features. For example, "Xxxx" or "dd".
         """
         return self.vocab.store[self.lex.shape]
 
     @property
     def prefix_(self):
-        """RETURNS (unicode): A length-N substring from the start of the token.
-            Defaults to `N=1`.
-        """
+        """A length-1 substring from the start of the token."""
         return self.vocab.store[self.lex.prefix]
 
     @property
     def suffix_(self):
-        """RETURNS (unicode): A length-N substring from the end of the token.
-            Defaults to `N=3`.
-        """
+        """A length-3 substring from the end of the token."""
         return self.vocab.store[self.lex.suffix]
 
     @property
     def lang_(self):
-        """RETURNS (unicode): Language of the parent document's vocabulary,
-            e.g. 'en'.
+        """Language of the parent document's vocabulary,
+            e.g. 'en_web_core_lm'.
         """
         return self.vocab.store[self.lex.lang]
 
     @property
     def is_oov(self):
-        """RETURNS (bool): Whether the token is out-of-vocabulary."""
+        """Whether the token is out-of-vocabulary."""
         return Lexeme.check_flag(self.lex, Attributes.IS_OOV)
 
     @property
     def is_stop(self):
-        """RETURNS (bool): Whether the token is a stop word, i.e. part of a
-            "stop list" defined by the language data.
+        """Whether the token is a stop word, i.e. part of a
+            stop list defined by the language data.
         """
         return Lexeme.check_flag(self.lex, Attributes.IS_STOP)
 
     @property
     def is_alpha(self):
-        """RETURNS (bool): Whether the token consists of alpha characters.
-            Equivalent to `token.text.isalpha()`.
-        """
+        """Whether the token consists of alpha characters."""
         return Lexeme.check_flag(self.lex, Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
-        """RETURNS (bool): Whether the token consists of ASCII characters.
-            Equivalent to `[any(ord(c) >= 128 for c in token.text)]`.
-        """
+        """Whether the token consists of ASCII characters."""
         return Lexeme.check_flag(self.lex, Attributes.IS_ASCII)
 
     @property
     def is_digit(self):
-        """RETURNS (bool): Whether the token consists of digits. Equivalent to
-            `token.text.isdigit()`.
-        """
+        """Whether the token consists of digits."""
         return Lexeme.check_flag(self.lex, Attributes.IS_DIGIT)
 
     @property
     def is_lower(self):
-        """RETURNS (bool): Whether the token is in lowercase. Equivalent to
-            `token.text.islower()`.
-        """
+        """Whether the token is in lowercase."""
         return Lexeme.check_flag(self.lex, Attributes.IS_LOWER)
 
     @property
     def is_upper(self):
-        """RETURNS (bool): Whether the token is in uppercase. Equivalent to
-            `token.text.isupper()`
-        """
+        """Whether the token is in uppercase."""
         return Lexeme.check_flag(self.lex, Attributes.IS_UPPER)
 
     @property
     def is_title(self):
-        """RETURNS (bool): Whether the token is in titlecase. Equivalent to
-            `token.text.istitle()`.
-        """
+        """Whether the token is in titlecase."""
         return Lexeme.check_flag(self.lex, Attributes.IS_TITLE)
 
     @property
     def is_punct(self):
-        """RETURNS (bool): Whether the token is punctuation."""
+        """Whether the token is punctuation."""
         return Lexeme.check_flag(self.lex, Attributes.IS_PUNCT)
 
     @property
     def is_space(self):
-        """RETURNS (bool): Whether the token consists of whitespace characters.
-            Equivalent to `token.text.isspace()`.
-        """
+        """Whether the token consists of whitespace characters."""
         return Lexeme.check_flag(self.lex, Attributes.IS_SPACE)
 
     @property
     def is_bracket(self):
-        """RETURNS (bool): Whether the token is a bracket."""
+        """Whether the token is a bracket."""
         return Lexeme.check_flag(self.lex, Attributes.IS_BRACKET)
 
     @property
     def is_quote(self):
-        """RETURNS (bool): Whether the token is a quotation mark."""
+        """Whether the token is a quotation mark."""
         return Lexeme.check_flag(self.lex, Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self):
-        """RETURNS (bool): Whether the token is a left punctuation mark."""
+        """Whether the token is a left punctuation mark."""
         return Lexeme.check_flag(self.lex, Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self):
-        """RETURNS (bool): Whether the token is a right punctuation mark."""
+        """Whether the token is a right punctuation mark."""
         return Lexeme.check_flag(self.lex, Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self):
-        """RETURNS (bool): Whether the token is a currency symbol."""
+        """Whether the token is a currency symbol."""
         return Lexeme.check_flag(self.lex, Attributes.IS_CURRENCY)
 
     @property
     def like_url(self):
-        """RETURNS (bool): Whether the token resembles a URL."""
+        """Whether the token resembles a URL."""
         return Lexeme.check_flag(self.lex, Attributes.LIKE_URL)
 
     @property
     def like_num(self):
-        """RETURNS (bool): Whether the token resembles a number, e.g. "10.9",
+        """Whether the token resembles a number, e.g. "10.9",
             "10", "ten", etc.
         """
         return Lexeme.check_flag(self.lex, Attributes.LIKE_NUM)
 
     @property
     def like_email(self):
-        """RETURNS (bool): Whether the token resembles an email address."""
+        """Whether the token resembles an email address."""
         return Lexeme.check_flag(self.lex, Attributes.LIKE_EMAIL)

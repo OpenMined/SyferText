@@ -87,7 +87,6 @@ class Vectors:
         Args:
             word (str): the word to which we wish to return a vector.
 
-
         Returns:
             The vector embedding of the word.
             if no vector is found, self.default_vector is returned.

@@ -84,4 +84,3 @@ class Attributes:
     LANG = 74
     IDX = 75
 
-print(Attributes.FLAG21)

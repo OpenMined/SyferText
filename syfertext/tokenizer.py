@@ -23,7 +23,7 @@ class TokenMeta(object):
     """
 
     def __init__(
-        self, hash_key: int, space_after: bool, is_space: bool
+        self, hash_key: int, space_after: bool
     ):
         """Initializes a TokenMeta object
 
@@ -31,16 +31,12 @@ class TokenMeta(object):
             hash_key(int): hash value of the string stored by the Token object
             space_after (bool): Whether the token is followed by a single white
                 space (True) or not (False).
-            is_space (bool): Whether the token itself is composed of only white
-                spaces (True) or not (false).
-
         """
 
         # stores the hash of the hash of the string
         self.orth = hash_key
 
         self.space_after = space_after
-        self.is_space = is_space
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -161,8 +157,7 @@ class Tokenizer(AbstractObject):
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
                     hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
-                    space_after=is_current_space,
-                    is_space=is_space,
+                    space_after=is_current_space
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -203,7 +198,6 @@ class Tokenizer(AbstractObject):
                     # and the corresponding key is returned back
                     hash_key=self.vocab.store[str(text[pos:])],
                     space_after=is_current_space,
-                    is_space=is_space,
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -369,7 +363,6 @@ class Tokenizer(AbstractObject):
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[(substring)],
                 space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
-                is_space=False,
             )
 
             # Append the token to the document
@@ -407,8 +400,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[:pre_len])],
-            space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
-            is_space=False,
+            space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.    
         )
 
         # Update the remaining substring after removing the prefix.
@@ -437,8 +429,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
-            space_after=False,  # for the last token space_after will be updated explicitly in end.
-            is_space=False,
+            space_after=False,  # for the last token space_after will be updated explicitly in end.    
         )
 
         # Update the remaining substring after removing the suffix.
@@ -487,8 +478,7 @@ class Tokenizer(AbstractObject):
                 # Create the TokenMeta object
                 token_meta = TokenMeta(
                     hash_key=self.vocab.store[str(substring[start_pos:end_pos])],
-                    space_after=False,  #  For this token space_after will be updated explicitly in end.
-                    is_space=False,
+                    space_after=False,  #  For this token space_after will be updated explicitly in end.   
                 )
 
                 # Append the token to the infix_list
@@ -521,8 +511,7 @@ class Tokenizer(AbstractObject):
             # Create the TokenMeta object
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[ORTH],
-                space_after=False,  # for the last token space_after will be updated explicitly in end.
-                is_space=False,
+                space_after=False,  # for the last token space_after will be updated explicitly in end.   
             )
 
             # Append the token to the  exception tokens list
