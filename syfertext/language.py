@@ -3,6 +3,7 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .lex_attrs import LEX_ATTRS
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -38,8 +39,8 @@ class BaseDefaults(object):
         main container for annotated tokens.
         
         This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
-        infixes, suffixes, token exceptions and special case into account. And it can
-        handle exceptions and special cases. Of course, more features should be added later.
+        infixes, suffixes, tokenization exceptions into account.
+        Of course, more features should be added later.
 
         """
 
@@ -295,10 +296,6 @@ class Language(AbstractObject):
 
         # Delete the pipe using its index
         pipe = self.pipeline_template.pop(pipe_index)
-
-        # Parse the pipeline template again
-        # to create the subpipeline templates
-        self._parse_pipeline_template()
 
         # Reset the pipeline.
         self._reset_pipeline()

@@ -5,7 +5,12 @@ import logging
 import urllib.request as request
 from tqdm import tqdm
 from pathlib import Path
-from typing import Pattern, Match
+
+from typing import Pattern, Match, Tuple
+
+import tempfile
+import shutil
+
 
 # Files to download for each language model
 # TODO: Downloading language models should be handled
@@ -40,9 +45,6 @@ def get_lang_model(model_name: str):
          with. it should be revisited later.
     """
 
-    # Path to this file
-    file_path = os.path.dirname(os.path.realpath(__file__))
-
     # Path to the folder containing language models
     data_path = os.path.join(str(Path.home()), "SyferText")
 
@@ -54,36 +56,29 @@ def get_lang_model(model_name: str):
 
         os.mkdir(data_path)
 
-        # a flag signified that the model show be downloaded
-        download_model = True
-
     # If the data folder does not contain the language model
     # folder, download the language model
     if model_name not in os.listdir(data_path):
 
         download_model = True
 
-        # full path of the model folder to create
-        model_path = os.path.join(data_path, model_name)
-
-        # Create the model folder
-        os.mkdir(model_path)
-
     if download_model:
 
-        # download model files into the specified path
-        _download_model(model_name, model_path)
+        # download model files into a temporary path
+        tmp_model_path = _download_model(model_name)
+
+        # move temporary model directory to the models folder
+        shutil.move(tmp_model_path, data_path)
 
 
-def _download_model(model_name: str, model_path: str):
+def _download_model(model_name: str):
     """Download the language model files through HTTP.
 
     Args:
         model_name (str): The name of the language model.
-        model_path (str): The path to the folder in which model files are downloaded.
     """
 
-    # Intialize the totla size of the language model
+    # Intialize the total size of the language model
     model_size = 0
 
     # chunk size during download (in bytes)
@@ -99,13 +94,22 @@ def _download_model(model_name: str, model_path: str):
     # Initialize the progress bar object of tqdm
     prog_bar = tqdm(total=model_size, unit="B", unit_scale=True, desc=model_name)
 
+    # get the temporary directory path
+    tmp_data_path = tempfile.gettempdir()
+
+    # create the temporary model path
+    tmp_model_path = os.path.join(tmp_data_path, model_name)
+
+    if not os.path.exists(tmp_model_path):
+        os.mkdir(tmp_model_path)
+
     # start download
     for file_url in lang_model_files[model_name]:
 
         # Create the file path
         file_name = os.path.basename(file_url).split("?")[0]
 
-        file_path = os.path.join(model_path, file_name)
+        file_path = os.path.join(tmp_model_path, file_name)
 
         # Create the request object
         req = request.urlopen(file_url)
@@ -125,15 +129,17 @@ def _download_model(model_name: str, model_path: str):
                     prog_bar.update(chunk_size)
 
                 else:
-
                     # Downloading the file finished
                     break
-
     prog_bar.close()
+    return tmp_model_path
 
 
-def compile_prefix_regex(entries: str) -> Pattern:
+# The following three functions for compiling prefix, suffix and infix regex are adapted
+# from Spacy  https://github.com/explosion/spaCy/blob/master/spacy/util.py.
+def compile_prefix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of prefix rules into a regex object.
+
     Args:
         entries (tuple): The prefix rules, e.g. syfertext.punctuation.TOKENIZER_PREFIXES.
 
@@ -150,8 +156,9 @@ def compile_prefix_regex(entries: str) -> Pattern:
         return re.compile(expression)
 
 
-def compile_suffix_regex(entries: str) -> Pattern:
+def compile_suffix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
+    
     Args:
         entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
 
@@ -163,8 +170,9 @@ def compile_suffix_regex(entries: str) -> Pattern:
     return re.compile(expression)
 
 
-def compile_infix_regex(entries: str) -> Pattern:
+def compile_infix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of infix rules into a regex object.
+
     Args:
         entries (tuple): The infix rules, e.g. syfertext.punctuation.TOKENIZER_INFIXES.
 
