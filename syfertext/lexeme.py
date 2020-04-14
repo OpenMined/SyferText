@@ -113,7 +113,7 @@ class Lexeme:
         """The original text of the lexeme(identical to `Lexeme.text`). 
             Exists mostly for consistency with the other attributes.
         """
-        return self.vocab.strings[self.lex.orth]
+        return self.vocab.store[self.lex.orth]
 
     @property
     def text(self):
@@ -149,121 +149,121 @@ class Lexeme:
     @property 
     def lower_(self):
         """Lowercase form of the word."""
-        return self.vocab.strings[self.lower]
+        return self.vocab.store[self.lower]
 
 
     @property 
     def shape_(self):
         """Transform of the word's string, to show orthographic features."""
-        return self.vocab.strings[self.lex.shape]
+        return self.vocab.store[self.lex.shape]
 
     @property 
     def prefix_(self):
         """Length-1 substring from the start of the word."""
-        return self.vocab.strings[self.lex.prefix]
+        return self.vocab.store[self.lex.prefix]
 
     @property 
     def suffix_(self):
         """Length-3 substring from the end of the word."""
-        return self.vocab.strings[self.lex.suffix]
+        return self.vocab.store[self.lex.suffix]
         
     @property 
     def lang_(self):
         """Language of the parent vocabulary."""
-        return self.vocab.strings[self.lex.lang]
+        return self.vocab.store[self.lex.lang]
 
 
     @property
     def is_oov(self):
         """Whether the lexeme is out-of-vocabulary."""
-        return Lexeme.c_check_flag(self.lex, IS_OOV)
+        return Lexeme.check_flag(self.lex, Attributes.IS_OOV)
 
     @property
     def is_stop(self):
         """Whether the lexeme is a stop word, i.e. part of a
             stop list defined by the language data.
         """
-        return Lexeme.c_check_flag(self.lex, IS_STOP)
+        return Lexeme.check_flag(self.lex, Attributes.IS_STOP)
 
     @property
     def is_alpha(self):
         """Whether the lexeme consists of alpha characters."""
-        return Lexeme.c_check_flag(self.lex, IS_ALPHA)
+        return Lexeme.check_flag(self.lex, Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
         """Whether the lexeme consists of ASCII characters."""
-        return Lexeme.c_check_flag(self.lex, IS_ASCII)
+        return Lexeme.check_flag(self.lex, Attributes.IS_ASCII)
 
     @property
     def is_digit(self):
         """Whether the lexeme consists of digits."""
-        return Lexeme.c_check_flag(self.lex, IS_DIGIT)
+        return Lexeme.check_flag(self.lex, Attributes.IS_DIGIT)
 
     @property
     def is_lower(self):
         """Whether the lexeme is in lowercase."""
-        return Lexeme.c_check_flag(self.lex, IS_LOWER)
+        return Lexeme.check_flag(self.lex, Attributes.IS_LOWER)
 
     @property
     def is_upper(self):
         """Whether the lexeme is in uppercase."""
-        return Lexeme.c_check_flag(self.lex, IS_UPPER)
+        return Lexeme.check_flag(self.lex, Attributes.IS_UPPER)
 
     @property
     def is_title(self):
         """Whether the lexeme is in titlecase."""
-        return Lexeme.c_check_flag(self.lex, IS_TITLE)
+        return Lexeme.check_flag(self.lex, Attributes.IS_TITLE)
 
     @property
     def is_punct(self):
         """Whether the lexeme is punctuation."""
-        return Lexeme.c_check_flag(self.lex, IS_PUNCT)
+        return Lexeme.check_flag(self.lex, Attributes.IS_PUNCT)
 
     @property
     def is_space(self):
         """Whether the lexeme consists of only whitespace characters."""
-        return Lexeme.c_check_flag(self.lex, IS_SPACE)
+        return Lexeme.check_flag(self.lex, Attributes.IS_SPACE)
 
     @property
     def is_bracket(self):
         """Whether the lexeme is a bracket."""
-        return Lexeme.c_check_flag(self.lex, IS_BRACKET)
+        return Lexeme.check_flag(self.lex, Attributes.IS_BRACKET)
 
     @property
     def is_quote(self):
         """Whether the lexeme is a quotation mark."""
-        return Lexeme.c_check_flag(self.lex, IS_QUOTE)
+        return Lexeme.check_flag(self.lex, Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self):
         """Whether the lexeme is a left punctuation mark."""
-        return Lexeme.c_check_flag(self.lex, IS_LEFT_PUNCT)
+        return Lexeme.check_flag(self.lex, Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self):
         """Whether the lexeme is a right punctuation mark."""
-        return Lexeme.c_check_flag(self.lex, IS_RIGHT_PUNCT)
+        return Lexeme.check_flag(self.lex, Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self):
         """Whether the lexeme is a currency symbol."""
-        return Lexeme.c_check_flag(self.lex, IS_CURRENCY)
+        return Lexeme.check_flag(self.lex, Attributes.IS_CURRENCY)
 
     @property
     def like_url(self):
         """Whether the lexeme resembles a URL."""
-        return Lexeme.c_check_flag(self.lex, LIKE_URL)
+        return Lexeme.check_flag(self.lex, Attributes.LIKE_URL)
 
     @property
     def like_num(self):
         """Whether the lexeme resembles a number, e.g. "10.9",
-            "10", "ten", etc.
+            "10".
         """
-        return Lexeme.c_check_flag(self.lex, LIKE_NUM)
+        return Lexeme.check_flag(self.lex, Attributes.LIKE_NUM)
 
     @property
     def like_email(self):
         """Whether the lexeme resembles an email address."""
-        return Lexeme.c_check_flag(self.lex, LIKE_EMAIL)
+        return Lexeme.check_flag(self.lex, Attributes.LIKE_EMAIL)
     

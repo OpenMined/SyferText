@@ -53,8 +53,8 @@ class Vocab:
         """Retrieve a vector for a word in the vocabulary. Words can be looked
         up by string or int ID. 
         """
-        if isinstance(string_or_id, str):
-            string_or_id = self.strings.add(string_or_id)
+        if isinstance(string_or_id, int):
+            string_or_id = self.store[string_or_id]
         
         return self.vectors[string_or_id]
 
@@ -113,7 +113,7 @@ class Vocab:
         lex = LexemeMeta()
         lex.orth = self.store.add(string)
         lex.length = len(string)
-        
+        lex.lang  = self.store.add(self.model_name)
         lex.id = self.vectors.key2row.get(lex.orth)
         
         if self.lex_attr_getters is not None:

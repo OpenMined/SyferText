@@ -4,13 +4,17 @@ from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .lex_attrs import LEX_ATTRS
+from .stop_words import STOP_WORDS
+from .attrs import Attributes
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
+
 from typing import List, Union, Tuple
+import functools
 
 
 class BaseDefaults(object):
@@ -28,6 +32,10 @@ class BaseDefaults(object):
             vocab.vectors['word'] = float. To be reviewed for more complex functionality.
         """
 
+        # List of stop words
+        cls.stop_words = STOP_WORDS
+        is_stop = lex_attr_getters[Attributes.IS_STOP]
+        lex_attr_getters[Attributes.IS_STOP] = functools.partial(is_stop, stops=cls.stop_words)
         # Instantiate the Vocab object
         vocab = Vocab(model_name, lex_attr_getters)
 

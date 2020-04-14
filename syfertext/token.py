@@ -275,7 +275,7 @@ class Token:
     @property
     def like_num(self):
         """Whether the token resembles a number, e.g. "10.9",
-            "10", "ten", etc.
+            "10" etc.
         """
         return Lexeme.check_flag(self.lex, Attributes.LIKE_NUM)
 
