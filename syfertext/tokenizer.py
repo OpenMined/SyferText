@@ -22,9 +22,7 @@ class TokenMeta(object):
        This allows to create a Token object when needed.
     """
 
-    def __init__(
-        self, hash_key: int, space_after: bool
-    ):
+    def __init__(self, hash_key: int, space_after: bool):
         """Initializes a TokenMeta object
 
         Args:
@@ -157,7 +155,7 @@ class Tokenizer(AbstractObject):
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
                     hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
-                    space_after=is_current_space
+                    space_after=is_current_space,
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -233,11 +231,9 @@ class Tokenizer(AbstractObject):
         space_after = token_meta.space_after
 
         # Get the remaining substring,affixes containing list of
-        # TokenMeta for each type affix and list of TokenMeta of 
+        # TokenMeta for each type affix and list of TokenMeta of
         # exceptions after splitting the affixes.
-        substring, affixes, exception_tokens = self._split_affixes(
-            substring=substring
-        )
+        substring, affixes, exception_tokens = self._split_affixes(substring=substring)
 
         # Attach all the `TokenMeta` objects formed as result of splitting
         # the affixes and exception cases in the doc container.
@@ -251,9 +247,7 @@ class Tokenizer(AbstractObject):
 
         return doc
 
-    def _split_affixes(
-        self, substring: str
-    ) -> Tuple[str, DefaultDict, List[TokenMeta]]:
+    def _split_affixes(self, substring: str) -> Tuple[str, DefaultDict, List[TokenMeta]]:
         """Process substring for tokenizing prefixes, infixes, suffixes and exceptions.
 
         Args:
@@ -307,9 +301,7 @@ class Tokenizer(AbstractObject):
             if affix_finder(substring):
                 # Get the `TokenMeta` object of the affix along with updated
                 # substring after removing the affix
-                token_meta, substring = getattr(self, f"_get_{affix_type}_token_meta")(
-                    substring
-                )
+                token_meta, substring = getattr(self, f"_get_{affix_type}_token_meta")(substring)
 
                 affixes[f"{affix_type}"].append(token_meta)
 
@@ -400,7 +392,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[:pre_len])],
-            space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.    
+            space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
         )
 
         # Update the remaining substring after removing the prefix.
@@ -429,7 +421,7 @@ class Tokenizer(AbstractObject):
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
-            space_after=False,  # for the last token space_after will be updated explicitly in end.    
+            space_after=False,  # for the last token space_after will be updated explicitly in end.
         )
 
         # Update the remaining substring after removing the suffix.
@@ -478,7 +470,7 @@ class Tokenizer(AbstractObject):
                 # Create the TokenMeta object
                 token_meta = TokenMeta(
                     hash_key=self.vocab.store[str(substring[start_pos:end_pos])],
-                    space_after=False,  #  For this token space_after will be updated explicitly in end.   
+                    space_after=False,  #  For this token space_after will be updated explicitly in end.
                 )
 
                 # Append the token to the infix_list
@@ -507,11 +499,11 @@ class Tokenizer(AbstractObject):
 
         for e in self.exceptions[substring]:
             ORTH = e["ORTH"]
-            
+
             # Create the TokenMeta object
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[ORTH],
-                space_after=False,  # for the last token space_after will be updated explicitly in end.   
+                space_after=False,  # for the last token space_after will be updated explicitly in end.
             )
 
             # Append the token to the  exception tokens list

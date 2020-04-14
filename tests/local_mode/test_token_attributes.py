@@ -5,9 +5,10 @@ import numpy as np
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang  = "en_core_web_lg"
+lang = "en_core_web_lg"
 nlp = syfertext.load(lang, owner=me)
 vocab = nlp.vocab
+
 
 def test_token_text_with_ws():
     text = "Green Apple "
@@ -15,7 +16,8 @@ def test_token_text_with_ws():
     tok1 = doc[0]
     tok2 = doc[1]
 
-    assert tok1.text_with_ws+tok2.text_with_ws == text
+    assert tok1.text_with_ws + tok2.text_with_ws == text
+
 
 def test_token_lex_id():
     text = "apple"
@@ -24,10 +26,11 @@ def test_token_lex_id():
     token = nlp(text)[0]
 
     # Get the Lexeme object from vocab
-    lexeme = nlp(text]
+    lexeme = vocab[text]
 
     # test that lexeme rank and token lex_id are equal
     assert token.lex_id == lexeme.rank
+
 
 def test_token_whitespace():
     doc = nlp("green apple")
@@ -35,7 +38,7 @@ def test_token_whitespace():
     token2 = doc[1]
 
     # test if there is a trailing whitespace after token
-    assert token1.whitespace_ ==" "
+    assert token1.whitespace_ == " "
     assert token2.whitespace_ == ""
 
 
@@ -51,7 +54,7 @@ def test_token_rank():
     rank1 = token1.rank
     rank2 = token2.rank
 
-    # test rank is an integer for an 
+    # test rank is an integer for an
     # string which exist in vocabulary
     assert rank1 >= 0
 
@@ -62,7 +65,7 @@ def test_token_rank():
 
 def test_token_text():
     text = "Apple"
-    token  = nlp(text)[0]
+    token = nlp(text)[0]
 
     # test the text attribute of token
     assert token.text == text
@@ -78,11 +81,12 @@ def test_lang_name():
 
 def test_token_bool_attrs():
 
-    # define strings for checking 
+    # define strings for checking
     # corresponding attributes
     text = "apple"
     stop = "did"
     alpha = "Apple"
+    not_alpha = "5Apple"
     ascii = ","
     not_ascii = "£"
     punct = "'"
@@ -90,7 +94,7 @@ def test_token_bool_attrs():
     left_punct = "‛"
     oov = "outofvocabulary"
     digit = "104"
-    lower  = "apple"
+    lower = "apple"
     upper = "APPLE"
     space = "  "
     bracket = "("
@@ -104,28 +108,28 @@ def test_token_bool_attrs():
 
     # test is_stop (if string is in SyferText stop words list defined)
     assert nlp(stop)[0].is_stop == True
-    assert nlp(not_stop)[0].is_stop == False
+    assert nlp(text)[0].is_stop == False
 
     # test is_alpha (if string contains alpha chars)
     assert nlp(alpha)[0].is_alpha == True
-    assert nlp(text)[0].is_alpha == False
-    
+    assert nlp(not_alpha)[0].is_alpha == False
+
     # test is_ascii (if string is composed of ascii characters)
     assert nlp(ascii)[0].is_ascii == True
     assert nlp(not_ascii)[0].is_ascii == False
-    
+
     # test is_digit (if string is a digit)
     assert nlp(digit)[0].is_digit == True
     assert nlp(text)[0].is_digit == False
-    
+
     # test is_lower (if string is in lowercase)
     assert nlp(lower)[0].is_lower == True
-    assert nlp(alpha]is_lower == False
-    
+    assert nlp(upper)[0].is_lower == False
+
     # test is_title (if string is in title case)
     assert nlp(title)[0].is_title == True
     assert nlp(text)[0].is_title == False
-    
+
     # test is_punct (if string is a punctuation)
     assert nlp(punct)[0].is_punct == True
     assert nlp(text)[0].is_punct == False
@@ -163,37 +167,38 @@ def test_token_like_num():
     assert nlp(num)[0].like_num == True
     assert nlp(text)[0].like_num == False
 
-def test_token_like_email()
+
+def test_token_like_email():
     text1 = "noobmaster69@endgame.com"
     text2 = "noobmaster@endgame"
-    
+
     # test if the string is like an email
     assert nlp(text1)[0].like_email == True
     assert nlp(text2)[0].like_email == False
 
-    
+
 def test_token_like_url():
     texts = {
-        'http://ninjaflex.com/': True,
-        'google.com': True
-        'www.google.com': True
-        'https://amazondating.co/':True
-        'apple': False
-        'a.b': False
+        "http://ninjaflex.com/": True,
+        "google.com": True,
+        "www.google.com": True,
+        "https://amazondating.co/": True,
+        "apple": False,
+        "a.b": False,
     }
 
     # test for each string is a like url
     for url, match in texts.items():
         assert nlp(url)[0].like_url == match
 
-    
+
 def test_token_word_shape():
     words = {
-        'Apple': 'Xxxx',
-        'APPLE': 'XXXX',
-        'noobmaster69': 'xxxxdd'
-        '123456': 'dddd',
-        ',': ','
+        "Apple": "Xxxxx",
+        "APPLE": "XXXX",
+        "noobmaster69": "xxxxdd",
+        "123456": "dddd",
+        ",": ",",
     }
 
     # test shape of each word in the dict

@@ -6,6 +6,7 @@ from .lexeme import LexemeMeta
 import syft as sy
 import torch
 import numpy as np
+from typing import Union
 
 
 hook = sy.TorchHook(torch)
@@ -91,26 +92,26 @@ class Token:
         )
 
         return vector
-    
-    # Following attributes are inspired from Spacy, they have similar behaviour as in spacy. 
+
+    # Following attributes are inspired from Spacy, they have similar behaviour as in spacy.
     # Some of the attributes are redundant but there to maintain consistency with other attributes
 
     @property
     def vector_norm(self):
         """The L2 norm of the token's vector"""
         vector = self.vector
-        return np.sqrt((vector**2).sum())
-    
+        return np.sqrt((vector ** 2).sum())
+
     @property
     def text_with_ws(self):
         """The text content of the token with the trailing whitespace(if any)."""
         text = self.orth_
 
-        if self.is_space:
+        if self.space_after:
             return text + " "
         else:
             return text
-    
+
     @property
     def lex_id(self):
         """Sequential id of the token's lexical type. Used to index into words vector table"""
@@ -204,7 +205,7 @@ class Token:
 
     @property
     def is_alpha(self):
-        """Whether the token consists of alpha characters."""
+        """Whether the token consists of alphabets characters."""
         return Lexeme.check_flag(self.lex, Attributes.IS_ALPHA)
 
     @property

@@ -5,11 +5,12 @@ import numpy as np
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang  = "en_core_web_lg"
+lang = "en_core_web_lg"
 nlp = syfertext.load(lang, owner=me)
 
 # Get the vocab instance
 vocab = nlp.vocab
+
 
 def test_lex_rank():
     text1 = "Apple"
@@ -23,13 +24,14 @@ def test_lex_rank():
     rank1 = lexeme1.rank
     rank2 = lexeme2.rank
 
-    # test rank is an integer for an 
+    # test rank is an integer for an
     # string which exist in vocabularu
     assert rank1 >= 0
 
     # Test for out of vocabulary strings
     #  rank doesn't exist
     assert rank2 is None
+
 
 def test_lex_text():
     text = "Apple"
@@ -51,9 +53,9 @@ def test_lex_orth():
     lexeme = vocab[text]
 
     # get text token
-    token = nlp(text)
+    token = nlp(text)[0]
 
-    # test orth of lexeme is same as 
+    # test orth of lexeme is same as
     # that of the original string
     assert lexeme.orth == token.orth
 
@@ -65,7 +67,7 @@ def test_lex_lower():
     lexeme = vocab[text]
 
     # get the token of lowercase text
-    token = nlp(text.lower())
+    token = nlp(text.lower())[0]
 
     # test the  lower attribute (lowercase string orth)
     assert lexeme.lower == token.orth
@@ -83,13 +85,15 @@ def test_lang_name():
     # test the language model name of lexeme
     assert lexeme.lang_ == lang
 
+
 def test_lex_bool_attrs():
 
-    # define strings for checking 
+    # define strings for checking
     # corresponding attributes
     text = "apple"
     stop = "did"
     alpha = "Apple"
+    not_alpha = "5Apple"
     ascii = ","
     not_ascii = "£"
     punct = "'"
@@ -97,7 +101,7 @@ def test_lex_bool_attrs():
     left_punct = "‛"
     oov = "outofvocabulary"
     digit = "104"
-    lower  = "apple"
+    lower = "apple"
     upper = "APPLE"
     space = "  "
     bracket = "("
@@ -111,28 +115,28 @@ def test_lex_bool_attrs():
 
     # test is_stop (if string is in SyferText stop words list defined)
     assert vocab[stop].is_stop == True
-    assert vocab[not_stop].is_stop == False
+    assert vocab[text].is_stop == False
 
     # test is_alpha (if string contains alpha chars)
     assert vocab[alpha].is_alpha == True
-    assert vocab[text].is_alpha == False
-    
+    assert vocab[not_alpha].is_alpha == False
+
     # test is_ascii (if string is composed of ascii characters)
     assert vocab[ascii].is_ascii == True
     assert vocab[not_ascii].is_ascii == False
-    
+
     # test is_digit (if string is a digit)
     assert vocab[digit].is_digit == True
     assert vocab[text].is_digit == False
-    
+
     # test is_lower (if string is in lowercase)
     assert vocab[lower].is_lower == True
-    assert vocab[alpha]is_lower == False
-    
+    assert vocab[upper].is_lower == False
+
     # test is_title (if string is in title case)
     assert vocab[title].is_title == True
     assert vocab[text].is_title == False
-    
+
     # test is_punct (if string is a punctuation)
     assert vocab[punct].is_punct == True
     assert vocab[text].is_punct == False
@@ -170,36 +174,38 @@ def test_lex_like_num():
     assert vocab[num].like_num == True
     assert vocab[text].like_num == False
 
-def test_lex_like_email()
+
+def test_lex_like_email():
     text1 = "noobmaster69@endgame.com"
     text2 = "noobmaster@endgame"
-    
+
     # test if the string is like an email
     assert vocab[text1].like_email == True
     assert vocab[text2].like_email == False
-    
+
+
 def test_lex_like_url():
     texts = {
-        'http://ninjaflex.com/': True,
-        'google.com': True
-        'www.google.com': True
-        'https://amazondating.co/':True
-        'apple': False
-        'a.b': False
+        "http://ninjaflex.com/": True,
+        "google.com": True,
+        "www.google.com": True,
+        "https://amazondating.co/": True,
+        "apple": False,
+        "a.b": False,
     }
 
     for url, match in texts.items():
         # test for each string is a like url
         assert vocab[url].like_url == match
 
-    
+
 def test_lex_word_shape():
     words = {
-        'Apple': 'Xxxx',
-        'APPLE': 'XXXX',
-        'noobmaster69': 'xxxxdd'
-        '123456': 'dddd',
-        ',': ','
+        "Apple": "Xxxxx",
+        "APPLE": "XXXX",
+        "noobmaster69": "xxxxdd",
+        "123456": "dddd",
+        ",": ",",
     }
 
     for word, shape in words.items():

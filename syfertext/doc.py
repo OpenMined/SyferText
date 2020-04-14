@@ -71,7 +71,7 @@ class Doc(AbstractObject):
         token_meta = self.container[key]
 
         # Create a Token object
-        token = Token(vocab = self.vocab, doc=self, token_meta=token_meta)
+        token = Token(vocab=self.vocab, doc=self, token_meta=token_meta)
 
         return token
 

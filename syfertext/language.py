@@ -22,7 +22,7 @@ class BaseDefaults(object):
     """
 
     @classmethod
-    def create_vocab(cls, model_name,lex_attr_getters) -> Vocab:
+    def create_vocab(cls, model_name, lex_attr_getters) -> Vocab:
         """
            Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
@@ -34,8 +34,13 @@ class BaseDefaults(object):
 
         # List of stop words
         cls.stop_words = STOP_WORDS
+
+        # get the stop word attribute getter.
         is_stop = lex_attr_getters[Attributes.IS_STOP]
+
+        # Update the function for is_stop with the stop word list
         lex_attr_getters[Attributes.IS_STOP] = functools.partial(is_stop, stops=cls.stop_words)
+
         # Instantiate the Vocab object
         vocab = Vocab(model_name, lex_attr_getters)
 
@@ -80,7 +85,7 @@ class Language(AbstractObject):
         # Define the default settings
         self.Defaults = BaseDefaults
 
-        # Dict with lexical attributes id as key and correspondig 
+        # Dict with lexical attributes id as key and correspondig
         # function to evaluate the lexical attribute
         self.lex_attr_getters = LEX_ATTRS
 

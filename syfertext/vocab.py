@@ -9,6 +9,7 @@ from .lexeme import Lexeme
 from .lexeme import LexemeMeta
 from .attrs import Attributes
 
+
 class Vocab:
     def __init__(self, model_name: str, lex_attr_getters=None):
         # TODO: this method of using 'model_name' to load vectors, strings and key2row is temporary, made specifically for the DevFest POC.
@@ -31,7 +32,7 @@ class Vocab:
         # key, or vice versa.
         self.store = StringStore(strings=strings)
 
-        #Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
+        # Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
         self.lex_store = {}
 
         self.lex_attr_getters = lex_attr_getters
@@ -49,24 +50,29 @@ class Vocab:
 
         return strings
 
-    def get_vector(self, string_or_id:Union[str, int]):
+    def get_vector(self, string_or_id: Union[str, int]):
         """Retrieve a vector for a word in the vocabulary. Words can be looked
         up by string or int ID. 
         """
         if isinstance(string_or_id, int):
             string_or_id = self.store[string_or_id]
-        
+
         return self.vectors[string_or_id]
 
     def __iter__(self):
         """Iterate over the lexemes in the vocabulary.
-        YIELDS (Lexeme): An entry in the vocabulary.
+
+        Yields:
+            Lexeme: An entry in the vocabulary.
         """
+
         for orth, lex in self.lex_store.items():
-            lexeme = Lexeme(self,orth)
+            # Create the Lexeme object for the given orth
+            lexeme = Lexeme(self, orth)
+
             yield lexeme
 
-    def __getitem__(self, id_or_string):
+    def __getitem__(self, id_or_string: Union[str, int]) -> Lexeme:
         """Retrieve a string, given an int ID or a string. If a
         previously unseen string is given, a new lexeme is created and
         stored.
@@ -74,63 +80,91 @@ class Vocab:
         Args:
             id_or_string (int or unicode): The integer ID of a word, or its string. 
 
-        RETURNS (Lexeme): The lexeme indicated by the given ID.
+        Returns:
+            Lexeme: The lexeme indicated by the given ID.
         """
-        
+
         if isinstance(id_or_string, str):
             orth = self.store.add(id_or_string)
+
         else:
-            orth = id_or_string 
+            orth = id_or_string
+
         return Lexeme(self, orth)
 
-    def __contains__(self, key):
-        """Check whether the string or int key has an entry in the vocabulary."""
-          
+    def __contains__(self, key: Union[str, int]) -> bool:
+        """Check whether the lexeme for the string or int key has an entry in the vocabulary."""
+
         if isinstance(key, str):
             orth = self.store[key]
+
         else:
             orth = key
+
+        # Get the LexemeMeta object
+        # Note: if it is not present in the lex_store than new one is created
         lex = self.lex_store.get(orth)
+
         return lex is not None
 
-    def has_vector(self, string):
+    def has_vector(self, string: str) -> bool:
+        """If for the given string there is an entry in word vectors table"""
         return self.vectors.has_vector(string)
 
-
-    def get_by_orth(self, orth):
+    def get_by_orth(self, orth: int) -> LexemeMeta:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
         """
+
         if orth == 0:
             return None
+
+        # get the LexemeMeta object from lex store if exist.
         lex = self.lex_store.get(orth)
+
+        # If the LexemeMeta object already exist it returned.
         if lex != None:
             return lex
+
+        # LexemeMeta instance doesn't exist for the given orth
         else:
+            # Create the new LexemeMeta object.
             return self._create_lex(self.store[orth])
 
-    def _create_lex(self, string) :
+    def _create_lex(self, string: str) -> LexemeMeta:
+
+        # create the new LexemeMeta object
         lex = LexemeMeta()
+
+        # Assign the lex attributes
         lex.orth = self.store.add(string)
         lex.length = len(string)
-        lex.lang  = self.store.add(self.model_name)
-        lex.id = self.vectors.key2row.get(lex.orth)
-        
-        if self.lex_attr_getters is not None:
-            for attr, func in self.lex_attr_getters.items():
-                value = func(string)
-                
-                if attr == Attributes.IS_OOV:
-                    value = not self.has_vector(string)
-                
-                if isinstance(value, str):
-                    value = self.store.add(value)
-                
-                if value:
-                    Lexeme.set_lex_attr(lex, attr, value)
-        
-        self.lex_store[lex.orth] =  lex
-        
-        return lex
 
-        
+        # The language model name of parent vocabulary
+        lex.lang = self.store.add(self.model_name)
+
+        # id is the index of row the corresponding vector
+        # is stored in word vectors table
+        lex.id = self.vectors.key2row.get(lex.orth)
+
+        # Traverse all the lexical attributes getters in the dict.
+        for attr, func in self.lex_attr_getters.items():
+            value = func(string)
+
+            # check if string id out of vocabulary
+            if attr == Attributes.IS_OOV:
+                value = not self.has_vector(string)
+
+            # for attributes with string values add them to string store
+            # and assign the orth id of that to LexemeMeta object
+            if isinstance(value, str):
+                value = self.store.add(value)
+
+            # Assign rest of the attributes to the LexemeMeta object
+            if value:
+                Lexeme.set_lex_attr(lex, attr, value)
+
+        # Store the LexemeMeta object in the lex store.
+        self.lex_store[lex.orth] = lex
+
+        return lex

@@ -1,12 +1,10 @@
-# coding: utf8
-from __future__ import unicode_literals
+# Taken from Spacy Lex attributes
+# https://github.com/explosion/spaCy/blob/master/spacy/lang/lex_attrs.py
 
 import unicodedata
 import re
 
 from .attrs import Attributes
-
-attrs = Attributes()
 
 
 _like_email = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)").match
@@ -220,30 +218,28 @@ def is_oov(string):
     return True
 
 
-
-
 LEX_ATTRS = {
-    attrs.LOWER: lower,
-    attrs.NORM: lower,
-    attrs.PREFIX: prefix,
-    attrs.SUFFIX: suffix,
-    attrs.IS_ALPHA: is_alpha,
-    attrs.IS_DIGIT: is_digit,
-    attrs.IS_LOWER: is_lower,
-    attrs.IS_SPACE: is_space,
-    attrs.IS_TITLE: is_title,
-    attrs.IS_UPPER: is_upper,
-    attrs.IS_STOP: is_stop,
-    attrs.IS_OOV: is_oov,
-    attrs.LIKE_EMAIL: like_email,
-    attrs.LIKE_NUM: like_num,
-    attrs.IS_PUNCT: is_punct,
-    attrs.IS_ASCII: is_ascii,
-    attrs.SHAPE: word_shape,
-    attrs.IS_BRACKET: is_bracket,
-    attrs.IS_QUOTE: is_quote,
-    attrs.IS_LEFT_PUNCT: is_left_punct,
-    attrs.IS_RIGHT_PUNCT: is_right_punct,
-    attrs.IS_CURRENCY: is_currency,
-    attrs.LIKE_URL: like_url,
+    Attributes.LOWER: lower,
+    Attributes.NORM: lower,
+    Attributes.PREFIX: prefix,
+    Attributes.SUFFIX: suffix,
+    Attributes.IS_ALPHA: is_alpha,
+    Attributes.IS_DIGIT: is_digit,
+    Attributes.IS_LOWER: is_lower,
+    Attributes.IS_SPACE: is_space,
+    Attributes.IS_TITLE: is_title,
+    Attributes.IS_UPPER: is_upper,
+    Attributes.IS_STOP: is_stop,
+    Attributes.IS_OOV: is_oov,
+    Attributes.LIKE_EMAIL: like_email,
+    Attributes.LIKE_NUM: like_num,
+    Attributes.IS_PUNCT: is_punct,
+    Attributes.IS_ASCII: is_ascii,
+    Attributes.SHAPE: word_shape,
+    Attributes.IS_BRACKET: is_bracket,
+    Attributes.IS_QUOTE: is_quote,
+    Attributes.IS_LEFT_PUNCT: is_left_punct,
+    Attributes.IS_RIGHT_PUNCT: is_right_punct,
+    Attributes.IS_CURRENCY: is_currency,
+    Attributes.LIKE_URL: like_url,
 }
