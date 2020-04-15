@@ -6,7 +6,6 @@ from .token_exception import TOKENIZER_EXCEPTIONS
 from .underscore import Underscore
 from .utils import hash_string
 
-
 import re
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -226,7 +225,7 @@ class Tokenizer(AbstractObject):
             doc: Document with all the TokenMeta objects of every token after splitting 
                 affixes and exceptions.
         """
-        
+
         # If there is trailing space after the substring in text.
         space_after = token_meta.space_after
 
@@ -234,7 +233,6 @@ class Tokenizer(AbstractObject):
         # TokenMeta for each type affix and list of TokenMeta of
         # exceptions after splitting the affixes.
         substring, affixes, exception_tokens = self._split_affixes(substring=substring)
-
 
         # Attach all the `TokenMeta` objects formed as result of splitting
         # the affixes and exception cases in the doc container.
@@ -247,7 +245,6 @@ class Tokenizer(AbstractObject):
         )
 
         return doc
-
 
     def _split_affixes(self, substring: str) -> Tuple[str, DefaultDict, List[TokenMeta]]:
         """Process substring for tokenizing prefixes, infixes, suffixes and exceptions.
@@ -390,7 +387,6 @@ class Tokenizer(AbstractObject):
         # break if pattern matches the empty string
         if pre_len == 0:
             return None, substring
-
 
         # Create the TokenMeta object
         token_meta = TokenMeta(

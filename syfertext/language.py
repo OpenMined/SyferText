@@ -3,8 +3,6 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
-from .lex_attrs import LEX_ATTRS
-from .stop_words import STOP_WORDS
 from .attrs import Attributes
 
 from syft.generic.object import AbstractObject
@@ -14,7 +12,6 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 
 from typing import List, Union, Tuple
-import functools
 
 
 class BaseDefaults(object):
@@ -22,9 +19,8 @@ class BaseDefaults(object):
     """
 
     @classmethod
-    def create_vocab(cls, model_name, lex_attr_getters) -> Vocab:
-        """
-           Creates the Vocab object that holds the vocabulary along with vocabulary meta data
+    def create_vocab(cls, model_name: str) -> Vocab:
+        """Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
         Todo:
             I started by a very simple Vocab class that
@@ -32,17 +28,8 @@ class BaseDefaults(object):
             vocab.vectors['word'] = float. To be reviewed for more complex functionality.
         """
 
-        # List of stop words
-        cls.stop_words = STOP_WORDS
-
-        # get the stop word attribute getter.
-        is_stop = lex_attr_getters[Attributes.IS_STOP]
-
-        # Update the function for is_stop with the stop word list
-        lex_attr_getters[Attributes.IS_STOP] = functools.partial(is_stop, stops=cls.stop_words)
-
         # Instantiate the Vocab object
-        vocab = Vocab(model_name, lex_attr_getters)
+        vocab = Vocab(model_name)
 
         return vocab
 
@@ -85,12 +72,8 @@ class Language(AbstractObject):
         # Define the default settings
         self.Defaults = BaseDefaults
 
-        # Dict with lexical attributes id as key and correspondig
-        # function to evaluate the lexical attribute
-        self.lex_attr_getters = LEX_ATTRS
-
         # Create the vocabulary
-        self.vocab = self.Defaults.create_vocab(model_name, self.lex_attr_getters)
+        self.vocab = self.Defaults.create_vocab(model_name)
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.

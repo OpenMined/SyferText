@@ -22,7 +22,7 @@ class Token:
         self.orth = token_meta.orth
 
         # LexMeta object for the corresponding token string
-        self.lex = vocab.get_by_orth(self.orth)
+        self.lex = self.doc.vocab.get_by_orth(self.orth)
 
         # Whether the token is followed by a single white
         self.space_after = token_meta.space_after

@@ -2,16 +2,19 @@ import pickle
 import os
 from pathlib import Path
 from typing import Union
+import functools
 
 from .vectors import Vectors
 from .string_store import StringStore
 from .lexeme import Lexeme
 from .lexeme import LexemeMeta
 from .attrs import Attributes
+from .lex_attrs import LEX_ATTRS
+from .stop_words import STOP_WORDS
 
 
 class Vocab:
-    def __init__(self, model_name: str, lex_attr_getters=None):
+    def __init__(self, model_name: str):
         # TODO: this method of using 'model_name' to load vectors, strings and key2row is temporary, made specifically for the DevFest POC.
         #       it should be changed to something similar to what spaCy does for ease.
 
@@ -32,7 +35,20 @@ class Vocab:
         # Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
         self.lex_store = {}
 
-        self.lex_attr_getters = lex_attr_getters
+        # Function to get the lexical attributes stored in a dict
+        # with key as correseponding attribute ID.
+        self.lex_attr_getters = LEX_ATTRS
+
+        # List of stop words
+        self.stop_words = STOP_WORDS
+
+        # get the stop word attribute getter.
+        is_stop = self.lex_attr_getters[Attributes.IS_STOP]
+
+        # Update the function for is_stop with the stop word list
+        self.lex_attr_getters[Attributes.IS_STOP] = functools.partial(
+            is_stop, stops=self.stop_words
+        )
 
         # Create the Vectors object
         self.vectors = Vectors(model_name)
