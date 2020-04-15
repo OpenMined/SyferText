@@ -226,7 +226,7 @@ class Tokenizer(AbstractObject):
             doc: Document with all the TokenMeta objects of every token after splitting 
                 affixes and exceptions.
         """
-
+        
         # If there is trailing space after the substring in text.
         space_after = token_meta.space_after
 
@@ -234,6 +234,7 @@ class Tokenizer(AbstractObject):
         # TokenMeta for each type affix and list of TokenMeta of
         # exceptions after splitting the affixes.
         substring, affixes, exception_tokens = self._split_affixes(substring=substring)
+
 
         # Attach all the `TokenMeta` objects formed as result of splitting
         # the affixes and exception cases in the doc container.
@@ -247,12 +248,13 @@ class Tokenizer(AbstractObject):
 
         return doc
 
+
     def _split_affixes(self, substring: str) -> Tuple[str, DefaultDict, List[TokenMeta]]:
         """Process substring for tokenizing prefixes, infixes, suffixes and exceptions.
 
         Args:
             substring: The substring to tokenize.
-
+            
         Returns:    
             substring: The substring to tokenize.
             affixes: Dict holding TokenMeta lists of each affix 
@@ -389,6 +391,7 @@ class Tokenizer(AbstractObject):
         if pre_len == 0:
             return None, substring
 
+
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[:pre_len])],
@@ -434,7 +437,7 @@ class Tokenizer(AbstractObject):
 
         Args:
             substring: The substring to tokenize.
-            
+
         Returns:
             infix_tokens_metas: the list of TokenMeta objects of infixes
                 found in `substring`.
