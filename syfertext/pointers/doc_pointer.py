@@ -57,6 +57,35 @@ class DocPointer(ObjectPointer):
 
         return doc_vector
 
+    def get_encrypted_token_vectors(self, *workers, crypto_provider=None, requires_grad=True):
+        """Get the mean of the vectors of each Token in this documents.
+
+        Args:
+            self (DocPointer): current pointer to a remote document.
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+
+        Returns:
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document this pointer points to.
+        """
+
+        assert (
+            len(workers) > 1
+        ), "You need at least two workers in order to encrypt the vector with SMPC"
+
+        # Create the command
+        kwargs = dict(crypto_provider=crypto_provider, requires_grad=requires_grad)
+        command = ("get_encrypted_token_vectors", self.id_at_location, workers, kwargs)
+
+        # Send the command
+        token_vectors = self.owner.send_command(self.location, command)
+
+        # We call get because the returned object is a PointerTensor to the AdditiveSharedTensor
+        token_vectors = token_vectors.get()
+
+        return token_vectors
+
     def __len__(self):
 
         # Create the command
