@@ -24,9 +24,8 @@ class LexemeMeta(object):
 
 
 class Lexeme:
-    """ Inspired from Spacy Lexeme class. It is an entry in the vocabulary.
-    A `Lexeme` has no string context – it's a word-type, as opposed to a 
-    word token. It holds various attributes related to the corresponding word.  
+    """Inspired from Spacy Lexeme class. It is an entry in the vocabulary.
+    It holds various non-contextual attributes related to the corresponding string.  
     """
 
     def __init__(self, vocab: "Vocab", orth: int):
@@ -48,8 +47,9 @@ class Lexeme:
     def set_lex_attr(lex: LexemeMeta, attr_id: int, value: Union[int, bool]):
 
         # Assign the flag attribute of `LexemeMeta` object.
-        # All flags have id < 65. check `Attributes` for refrence ids.
-        if attr_id < 65:
+        # All flags have id >9. check `Attributes` for reference ids.
+        # id>9 is only because ids less tahn 10 are reserved for other attributes.
+        if attr_id > 9:
             Lexeme.set_flag(lex, attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
@@ -72,7 +72,7 @@ class Lexeme:
         elif attr_id == Attributes.LANG:
             lex.lang = value
 
-    # These methods for checking and setting flags for
+    # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
     @staticmethod
     def check_flag(lex: LexemeMeta, flag_id: int) -> bool:
@@ -143,6 +143,14 @@ class Lexeme:
     def lower(self):
         """Orth id of lowercase form of the lexeme."""
         return self.lex.lower
+
+    @property
+    def flags(self):
+        """Returns the flags Integer value.
+        One can get the value assigned to a specific flag_id by 
+        looking at the bit corresponding to flag_id index of flags.
+        """
+        return self.lex.flags
 
     @property
     def shape(self):

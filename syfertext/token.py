@@ -76,6 +76,7 @@ class Token:
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of this token.
         """
+
         assert (
             len(workers) > 1
         ), "You need at least two workers in order to encrypt the vector with SMPC"
@@ -94,7 +95,7 @@ class Token:
         return vector
 
     # Following attributes are inspired from Spacy, they have similar behaviour as in spacy.
-    # Some of the attributes are redundant but there to maintain consistency with other attributes
+    # Some of the attributes are redundant but they are to maintain consistency with other attributes
 
     @property
     def vector_norm(self):
