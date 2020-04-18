@@ -211,7 +211,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -221,14 +221,15 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vector: The Numpy array of shape - (No.of tokens, size of vector) 
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
                 containing all the vectors.
         """
 
         # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
+        if excluded_tokens is not None:
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
 
         # The list for holding all token vectors.
         token_vectors = []
@@ -238,19 +239,20 @@ class Doc(AbstractObject):
             # Get the vector of the token if the token is not excluded
             include_token = True
 
-            include_token = all(
-                [
-                    getattr(token._, key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if hasattr(token._, key)
-                ]
-            )
+            if excluded_tokens is not None:
+                include_token = all(
+                    [
+                        getattr(token._, key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if hasattr(token._, key)
+                    ]
+                )
 
             if include_token:
                 token_vectors.append(token.vector)
 
         # Convert to Numpy array.
-        token_vector = np.array(token_vector)
+        token_vectors = np.array(token_vectors)
 
         return token_vectors
 
@@ -317,7 +319,7 @@ class Doc(AbstractObject):
         assert len(workers) > 1
 
         # The array of all vectors corresponding to the tokens in `Doc`.
-        token_vectors = self.get_token_vector(excluded_tokens=excluded_tokens)
+        token_vectors = self.get_token_vectors(excluded_tokens=excluded_tokens)
 
         # Create a Syft/Torch tensor
         token_vectors = torch.Tensor(token_vectors)
