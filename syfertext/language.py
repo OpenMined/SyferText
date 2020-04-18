@@ -34,7 +34,7 @@ class BaseDefaults(object):
         return vocab
 
     @classmethod
-    def create_tokenizer(cls, vocab,) -> Tokenizer:
+    def create_tokenizer(cls, vocab) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
         
@@ -45,13 +45,13 @@ class BaseDefaults(object):
         """
 
         # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab,)
+        tokenizer = Tokenizer(vocab)
 
         return tokenizer
 
 
 class Language(AbstractObject):
-    """Inspired by spaCy Language class. 
+    """Inspired by spaCy Language class.
 
     Orchestrates the interactions between different components of the pipeline
     to accomplish core text-processing task.
@@ -99,15 +99,15 @@ class Language(AbstractObject):
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
     def _parse_pipeline_template(self):
-        """Parses the `pipeline_template` property to 
+        """Parses the `pipeline_template` property to
         create the `subpipeline_templates` property.
         """
 
         # Initialize a subpipeline template with the
-        # tokenizer. The tokenizer alway has 'remote' set
+        # tokenizer. The tokenizer always has 'remote' set
         # to True.
         subpipeline_template = dict(
-            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]],
+            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]]
         )
 
         # Initialize the subpipeline templates list as a class property
@@ -158,38 +158,39 @@ class Language(AbstractObject):
         first: bool = False,
         last: bool = True,
     ):
-        """Adds a pipe template to a subpipeline tempaltes. 
-           
+        """Adds a pipe template to a subpipeline templates.
+
         A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
         Few main steps are carried out here:
 
         1- The new pipe name is added at the right position in the pipeline template.
            Here is an example of how pipeline template list looks like
 
-           self.pipeline_template = [{'remote': True, 'name': 'tokenizer'},
-                                     {'remote': True, 'name': <pipe_1_name>},
-                                     {'remote': True, 'name': <pipe_2_name>},
-                                     {'remote': False, 'name': <pipe_3_name>},
-                                     {'remote': False, 'name': <pipe_4_name>}]
+           self.pipeline_template = [{'remote': True,  'name': 'tokenizer'},
+                                     {'remote': True,  'name': <pipe_1_name>},
+                                     {'remote': False, 'name': <pipe_2_name>},
+                                     {'remote': True,  'name': <pipe_3_name>},
+                                     {'remote': True,  'name': <pipe_4_name>}]
 
-        2- The pipeline template is parsed into a list or subpipeline templates.
-           Each subpipeline template is an aggregation of adjacent pipes with 
-           the same value for 'remote'
+        2- The pipeline template is parsed into a list of subpipeline templates.
+           Each subpipeline template is an aggregation of adjacent pipes with
+           the same value for 'remote'.
            Here is an example of how the subpipeline template list for the above
            pipeline template would look like:
-        
-           self.subpipeline_templates = [{'remote': True, 'names': ['tokenizer', 
+
+           self.subpipeline_templates = [{'remote': True, 'names': ['tokenizer',
                                                                     'pipe_1_name',
                                                                     'pipe_2_name']},
-                                         {'remote': False, 'name': ['pipe_3_name',
-                                                                   'pipe_4_name']}
+                                         {'remote': False, 'name': ['pipe_3_name']},
+                                         {'remote': True,  'name': ['pipe_4_name'
+                                                                    'pipe_5_name']}
                                         ]
 
         3- The pipeline is initialize by creating a list with as many empty dicts as
            there are subpipelines:
 
            self.pipeline = [dict(), dict()]
-                                                               
+
 
         Args:
             component (callable): This is a callable that takes a Doc object and modifies
@@ -203,9 +204,9 @@ class Language(AbstractObject):
                 is to be added. Defaults to None.
             after (str): The name of the pipeline component after which the new component
                 is to be added. Defaults to None.
-            first (bool): if set to True, the new pipeline component will be add as the 
+            first (bool): if set to True, the new pipeline component will be add as the
                 first element of the pipeline (after the tokenizer). Defaults to False.
-            last (bool): if set to True, the new pipeline component will be add as the 
+            last (bool): if set to True, the new pipeline component will be add as the
                 last element of the pipeline (after the tokenizer). Defaults to True.
 
         """
@@ -281,14 +282,14 @@ class Language(AbstractObject):
             name (str): The name of the pipeline component to remove.
 
         Returns:
-            The removed pipe 
+            The removed pipe
 
         """
 
         # [TODO] Add custom error message
         assert (
             name in self.pipe_names
-        ), "No pipeline component with the specified name '{}' was found".format(name)
+        ), f"No pipeline component with the specified name '{name}' was found"
 
         # Get the index of the pipeline to be removed in the
         # self.pipeline list
@@ -303,33 +304,81 @@ class Language(AbstractObject):
         return pipe
 
     def _run_subpipeline_from_template(
-        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer],
+        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer]
     ) -> Union[Doc, DocPointer]:
-        """Runs the subpipeline at position `template_index` of
-        self.pipeline on the appropriate worker. 
- 
+        """Creates a `subpipeline` object and sends it to the appropriate
+        worker if `input` is remote. Then runs the subpipeline at position
+        `template_index` of self.pipeline on the appropriate worker.
+
         The worker on which the subpipeline is run is either the
         the same worker on which `input` lives, if the `remote`
         property of the subpipeline template is True. Or, it is the
         local worker if `remote` is False.
 
-        If no subpipeline is yet created for the specified worker, 
-        one is created using the template, and added to the pipeline.
+        The self.pipeline is a list of dicts which stores
+        the references to Subpipeline (or SubpipelinePointer) objects.
+        It is created by parsing self.subpipeliline_template.
+
+        At each index in self.pipeline we have a dictionary which
+        holds the location id as the key and a reference to the
+        SubPipeline (or SubpipelinePointer) object as the value.
+
+        The text (or StringPointer) is processed by the tokenizer to create
+        Doc (or DocPointer) object which is then processed in place by
+        the subpipeline components in the relative order in which
+        they are stored in self.pipeline.
+
+        If no subpipeline is yet created for the specified worker,
+        one is created using the template in self.subpipeline_templates
+        and added to the pipeline.
+
+        Example:
+            If a text is to be processed on the local machine, then subpipelines
+            in the pipeline are initialized on the local machine.
+            So if there are 3 subpipelines in the pipeline then
+
+            self.pipeline = [{'me': SubPipeline[pipe_1_name > pipe_2_name]},
+                             {'me': SubPipeline[pipe_3_name]},
+                             {'me': SubPipeline[pipe_4_name, pipe_5_name]},
+                            ]
+
+            Now any more local texts that are to be processed by the pipeline are
+            processed with the subpipeline objects already present on the local machine.
+
+            Then if we pass a StringPointer referring to a text located on a remote
+            machine, new SubPipeline objects whose templates in `self.subpipeline_templates`
+            has "remote = True" are created on remote machines and their references
+            are stored in dictionaries at appropriate indices in `self.pipeline` with
+            remote location id as the key.
+
+            Hence in our example, if subpipeline templates at the first and third indices
+            in `self.subpipeline_templates` have "remote = True". Then upon passing a
+            StringPointer to the pipeline, new subpipeline objects are initialized on
+            bob's machine and their references are stored in dictionaries at the first
+            and third indices in `self.pipeline` with `bob` as the key.
+
+            self.pipeline = [{'me' : SubPipeline[pipe_1_name > pipe_2_name],
+                              'bob': SubPipelinePointer[pipe_1_name > pipe_2_name]},
+                             {'me' : SubPipeline[pipe_3_name]},
+                             {'bob': SubPipelinePointer[pipe_4_name > pipe_5_name],
+                              'me' : SubPipeline[pipe_4_name > pipe_5_name]}
+                            ]
+
+            Note:
+                The order of workers stored in the dictionary in self.pipeline is arbitrary.
 
         Args:
-            template_index (int): The index of the subpipeline 
-                template in `self.subpipelines_templates`
+            template_index (int): The index of the subpipeline template in
+                `self.subpipelines_templates`
             input (str, String, StringPointer, Doc, DocPointer):
-                The input on which the subpipeline operates.
-                It can be either the text to tokenize (or a pointer
-                to it) for the subpipeline at index 0, or it could
-                be the Doc (or its pointer) for all subsequent 
-                subpipelines.
+                The input on which the subpipeline operates. It can be either the text
+                to tokenize (or a pointer to it) for the subpipeline at index 0, or it
+                could be the Doc (or its pointer) for all subsequent subpipelines.
 
         Returns:
-            (Doc or DocPointer): The new or updated Doc object or 
+            (Doc or DocPointer): The new or updated Doc object or
                a pointer to a Doc object.
-        
+
         """
 
         # Get the location ID of the worker where the text to be tokenized,
@@ -361,7 +410,7 @@ class Language(AbstractObject):
             if (
                 isinstance(input, ObjectPointer)
                 and input.location != self.owner  # Is the input remote?
-                and remote  # Is the subpipeline is sendable?
+                and remote  # Is the subpipeline sendable?
             ):
                 self.pipeline[template_index][location_id] = self.pipeline[template_index][
                     location_id
@@ -386,11 +435,11 @@ class Language(AbstractObject):
         return doc
 
     def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
-        """The text is tokenized and  pipeline components are called 
+        """The text is tokenized and  pipeline components are called
         here, and the Doc object is returned.
 
         Args:
-            text (str, String or StringPointer): the text to be tokenized and 
+            text (str, String or StringPointer): the text to be tokenized and
         processed by the pipeline components.
 
         Returns:
