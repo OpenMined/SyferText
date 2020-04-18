@@ -8,23 +8,34 @@ from .utils import hash_string
 
 
 class Vectors:
-    
     def __init__(self, model_name):
 
-        # Import the language model
-        model = importlib.import_module(model_name)
+        self.model_name = model_name
 
+        # At initialization, no vectors are loaded
+        # They will be loaded once a vector is
+        # requested for the first time
+        self.loaded = False
+
+    def _load_data(self):
+
+        # Import the language model
+        model = importlib.import_module(f"syfertext_{self.model_name}")
+        print(model.LOADERS, dir(model))
         # Import the dictionary of loaders:
-        # `vectors` or `key2row`
-        LOADER = getattr(model, 'LOADER')
-    
+        # This dictionary will be used to laod
+        # `vectors` array and `key2row` dictionary
+        LOADERS = getattr(model, "LOADERS")
+
         # Load the array holding the word vectors
-        self.data, self.default_vector = LOADER['vectors']()
+        self.data, self.default_vector = LOADERS["vectors"]()
 
         # Load the mappings between word hashes and row indices in 'self.data'
-        self.key2row = LOADER['key2row']()
+        self.key2row = LOADERS["key2row"]()
 
-        
+        # Set the `loaded` property to True since data is now loaded
+        self.loaded = True
+
     def has_vector(self, word):
         """Checks whether 'word' has a vector or not in self.data
 
@@ -34,6 +45,10 @@ class Vectors:
         Returns:
             True if a vector for 'word' already exists in self.data.
         """
+
+        # If data is not yet loaded, then load it
+        if not self.loaded:
+            self._load_data()
 
         # Create the word hash key
         key = hash_string(word)
@@ -56,6 +71,10 @@ class Vectors:
             The vector embedding of the word.
             if no vector is found, self.default_vector is returned.
         """
+
+        # If data is not yet loaded, then load it
+        if not self.loaded:
+            self._load_data()
 
         # Create the word hash key
         key = hash_string(word)
