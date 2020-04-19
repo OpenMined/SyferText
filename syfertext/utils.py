@@ -21,9 +21,8 @@ import shutil
 lang_model_files = dict()
 
 lang_model_files["en_core_web_lg"] = [
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/05725c1ef9adaa2b656462013e90de289384b43d/key2row?raw=true",
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/05725c1ef9adaa2b656462013e90de289384b43d/vectors?raw=true",
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/05725c1ef9adaa2b656462013e90de289384b43d/words?raw=true",
+    "https://github.com/Nilanshrajput/syfertext_en_core_web_lg/blob/master/syfertext_en_core_web_lg/data/key2row?raw=true",
+    "https://github.com/Nilanshrajput/syfertext_en_core_web_lg/blob/master/syfertext_en_core_web_lg/data/vectors?raw=true",
 ]
 
 
