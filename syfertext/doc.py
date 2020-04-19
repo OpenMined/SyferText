@@ -163,7 +163,7 @@ class Doc(AbstractObject):
         Args
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             doc_vector: document vector ignoring excluded tokens
@@ -211,14 +211,14 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None):
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
         Args
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
@@ -271,15 +271,14 @@ class Doc(AbstractObject):
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
         """
 
-        assert (
-            len(workers) > 1
-        ), "You need at least two workers in order to encrypt the vector with SMPC"
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
 
         # Storing the average of vectors of each in-vocabulary token's vectors
         doc_vector = self.get_vector(excluded_tokens=excluded_tokens)
@@ -300,19 +299,24 @@ class Doc(AbstractObject):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
-        """Get the mean of the vectors of each Token in this documents.
+    ) -> torch.Tensor:
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        excluding token according to the excluded_tokens dictionary.
+
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+                (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, ingonoring the excluded token.
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, 
+                ingonoring the excluded token.
         """
 
         "You need at least two workers in order to encrypt the vector with SMPC"
