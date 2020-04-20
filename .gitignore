@@ -22,3 +22,6 @@ docs/_modules
 **/pip-wheel-metadata
 .env
 .envrc
+/tests/distributed_mode/test_memory.py
+/syfertext/temp/check.py
+/tutorials/usecases/
