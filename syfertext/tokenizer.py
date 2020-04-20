@@ -138,7 +138,7 @@ class Tokenizer(AbstractObject):
         # I do not assign the Doc here any owner, this will
         # be done by the SupPipeline object that operates
         # this tokenizer.
-        doc = Doc(self.vocab, text)
+        doc = Doc(self.vocab)
 
         # The number of characters in the text
         text_size = len(text)
