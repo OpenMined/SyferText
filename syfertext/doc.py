@@ -19,7 +19,6 @@ class Doc(AbstractObject):
     def __init__(
         self,
         vocab,
-        text,
         id: int = None,
         owner: BaseWorker = None,
         tags: List[str] = None,
