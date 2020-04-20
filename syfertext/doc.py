@@ -1,4 +1,5 @@
 from .token import Token
+from .encdec import encrypt, decrypt
 import syft
 import torch
 
@@ -247,3 +248,28 @@ class Doc(AbstractObject):
         )
 
         return doc_vector
+
+    def get_encrypted_tokens(self):
+        """Encrypt doc's tokens using owner's key.
+        Returns:
+            Set of tokens encrypted using the secret key of doc's owner `self.owner`.
+        """
+
+        key = self.owner.secret
+
+        # Making sure owner has generated secret keys
+        assert key is not None, (
+            f"The owner `{self.owner.id}` on which this Doc resides does not has"
+            "secret key to encrypt tokens. Please follow the Diffie-Hellman protocol"
+            "to generate a secret key for the owner."
+        )
+
+        # stores unique encrypted tokens
+        enc_tokens = set()
+
+        # Iterate over the tokens
+        for token in self:
+            # encrypt the token text using owner's secret key
+            enc_tokens.add(encrypt(token.text, key))
+
+        return enc_tokens
