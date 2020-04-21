@@ -242,15 +242,18 @@ class Span(AbstractObject):
                                     on which the new doc object is located. By default, it is
                                     located on the same worker as the span
 
-            Returns (Doc): 
-                The new `Doc` copy of the span.
+            Returns (Doc or DocPointer):
+                The new `Doc` copy of the span if the `owner` is `sy.local_worker`
+                else a pointer to the `Doc` initialized on `owner`.
         """
 
-        # Owner on which new doc object will be located
-        owner = owner if owner else self.doc.owner
+        # If owner is not specified, assign the new doc
+        # to the same owner as this object
+        owner = owner if owner else self.owner
 
-        # handle circular imports
+        # Handle circular imports
         from .doc import Doc
+        from .pointers.doc_pointer import DocPointer
 
         # Create a new doc object on the required location
         doc = Doc(self.doc.vocab, text=None, owner=owner)
@@ -259,5 +262,15 @@ class Span(AbstractObject):
         for idx in range(self.start, self.end):
             # Add token meta object to the new doc
             doc.container.append(self.doc.container[idx])
+
+        # Register the Doc on it's owners object store
+        doc.owner.register_obj(obj=doc)
+
+        if doc.owner != syft.local_worker:
+
+            # Return a pointer to the Doc if the doc
+            # doesn't reside on the local machine
+
+            return DocPointer(location=doc.owner, id_at_location=doc.id, owner=syft.local_worker)
 
         return doc
