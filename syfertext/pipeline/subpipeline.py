@@ -11,7 +11,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 
 class SubPipeline(AbstractObject):
@@ -97,7 +97,7 @@ class SubPipeline(AbstractObject):
 
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
-    ) -> Union[int, str, Doc]:
+    ) -> Union[Tuple[int, BaseWorker], Tuple[str, BaseWorker], Doc]:
         """Execute the subpipeline.
 
         only one of `input` and `input_id` could be specified,
@@ -133,12 +133,18 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # set the owner of the doc object as the current worker
+        # Assign Doc object the same owner as the this object.
+        # A Doc owner will be `sy.local_worker`(id = "me") when
+        # returned from the tokenizer, cause when initialized in
+        # the tokenizer we don't pass owner parameter to the
+        # doc's constructor, and it defaults to sy.local_worker
         doc.owner = self.owner
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
+
+        # TODO: Should we assign doc.owner = self.owner here or on top ??
 
         # If the Language object using this subpipeline
         # is located on a different worker, then
@@ -151,8 +157,8 @@ class SubPipeline(AbstractObject):
             # object store
             self.owner.register_obj(obj=doc)
 
-            # Return the Doc's ID
-            return doc.id
+            # Return the Doc's ID, and Doc's location
+            return doc.id, doc.owner
 
         # Otherwise, the `doc_or_id` variable is a Doc
         # object
