@@ -12,10 +12,6 @@ from .underscore import Underscore
 from .utils import normalize_slice
 
 
-# TODO: Extend span as child of AbstaractObject ?
-# TODO: Extend span as child of Doc as most of the functions are same ?
-
-
 class Span(AbstractObject):
     """A slice from a Doc object.
     """
@@ -195,11 +191,11 @@ class Span(AbstractObject):
         Returns:
             span_vector: Span vector ignoring excluded tokens
         """
-        # if the excluded_token dict in None all token are included
+        # If the excluded_token dict in None all token are included
         if excluded_tokens is None:
             return self.vector
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
+        # Enforcing that the values of the excluded_tokens dict are sets, not lists.
         excluded_tokens = {
             attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
         }
@@ -248,7 +244,7 @@ class Span(AbstractObject):
 
             Returns (Doc): 
                 The new `Doc` copy of the span.
-            """
+        """
 
         # Owner on which new doc object will be located
         owner = owner if owner else self.doc.owner
