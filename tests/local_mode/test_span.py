@@ -2,23 +2,28 @@ import syft as sy
 import torch
 import syfertext
 
+from syft.generic.string import String
+from syft.generic.pointers.object_pointer import ObjectPointer
+
 from syfertext.doc import Doc
 from syfertext.span import Span
 from syfertext.pointers.doc_pointer import DocPointer
+from syfertext.pointers.span_pointer import SpanPointer
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
-doc = nlp("the quick brown fox jumps over lazy dog")
 
 
 def test_creation_of_basic_span():
-    """Test the __get_item__() method of doc which returns
+    """Test the __get_item__() method of doc returns
     a Span when passed in a slice."""
 
-    # Test positive slicing
+    doc = nlp("the quick brown fox jumps over lazy dog")
+
     span = doc[1:5]
+
     actual_tokens = ["quick", "brown", "fox", "jumps"]
 
     assert len(span) == len(actual_tokens)
@@ -28,16 +33,46 @@ def test_creation_of_basic_span():
 
     # Test negative slicing
     span_ = doc[-4:-1]
-    actual_tokens = ["jumps", "over", "lazy", "dog"]
 
-    assert len(span) == len(actual_tokens)
+    actual_tokens = ["jumps", "over", "lazy"]
+
+    assert len(span_) == len(actual_tokens)
 
     for token, actual_token in zip(span_, actual_tokens):
         assert token.text == actual_token
 
 
+def test_remote_span_from_remote_doc():
+    """Test span is initialized on a remote machine and a pointer
+    is returned when Doc from which Span is created is on a
+    remote machine."""
+
+    bob = sy.VirtualWorker(hook, id="bob")
+
+    # Send doc to a remote machine
+    remote_text = String("the quick brown fox jumps over a lazy dog").send(bob)
+    doc = nlp(remote_text)
+
+    span = doc[1:5]
+
+    # Assert SpanPointer is returned
+    assert isinstance(span, SpanPointer)
+
+    # check the length is 4
+    assert len(span) == 4
+
+    # Assert only one Span object on bob's machine
+    spans = [v for v in bob._objects.values() if isinstance(v, Span)]
+    assert len(spans) == 1
+
+    # Assert returned SpanPointer points to Span object on bob's machine
+    assert span.id_at_location == spans[0].id
+
+
 def test_span_of_span():
     """Test creation of a span from another span."""
+
+    doc = nlp("the quick brown fox jumps over lazy dog")
 
     span_ = doc[1:5]
 
@@ -53,44 +88,85 @@ def test_span_of_span():
         assert token.text == actual_token
 
 
-def test_doc_from_span():
-    """Test doc is returned upon calling `as_doc()`
+def test_span_as_doc():
+    """Test span is returned as Doc upon calling `as_doc()`
      method of Span.
      """
+    doc_ = nlp("the quick brown fox jumps over lazy dog")
 
-    span = doc[1:5]
+    span = doc_[1:5]
 
-    doc_ = span.as_doc()
+    doc = span.as_doc()
 
-    assert isinstance(doc_, Doc)
+    assert isinstance(doc, Doc)
 
     # Assert by default they are on same owner
-    assert doc_.owner == span.owner
+    assert doc.owner == span.owner
 
     actual_tokens = ["quick", "brown", "fox", "jumps"]
 
-    for token, actual_token in zip(doc_, actual_tokens):
+    for token, actual_token in zip(doc, actual_tokens):
         assert token.text == actual_token
 
 
-def test_doc_pointer_from_span():
+def test_local_span_as_remote_doc():
     """Test doc is initialized on a remote machine and
     doc pointer is returned when owner passed to `as_doc()`
     is a remote machine.
     """
 
-    bob = sy.VirtualWorker(hook, id='bob')
+    bob = sy.VirtualWorker(hook, id="bob")
 
-    span = doc[1:5]
+    doc_ = nlp("the quick brown fox jumps over lazy dog")
+    local_span = doc_[1:5]
 
-    doc_ = span.as_doc(owner=bob)
+    # Passing remote machine bob as `owner`
+    doc = local_span.as_doc(owner=bob)
 
-    assert isinstance(doc_, DocPointer)
+    assert isinstance(doc, DocPointer)
 
     # assert only one document object on bob's machine
     documents = [v for v in bob._objects.values() if isinstance(v, Doc)]
     assert len(documents) == 1
 
     # assert returned doc_pointer points to Doc object on bob's machine
-    assert doc_.id_at_location == documents[0].id
+    assert doc.id_at_location == documents[0].id
 
+
+def test_remote_span_from_remote_span():
+    """Test span is initialized on a remote machine and a pointer
+    is returned when a span is created from Span on a
+    remote machine."""
+
+    alice = sy.VirtualWorker(hook, id="alice")
+
+    # Send doc to a remote machine
+    remote_text = String("the quick brown fox jumps over a lazy dog").send(alice)
+    doc = nlp(remote_text)
+
+    span = doc[1:5]
+
+    # Assert SpanPointer is returned
+    assert isinstance(span, SpanPointer)
+
+    # check the length is 4
+    assert len(span) == 4
+
+    # create a span from a span
+    new_span = span[1:3]
+
+    # Assert SpanPointer is returned
+    assert isinstance(new_span, SpanPointer)
+
+    # check the length is 2
+    assert len(new_span) == 2
+
+    # Assert only two Span objects on alice's machine
+    spans = [v for v in alice._objects.values() if isinstance(v, Span)]
+    assert len(spans) == 2
+
+    # get the new span object at alice
+    new_span_alice = [x for x in spans if len(x) == 2][0]
+
+    # assert returned span_pointer points to Span object on alice's machine
+    assert new_span.id_at_location == new_span_alice.id

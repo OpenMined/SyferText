@@ -21,6 +21,29 @@ def hash_string(string: str) -> int:
 
     return key
 
+def normalize_slice(length, start, stop, step=None):
+
+    assert step is None or step == 1, "Not a valid Slice"
+
+    if start is None:
+        start = 0
+
+    elif start < 0:
+        start += length
+
+    start = min(length, max(0, start))
+
+    if stop is None:
+        stop = length
+
+    elif stop < 0:
+        stop += length
+
+    stop = min(length, max(start, stop))
+
+    assert start < stop, "Empty range"
+
+    return start, stop
 
 # The following three functions for compiling prefix, suffix and infix regex are adapted
 # from Spacy  https://github.com/explosion/spaCy/blob/master/spacy/util.py.
@@ -96,3 +119,4 @@ def normalize_slice(length, start, stop, step=None):
     assert start < stop, "Empty range"
 
     return start, stop
+

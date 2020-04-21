@@ -157,8 +157,8 @@ class SubPipeline(AbstractObject):
             # object store
             self.owner.register_obj(obj=doc)
 
-            # Return the Doc's ID, and Doc's location
-            return doc.id, doc.owner
+            # Return the Doc's ID
+            return doc.id
 
         # Otherwise, the `doc_or_id` variable is a Doc
         # object

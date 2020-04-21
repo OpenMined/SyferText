@@ -15,6 +15,7 @@ from typing import Set
 from typing import Union
 from .underscore import Underscore
 from .span import Span
+from .pointers.span_pointer import SpanPointer
 from .utils import normalize_slice
 
 
@@ -63,10 +64,9 @@ class Doc(AbstractObject):
 
         Args:
             key (int or slice): The index of the token within the span, or slice of
-            the span to get.
-
+                                the span to get.
         Returns:
-            Token or Span
+            Token or Span (or SpanPointer)
         """
         if isinstance(key, int):
             idx = 0
@@ -85,11 +85,24 @@ class Doc(AbstractObject):
 
         if isinstance(key, slice):
 
-            # normalize slice to handle negative slicing
+            # Normalize slice to handle negative slicing
             start, end = normalize_slice(len(self), key.start, key.stop, key.step)
 
-            # return the span object
-            return Span(self, start, end)
+            # Assign the new span to the same owner as this object
+            owner = self.owner
+
+            # Create a new span object
+            span = Span(self, start, end, owner=owner)
+
+            if span.owner != syft.local_worker:
+
+                # Register the Span on it's owners object store
+                self.owner.register_obj(obj=span)
+
+                # Return span_id using which we can create the SpanPointer
+                return span.id
+
+            return span
 
     @staticmethod
     def create_pointer(

@@ -1,5 +1,6 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
+import syft as sy
 
 from typing import List
 from typing import Union
@@ -36,3 +37,22 @@ class SpanPointer(ObjectPointer):
         length = self.owner.send_command(self.location, command)
 
         return length
+
+    def __getitem__(self, item):
+
+        assert isinstance(item, slice), (
+            "SpanPointer object can't return a Token. Please call"
+            "__getitem__ on a slice to get a pointer to a Span residing"
+            "on remote machine."
+        )
+
+        # Create the command
+        command = ("__getitem__", self.id_at_location, [item], {})
+
+        # Send the command
+        span_id = self.owner.send_command(self.location, command)
+
+        # Create a SpanPointer from the span_id
+        span = SpanPointer(location=self.location, id_at_location=span_id, owner=sy.local_worker)
+
+        return span

@@ -94,7 +94,21 @@ class Span(AbstractObject):
             start += self.start
             end += self.start
 
-            return Span(self.doc, start, end)
+            # Assign the new span to the same owner as this object
+            owner = self.owner
+
+            # Create a new span object
+            span = Span(self.doc, start, end, owner=owner)
+
+            if span.owner != syft.local_worker:
+
+                # Register the Span on it's owners object store
+                self.owner.register_obj(obj=span)
+
+                # Return span_id using which we can create the SpanPointer
+                return span.id
+
+            return span
 
     @staticmethod
     def create_pointer(
@@ -142,10 +156,6 @@ class Span(AbstractObject):
 
             # Yield a Token object
             yield self[i]
-
-    def __repr__(self):
-        """Returns the text of the span with whitespaces"""
-        return "".join(token.text_with_ws for token in self)
 
     @property
     def vector(self):
@@ -234,43 +244,31 @@ class Span(AbstractObject):
             span_vector = vectors / vector_count
         return span_vector
 
-    def as_doc(self, owner: BaseWorker = None):  # tags: List[str] = None, description: str = None):
+    def as_doc(self):  # tags: List[str] = None, description: str = None):
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
-            Args:
-                owner (BaseWorker) :  An optional BaseWorker object to specify the worker
-                                    on which the new doc object is located. By default, it is
-                                    located on the same worker as the span
-
             Returns (Doc or DocPointer):
-                The new `Doc` copy of the span if the `owner` is `sy.local_worker`
-                else a pointer to the `Doc` initialized on `owner`.
+                The new `Doc` copy (or pointer to `Doc`) of the span.
         """
-
-        # If owner is not specified, assign the new doc
-        # to the same owner as this object
-        owner = owner if owner else self.owner
 
         # Handle circular imports
         from .doc import Doc
-        from .pointers.doc_pointer import DocPointer
 
         # Create a new doc object on the required location
-        doc = Doc(self.doc.vocab, text=None, owner=owner)
+        # Assign the same owner on which this object resides
+        doc = Doc(self.doc.vocab, owner=self.owner)
 
         # Iterate over the token_meta present in span
         for idx in range(self.start, self.end):
             # Add token meta object to the new doc
             doc.container.append(self.doc.container[idx])
 
-        # Register the Doc on it's owners object store
-        doc.owner.register_obj(obj=doc)
-
         if doc.owner != syft.local_worker:
 
-            # Return a pointer to the Doc if the doc
-            # doesn't reside on the local machine
+            # Register the Doc on it's owners object store
+            doc.owner.register_obj(obj=doc)
 
-            return DocPointer(location=doc.owner, id_at_location=doc.id, owner=syft.local_worker)
+            # Return doc_id which can be used to create DocPointer
+            return doc.id
 
         return doc

@@ -414,15 +414,17 @@ class Language(AbstractObject):
                     location_id
                 ].send(input.location)
 
-        # Apply the subpipeline and get the doc or the DocPointer.
+        # Apply the subpipeline and get the doc or the Doc id.
+        # If a Doc ID is obtained, this signifies the ID of the
+        # Doc object on the remote worker.
         doc_or_id = self.pipeline[template_index][location_id](input)
 
-        # If the doc is of type tuple(str or int, BaseWorker), this means that a
+        # If the doc is of type (str or int), this means that a
         # DocPointer should be created
-        if isinstance(doc_or_id, tuple):
+        if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
 
-            doc_id, doc_location = doc_or_id
-            doc = DocPointer(location=doc_location, id_at_location=doc_id, owner=self.owner)
+            doc_id = doc_or_id
+            doc = DocPointer(location=input.location, id_at_location=doc_id, owner=self.owner)
 
         # This is of type Doc then
         else:
