@@ -19,8 +19,8 @@ class SubPipeline(AbstractObject):
     is an PySyft object that encapsulate one or more
     pipe components that operate on the same worker.
 
-    At initialization of SyferText, a `owner` property 
-    is assigned to this class, and holds the PySyft 
+    At initialization of SyferText, a `owner` property
+    is assigned to this class, and holds the PySyft
     local worker as the default owner.
     """
 
@@ -28,11 +28,11 @@ class SubPipeline(AbstractObject):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
-        only done by the detailer after the SubPipeline object 
-        is sent to a remote worker. 
+        only done by the detailer after the SubPipeline object
+        is sent to a remote worker.
         When the SubPipeline is created on the local worker by
-        the Language object, it is not assigned any list of pipe 
-        components; the subpipeline is instead created from a 
+        the Language object, it is not assigned any list of pipe
+        components; the subpipeline is instead created from a
         template that is loaded using the method `load_template`.
 
         Args:
@@ -56,7 +56,7 @@ class SubPipeline(AbstractObject):
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_template(
-        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable],
+        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable]
     ):
         """Loads the subpipeline template.
 
@@ -64,9 +64,9 @@ class SubPipeline(AbstractObject):
         Args:
             template (dict): This is a dictionary representing
                 the subpipeline template. Here is an example of
-                how a template looks like: 
+                how a template looks like:
                 {'remote': True, 'names': ['tokenizer', 'tagger']}
-            factories (dict): This is a dictionary that contains 
+            factories (dict): This is a dictionary that contains
                 a mapping between a pipe name and the object that
                 knows how to create such a pipe using a factory
                 method. Example to create a tokenizer:
@@ -80,10 +80,10 @@ class SubPipeline(AbstractObject):
         self.subpipeline = [factories[name].factory() for name in template["names"]]
 
     def send(self, location: BaseWorker):
-        """Sends this object to the worker specified by 'location'. 
+        """Sends this object to the worker specified by 'location'.
 
         Args:
-            location (BaseWorker): The BaseWorker object to which the object is 
+            location (BaseWorker): The BaseWorker object to which the object is
                 to be sent. Note that this is never actually the BaseWorker but instead
                 a class which inherits the BaseWorker abstraction.
 
@@ -96,7 +96,7 @@ class SubPipeline(AbstractObject):
         return ptr
 
     def __call__(
-        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
+        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
@@ -104,10 +104,10 @@ class SubPipeline(AbstractObject):
         not both.
 
         Args:
-            input (str, String, Doc): The input on which the 
-                subpipeline operates. It could be either the text 
+            input (str, String, Doc): The input on which the
+                subpipeline operates. It could be either the text
                 or it could be the Doc to modify.
-            input_id (str, int): The ID of the input on which 
+            input_id (str, int): The ID of the input on which
                 the subpipeline components operate.
 
         Returns:
@@ -133,7 +133,11 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # set the owner of the doc object as the current worker
+        # Assign Doc object the same owner as the this object.
+        # A Doc owner will be `sy.local_worker`(id = "me") when
+        # returned from the tokenizer, cause when initialized in
+        # the tokenizer we don't pass owner parameter to the
+        # doc's constructor, and it defaults to sy.local_worker
         doc.owner = self.owner
 
         # Execute the  rest of pipes in the subpipeline
@@ -146,27 +150,12 @@ class SubPipeline(AbstractObject):
         # object itself. This id will be used by the
         # Language object to create a DocPointer object
         if self.client_id != self.owner.id:
-
             # Register the Doc in the current worker's
             # object store
             self.owner.register_obj(obj=doc)
 
             # Return the Doc's ID
             return doc.id
-
-        # Otherwise, the `doc_or_id` variable is a Doc
-        # object, if it has no owner yet, assign it the
-        # same owner as the this object.
-        # It is not yet clear if a Doc object actually
-        # needs an owner. Are we going to ever need to
-        # send a Doc object to another worker? If yes
-        # then an owner is needed. Let's give it an
-        # owner for now.
-        # A Doc owner will usually be None when returned
-        # from the tokenizer, which is not itself aware
-        # of which worker it is in.
-        if doc.owner is None:
-            doc.owner = self.owner
 
         return doc
 
@@ -190,15 +179,15 @@ class SubPipeline(AbstractObject):
                 object pointed to by this object is located.
             id_at_location (str, int): The PySyft ID of the SubPipeline
                 object referenced by this pointer.
-            owner (BaseWorker): The worker that owns this pointer 
+            owner (BaseWorker): The worker that owns this pointer
                 object.
-            register (bool): Whether to register the pointer object 
-                in the object store or not. (it is required by the 
+            register (bool): Whether to register the pointer object
+                in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
             ptr_id (str, int): The ID of the pointer object.
             garbage_collect_data (bool): Activate garbage collection or not.
-        
+
         Returns:
             A SubPipelinePointer object pointing to `subpipeline`.
         """
@@ -216,7 +205,7 @@ class SubPipeline(AbstractObject):
 
     @staticmethod
     def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> tuple:
-        """Simplifies a SubPipeline object. 
+        """Simplifies a SubPipeline object.
 
         This requires simplifying each underlying pipe
         component.
@@ -229,7 +218,7 @@ class SubPipeline(AbstractObject):
 
         Returns:
             (tuple): The simplified SubPipeline object.
-        
+
         """
 
         # Simplify the attributes and pipe components
