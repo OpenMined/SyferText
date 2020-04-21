@@ -96,3 +96,8 @@ class StringStore:
                 key = self.str_to_key[string_or_id]
 
             return key
+
+    def __len__(self):
+        """Get the number of strings in the store."""
+
+        return len(self.str_to_key)
