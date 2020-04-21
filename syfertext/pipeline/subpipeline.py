@@ -11,7 +11,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 
 class SubPipeline(AbstractObject):
@@ -97,7 +97,7 @@ class SubPipeline(AbstractObject):
 
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
-    ) -> Union[int, str, Doc]:
+    ) -> Union[Tuple[int, BaseWorker], Tuple[str, BaseWorker], Doc]:
         """Execute the subpipeline.
 
         only one of `input` and `input_id` could be specified,
@@ -144,6 +144,8 @@ class SubPipeline(AbstractObject):
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
 
+        # TODO: Should we assign doc.owner = self.owner here or on top ??
+
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
@@ -155,8 +157,8 @@ class SubPipeline(AbstractObject):
             # object store
             self.owner.register_obj(obj=doc)
 
-            # Return the Doc's ID
-            return doc.id
+            # Return the Doc's ID, and Doc's location
+            return doc.id, doc.owner
 
         return doc
 
