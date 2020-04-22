@@ -140,7 +140,7 @@ def test_get_token_vectors():
     doc = nlp("Joey never ever share food")
     doc_excluding_tokens = nlp("Joey never share food")
 
-    # add custom_attr to the last token, the word ever
+    # add custom_attr to the last token, the word `ever`
     token = doc[2]
     token.set_attribute(name="attribute1_name", value="value1")
 
