@@ -134,6 +134,30 @@ def test_exclude_tokens_on_attr_values_doc():
     assert any(doc.get_vector() != doc_excluding_tokens.get_vector())
 
 
+def test_get_token_vectors():
+    """Test the get_token_vectors method"""
+
+    doc = nlp("Joey never ever share food")
+    doc_excluding_tokens = nlp("Joey never share food")
+
+    # add custom_attr to the last token, the word `ever`
+    token = doc[2]
+    token.set_attribute(name="attribute1_name", value="value1")
+
+    # initialize the excluded_tokens dict
+    excluded_tokens = {"attribute1_name": {"value1", "value2"}, "attribute2_name": {"v1", "v2"}}
+
+    # checks the number of vectors after ignoring the excluded tokens
+    assert (
+        doc.get_token_vectors(excluded_tokens).shape[0]
+        == doc_excluding_tokens.get_token_vectors().shape[0]
+    )
+
+    # checks the shape of the returned tensor
+    assert doc.get_token_vectors(excluded_tokens).shape[0] == 4
+    assert doc.get_token_vectors().shape[0] == 5
+
+
 def test_ownership_doc_local():
     """Tests that the doc object created on the local worker is owned by the local worker itself"""
 
