@@ -3,7 +3,6 @@ import torch
 import syfertext
 
 from syft.generic.string import String
-from syft.generic.pointers.object_pointer import ObjectPointer
 
 from syfertext.doc import Doc
 from syfertext.span import Span
@@ -109,28 +108,36 @@ def test_span_as_doc():
         assert token.text == actual_token
 
 
-def test_local_span_as_remote_doc():
-    """Test doc is initialized on a remote machine and
-    doc pointer is returned when owner passed to `as_doc()`
-    is a remote machine.
+def test_remote_span_as_remote_doc():
+    """Test a pointer to Doc object with a copy of `Span`'s tokens
+     is returned upon calling `as_doc()` on a Span residing on a remote
+     machine.
     """
 
-    bob = sy.VirtualWorker(hook, id="bob")
+    james = sy.VirtualWorker(hook, id="james")
 
-    doc_ = nlp("the quick brown fox jumps over lazy dog")
-    local_span = doc_[1:5]
+    # Send doc to a remote machine
+    remote_text = String("the quick brown fox jumps over a lazy dog").send(james)
+    doc_ = nlp(remote_text)
 
-    # Passing remote machine bob as `owner`
-    doc = local_span.as_doc(owner=bob)
+    remote_span = doc_[1:5]
 
+    doc = remote_span.as_doc()
+
+    # Assert a DocPointer is returned
     assert isinstance(doc, DocPointer)
 
-    # assert only one document object on bob's machine
-    documents = [v for v in bob._objects.values() if isinstance(v, Doc)]
-    assert len(documents) == 1
+    # assert two document object on bob's machine
+    # One created from the String on Jame's machine and
+    # other created from remote_span by `remote_span.as_doc()`
+    documents = [v for v in james._objects.values() if isinstance(v, Doc)]
+    assert len(documents) == 2
+
+    # get the new doc object on james's machine
+    new_doc = [x for x in documents if len(x) == 4][0]
 
     # assert returned doc_pointer points to Doc object on bob's machine
-    assert doc.id_at_location == documents[0].id
+    assert doc.id_at_location == new_doc.id
 
 
 def test_remote_span_from_remote_span():

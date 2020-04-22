@@ -56,3 +56,19 @@ class SpanPointer(ObjectPointer):
         span = SpanPointer(location=self.location, id_at_location=span_id, owner=sy.local_worker)
 
         return span
+
+    def as_doc(self):
+
+        # Avoid circular imports
+        from .doc_pointer import DocPointer
+
+        # Create the command
+        command = ("as_doc", self.id_at_location, [], {})
+
+        # Send the command
+        doc_id = self.owner.send_command(self.location, command)
+
+        # Create a DocPointer from doc_id
+        doc = DocPointer(location=self.location, id_at_location=doc_id, owner=sy.local_worker)
+
+        return doc
