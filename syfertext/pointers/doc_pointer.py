@@ -3,6 +3,7 @@ from syft.workers.base import BaseWorker
 import syft as sy
 
 from .span_pointer import SpanPointer
+from .token_pointer import TokenPointer
 from typing import List
 from typing import Union
 from typing import Dict
@@ -10,6 +11,8 @@ from typing import Set
 
 
 class DocPointer(ObjectPointer):
+    """An Object Pointer that points to the Doc Object at remote location"""
+
     def __init__(
         self,
         location: BaseWorker = None,
@@ -72,6 +75,29 @@ class DocPointer(ObjectPointer):
         doc_vector = doc_vector.get()
 
         return doc_vector
+
+    def __getitem__(self, item: Union[int, slice]) -> Union[SpanPointer, TokenPointer]:
+
+        # Create the command
+        command = ("__getitem__", self.id_at_location, [item], {})
+
+        # Send the command
+        obj_id = self.owner.send_command(self.location, command)
+
+        # if item is of int, that means we queried a token rather than a span
+        # so we create a TokenPointer
+        if isinstance(item, int):
+
+            # create a TokenPointer from obj_id
+            token = TokenPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+            return token
+
+        # This means item was of type slice
+        # so we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+        return span
 
     def get_encrypted_token_vectors(
         self,

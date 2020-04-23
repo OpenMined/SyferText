@@ -2,12 +2,22 @@ from .utils import hash_string
 
 import syft as sy
 import torch
+from syft.generic.string import String
+
+from syft.generic.object import AbstractObject
+from syft.workers.base import BaseWorker
+
+from typing import List
+from typing import Union
 
 hook = sy.TorchHook(torch)
 
 
-class Token:
-    def __init__(self, doc, token_meta: "TokenMeta"):
+class Token(AbstractObject):
+    def __init__(
+        self, doc: "Doc", token_meta: "TokenMeta", id: int = None, owner: BaseWorker = None,
+    ):
+        super(Token, self).__init__(id=id, owner=owner)
 
         self.doc = doc
 
@@ -48,16 +58,25 @@ class Token:
         """Get the token text"""
         return str(self.doc.vocab.store[self.orth])
 
+    def text_(self):
+        """Get the token text in Syft's String type"""
+        return String(self.doc.vocab.store[self.orth])
+
+    def __len__(self):
+        """Get the length of the token"""
+        return len(self.text)
+
     @property
-    def text_with_ws(self):
+    def text_with_ws(self) -> str:
         """Get the text with trailing whitespace if it exists"""
+
         if self.space_after:
             return self.text + " "
         else:
             return self.text
 
     def __repr__(self):
-        return self.text
+        return "Token[{}]".format(self.text)
 
     @property
     def vector(self):
@@ -92,3 +111,38 @@ class Token:
         )
 
         return vector
+
+    @staticmethod
+    def create_pointer(
+        token,
+        location: BaseWorker = None,
+        id_at_location: (str or int) = None,
+        register: bool = False,
+        owner: BaseWorker = None,
+        ptr_id: (str or int) = None,
+        garbage_collect_data: bool = True,
+    ):
+        """Creates a TokenPointer object that points to a Token object living in the the worker 'location'.
+
+        Returns:
+            TokenPointer: pointer object to a Token
+        """
+
+        # I put the import here in order to avoid circular imports
+        from .pointers.token_pointer import TokenPointer
+
+        if id_at_location is None:
+            id_at_location = token.id
+
+        if owner is None:
+            owner = token.owner
+
+        token_pointer = TokenPointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
+
+        return token_pointer

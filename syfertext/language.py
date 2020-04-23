@@ -423,8 +423,7 @@ class Language(AbstractObject):
         # DocPointer should be created
         if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
 
-            doc_id = doc_or_id
-            doc = DocPointer(location=input.location, id_at_location=doc_id, owner=self.owner)
+            doc = DocPointer(location=input.location, id_at_location=doc_or_id, owner=self.owner)
 
         # This is of type Doc then
         else:

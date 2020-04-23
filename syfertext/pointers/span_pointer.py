@@ -5,27 +5,22 @@ import syft as sy
 from typing import List
 from typing import Union
 
+from syfertext.pointers.token_pointer import TokenPointer
+
 
 class SpanPointer(ObjectPointer):
+    """An Object Pointer that points to the Span Object at remote location"""
+
     def __init__(
         self,
         location: BaseWorker = None,
         id_at_location: Union[str, int] = None,
         owner: BaseWorker = None,
         id: Union[str, int] = None,
-        garbage_collect_data: bool = True,
-        tags: List[str] = None,
-        description: str = None,
     ):
 
         super(SpanPointer, self).__init__(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=id,
-            garbage_collect_data=garbage_collect_data,
-            tags=tags,
-            description=description,
+            location=location, id_at_location=id_at_location, owner=owner, id=id,
         )
 
     def __len__(self):
@@ -38,27 +33,35 @@ class SpanPointer(ObjectPointer):
 
         return length
 
-    def __getitem__(self, item):
-
-        assert isinstance(item, slice), (
-            "SpanPointer object can't return a Token. Please call"
-            "__getitem__ on a slice to get a pointer to a Span residing"
-            "on remote machine."
-        )
+    def __getitem__(self, item: Union[int, slice]):
 
         # Create the command
         command = ("__getitem__", self.id_at_location, [item], {})
 
         # Send the command
-        span_id = self.owner.send_command(self.location, command)
+        obj_id = self.owner.send_command(self.location, command)
 
-        # Create a SpanPointer from the span_id
-        span = SpanPointer(location=self.location, id_at_location=span_id, owner=sy.local_worker)
+        # if item is of int, that means we queried a token rather than a span
+        # so we create a TokenPointer
+        if isinstance(item, int):
+
+            # create a TokenPointer from obj_id
+            token = TokenPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+            return token
+
+        # This means item was of type slice
+        # so we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
 
         return span
 
     def as_doc(self):
+        """Create a `Doc` object with a copy of the `Span`'s tokens.
 
+        Returns:
+            The new `Doc` copy (or id to `Doc` object) of the span.
+        """
         # Avoid circular imports
         from .doc_pointer import DocPointer
 

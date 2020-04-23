@@ -5,8 +5,12 @@ hook = syft.TorchHook(torch)
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
+from syfertext.token import Token
 
-from typing import List, Dict, Set, Union
+from typing import List
+from typing import Dict
+from typing import Set
+from typing import Union
 
 from .underscore import Underscore
 from .utils import normalize_slice
@@ -17,14 +21,7 @@ class Span(AbstractObject):
     """
 
     def __init__(
-        self,
-        doc: "Doc",
-        start: int,
-        end: int,
-        id: int = None,
-        owner: BaseWorker = None,
-        tags: List[str] = None,
-        description: str = None,
+        self, doc: "Doc", start: int, end: int, id: int = None, owner: BaseWorker = None,
     ):
         """Create a `Span` object from the slice `doc[start : end]`.
 
@@ -37,15 +34,24 @@ class Span(AbstractObject):
             The newly constructed object.
 
         """
-        super(Span, self).__init__(id=id, owner=owner, tags=tags, description=description)
+        super(Span, self).__init__(id=id, owner=owner)
 
         self.doc = doc
         self.start = start
 
-        # we dont need to handle `None` here
+        # We don't need to handle `None` here
         # it will be handled by normalize slice
         # Invalid ranges handled by normalize function
         self.end = end
+
+        # This is used to keep track of the client worker that this span
+        # caters to.
+        # Usually, it would be the worker operating the pipeline.
+        # we set this equal to `doc.client_id` as span's client will be same as doc's client
+        self.client_id = doc.client_id
+
+        # The owner of the span object will be same worker where doc resides
+        self.owner = doc.owner
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -54,7 +60,7 @@ class Span(AbstractObject):
 
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
-           value `value` in the Underscore object `self._`
+       value `value` in the Underscore object `self._`
 
         Args:
             name (str): name of the custom attribute.
@@ -64,26 +70,47 @@ class Span(AbstractObject):
         # make sure there is no space in name as well prevent empty name
         assert (
             isinstance(name, str) and len(name) > 0 and (not (" " in name))
-        ), "Argument name should be a non-empty str type containing no spaces"
+        ), "Argument `name` should be a non-empty `str` type containing no spaces"
 
         setattr(self._, name, value)
 
-    def __getitem__(self, key):
-        """Returns a Token object at position `key`.
+    def __getitem__(self, key: Union[int, slice]):
+        """Returns a Token object at position `key` or returns Span using slice `key` or the 
+        id of the Token object or id of the Span object at remote location.
 
         Args:
             key (int or slice): The index of the token within the span, or slice of
             the span to get.
 
         Returns:
-            Token or Span at index key
+            Token or Span or id of the Token or id of the Span
         """
 
         if isinstance(key, int):
+
             if key < 0:
-                return self.doc[self.end + key]
+                token_meta = self.doc.container[self.end + key]
             else:
-                return self.doc[self.start + key]
+                token_meta = self.doc.container[self.start + key]
+
+            # Create a Token object with owner same as the span object
+            token = Token(doc=self.doc, token_meta=token_meta, owner=self.owner)
+
+            # If the following condition is satisfied, this means that this
+            # Span is on a different worker (the Span's owner) than the one where
+            # the Language object that operates the pipeline is located (the Span's client).
+            # In this case we will create the Token at the same worker as
+            # this Span, and return its ID to the client worker where a TokenPointer
+            # will be made out of  this id.
+            if self.owner.id != self.client_id:
+
+                # Register the Token on it's owners object store
+                self.owner.register_obj(obj=token)
+
+                # Return token_id using which we can create the TokenPointer
+                return token.id
+
+            return token
 
         if isinstance(key, slice):
 
@@ -100,7 +127,8 @@ class Span(AbstractObject):
             # Create a new span object
             span = Span(self.doc, start, end, owner=owner)
 
-            if span.owner != syft.local_worker:
+            # Reason is same as explained above
+            if span.owner.id != span.client_id:
 
                 # Register the Span on it's owners object store
                 self.owner.register_obj(obj=span)
@@ -109,41 +137,6 @@ class Span(AbstractObject):
                 return span.id
 
             return span
-
-    @staticmethod
-    def create_pointer(
-        span,
-        location: BaseWorker = None,
-        id_at_location: (str or int) = None,
-        register: bool = False,
-        owner: BaseWorker = None,
-        ptr_id: (str or int) = None,
-        garbage_collect_data: bool = True,
-    ):
-        """Creates a SpanPointer object that points to a Span object living in the the worker 'location'.
-
-        Returns:
-            SpanPointer: pointer object to a Span
-        """
-
-        # I put the import here in order to avoid circular imports
-        from .pointers.span_pointer import SpanPointer
-
-        if id_at_location is None:
-            id_at_location = span.id
-
-        if owner is None:
-            owner = span.owner
-
-        span_pointer = SpanPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
-        )
-
-        return span_pointer
 
     def __len__(self):
         """Return the number of tokens in the Span."""
@@ -162,8 +155,9 @@ class Span(AbstractObject):
         """Get span vector as an average of in-vocabulary token's vectors
 
         Returns:
-        span_vector: span vector
+            span_vector: span vector
         """
+
         # Accumulate the vectors here
         vectors = None
 
@@ -174,6 +168,7 @@ class Span(AbstractObject):
 
             # Get the vector of the token if one exists
             if token.has_vector:
+
                 # Increment the vector counter
                 vector_count += 1
 
@@ -193,15 +188,16 @@ class Span(AbstractObject):
         """Get Span vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
 
-        Args
+        Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             span_vector: Span vector ignoring excluded tokens
         """
-        # If the excluded_token dict in None all token are included
+
+        # If the excluded_token dict in None then all token are included
         if excluded_tokens is None:
             return self.vector
 
@@ -242,13 +238,14 @@ class Span(AbstractObject):
         else:
             # Create the final span vector
             span_vector = vectors / vector_count
+
         return span_vector
 
-    def as_doc(self):  # tags: List[str] = None, description: str = None):
+    def as_doc(self):
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
-            Returns (Doc or DocPointer):
-                The new `Doc` copy (or pointer to `Doc`) of the span.
+        Returns :
+            The new `Doc` copy (or id to `Doc` object) of the span.
         """
 
         # Handle circular imports
@@ -256,19 +253,57 @@ class Span(AbstractObject):
 
         # Create a new doc object on the required location
         # Assign the same owner on which this object resides
-        doc = Doc(self.doc.vocab, owner=self.owner)
+        # Client of the doc created will be same as the span's client
+        doc = Doc(self.doc.vocab, owner=self.owner, client_id=self.client_id)
 
         # Iterate over the token_meta present in span
         for idx in range(self.start, self.end):
+
             # Add token meta object to the new doc
             doc.container.append(self.doc.container[idx])
 
-        if doc.owner != syft.local_worker:
+        # Same reason as explained in __getitem__ above
+        if doc.owner.id != doc.client_id:
 
-            # Register the Doc on it's owners object store
+            # Register the Doc on its owner's object store
             doc.owner.register_obj(obj=doc)
 
             # Return doc_id which can be used to create DocPointer
             return doc.id
 
         return doc
+
+    @staticmethod
+    def create_pointer(
+        span,
+        location: BaseWorker = None,
+        id_at_location: (str or int) = None,
+        register: bool = False,
+        owner: BaseWorker = None,
+        ptr_id: (str or int) = None,
+        garbage_collect_data: bool = True,
+    ):
+        """Creates a SpanPointer object that points to a Span object living in the the worker 'location'.
+
+        Returns:
+            SpanPointer: pointer object to a Span
+        """
+
+        # I put the import here in order to avoid circular imports
+        from .pointers.span_pointer import SpanPointer
+
+        if id_at_location is None:
+            id_at_location = span.id
+
+        if owner is None:
+            owner = span.owner
+
+        span_pointer = SpanPointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
+
+        return span_pointer

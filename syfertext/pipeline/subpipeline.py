@@ -97,7 +97,7 @@ class SubPipeline(AbstractObject):
 
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
-    ) -> Union[Tuple[int, BaseWorker], Tuple[str, BaseWorker], Doc]:
+    ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
         only one of `input` and `input_id` could be specified,
@@ -133,18 +133,20 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # Assign Doc object the same owner as the this object.
-        # A Doc owner will be `sy.local_worker`(id = "me") when
-        # returned from the tokenizer, cause when initialized in
-        # the tokenizer we don't pass owner parameter to the
-        # doc's constructor, and it defaults to sy.local_worker
+        # set the owner of the Doc object to this SupPipeline's owner
         doc.owner = self.owner
+
+        # Assign the doc object the worker it will serve if
+        # it is at a remote location. When working locally `doc.client_id`
+        # will be the id of `doc.owner`. But when the doc is at remote site,
+        # `doc.client_id` would be different from the id of `doc.owner`.
+        # `doc.client_id` would be the id of the worker where the pointer of
+        # this doc resides.
+        doc.client_id = self.client_id
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
-        # TODO: Should we assign doc.owner = self.owner here or on top ??
 
         # If the Language object using this subpipeline
         # is located on a different worker, then

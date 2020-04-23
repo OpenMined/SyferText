@@ -16,7 +16,7 @@ nlp = syfertext.load("en_core_web_lg", owner=me)
 
 
 def test_creation_of_basic_span():
-    """Test the __get_item__() method of doc returns
+    """Test the __getitem__() method of doc returns
     a Span when passed in a slice."""
 
     doc = nlp("the quick brown fox jumps over lazy dog")
@@ -90,7 +90,7 @@ def test_span_of_span():
 def test_span_as_doc():
     """Test span is returned as Doc upon calling `as_doc()`
      method of Span.
-     """
+    """
     doc_ = nlp("the quick brown fox jumps over lazy dog")
 
     span = doc_[1:5]
