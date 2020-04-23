@@ -1,6 +1,7 @@
 from .token import Token
 import syft
 import torch
+import numpy as np
 
 hook = syft.TorchHook(torch)
 
@@ -19,7 +20,6 @@ class Doc(AbstractObject):
     def __init__(
         self,
         vocab,
-        text,
         id: int = None,
         owner: BaseWorker = None,
         tags: List[str] = None,
@@ -162,7 +162,7 @@ class Doc(AbstractObject):
         Args
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             doc_vector: document vector ignoring excluded tokens
@@ -185,7 +185,6 @@ class Doc(AbstractObject):
         for token in self:
 
             # Get the vector of the token if one exists and if token is not excluded
-
             include_token = True
 
             include_token = all(
@@ -211,6 +210,51 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        excluding token according to the excluded_tokens dictionary.
+
+        Args
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+
+        Returns:
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
+                containing all the vectors.
+        """
+
+        # enforcing that the values of the excluded_tokens dict are sets, not lists.
+        if excluded_tokens is not None:
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
+
+        # The list for holding all token vectors.
+        token_vectors = []
+
+        for token in self:
+
+            # Get the vector of the token if the token is not excluded
+            include_token = True
+
+            if excluded_tokens is not None:
+                include_token = all(
+                    [
+                        getattr(token._, key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if hasattr(token._, key)
+                    ]
+                )
+
+            if include_token:
+                token_vectors.append(token.vector)
+
+        # Convert to Numpy array.
+        token_vectors = np.array(token_vectors)
+
+        return token_vectors
+
     def get_encrypted_vector(
         self,
         *workers: BaseWorker,
@@ -226,14 +270,14 @@ class Doc(AbstractObject):
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
         """
-        assert (
-            len(workers) > 1
-        ), "You need at least two workers in order to encrypt the vector with SMPC"
+
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
 
         # Storing the average of vectors of each in-vocabulary token's vectors
         doc_vector = self.get_vector(excluded_tokens=excluded_tokens)
@@ -247,3 +291,45 @@ class Doc(AbstractObject):
         )
 
         return doc_vector
+
+    def get_encrypted_token_vectors(
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
+        excluded_tokens: Dict[str, Set[object]] = None,
+    ) -> torch.Tensor:
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        excluding token according to the excluded_tokens dictionary.
+
+
+        Args:
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+                (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+
+        Returns:
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, 
+                ingonoring the excluded token.
+        """
+
+        "You need at least two workers in order to encrypt the vector with SMPC"
+        assert len(workers) > 1
+
+        # The array of all vectors corresponding to the tokens in `Doc`.
+        token_vectors = self.get_token_vectors(excluded_tokens=excluded_tokens)
+
+        # Create a Syft/Torch tensor
+        token_vectors = torch.Tensor(token_vectors)
+
+        # Encrypt the tensor using SMPC with PySyft
+        token_vectors = token_vectors.fix_precision().share(
+            *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
+        )
+
+        return token_vectors

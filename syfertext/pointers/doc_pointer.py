@@ -30,37 +30,39 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
-    def get_encrypted_vector(self,
-                             *workers,
-                             crypto_provider=None,
-                             requires_grad=True,
-                             excluded_tokens: Dict[str, Set[object]] = None,
+    def get_encrypted_vector(
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
+        excluded_tokens: Dict[str, Set[object]] = None,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
-            self (DocPointer): current pointer to a remote document.
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for 
-                providing cryptography (SMPC encryption) functionalities.
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
-                Example: {'attribute1_name' : {value1, value2},'attribute2_name': {v1, v2}, ....}
+                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
         """
 
-        assert (
-            len(workers) > 1
-        ), "You need at least two workers in order to encrypt the vector with SMPC"
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
 
         # Create the command
-        kwargs = dict(crypto_provider=crypto_provider,
-                      requires_grad=requires_grad,
-                      excluded_tokens = excluded_tokens)
-        
+        kwargs = dict(
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            excluded_tokens=excluded_tokens,
+        )
+
         command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
 
         # Send the command
@@ -70,6 +72,51 @@ class DocPointer(ObjectPointer):
         doc_vector = doc_vector.get()
 
         return doc_vector
+
+    def get_encrypted_token_vectors(
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
+        excluded_tokens: Dict[str, Set[object]] = None,
+    ):
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        excluding token according to the excluded_tokens dictionary.
+
+
+        Args:
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+
+        Returns:
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document 
+                this pointer points to.
+        """
+
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
+
+        # Create the command
+        kwargs = dict(
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            excluded_tokens=excluded_tokens,
+        )
+        command = ("get_encrypted_token_vectors", self.id_at_location, workers, kwargs)
+
+        # Send the command
+        token_vectors = self.owner.send_command(self.location, command)
+
+        # We call get because the returned object is a PointerTensor to the AdditiveSharedTensor
+        token_vectors = token_vectors.get()
+
+        return token_vectors
 
     def __len__(self):
 
