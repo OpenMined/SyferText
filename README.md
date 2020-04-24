@@ -25,6 +25,56 @@ For remote string tokenization, check out [this tutorial](https://bit.ly/37VEJ28
 
 More tutorials are coming soon. Stay tuned!
 
+## Our Team
+
+SyferText is created and maintained by the NLP team at OpenMined and by voluneer contributors from all around the world. Here are the current members of the core NLP team. The team is growing!
+
+<br>
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://twitter.com/alan_aboudib">
+        <img src="https://avatars1.githubusercontent.com/u/11991643?s=240" width="170px;" alt="Alan Aboudib avatar">
+        <br /><sub><b>Alan Aboudib</b></sub></a><br />
+        <sub>Team Lead / Author</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/dzlab">
+        <img src="https://avatars0.githubusercontent.com/u/1645304?s=400&v=4" width="170px;" alt="Bachir Chihani avatar">
+        <br /><sub><b>Bachir Chihani</b></sub></a><br />
+        <sub>OM NLP Team / Contributor</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MarcioPorto">
+        <img src="https://avatars1.githubusercontent.com/u/6521281?s=400&v=4" width="170px;" alt="Marcio Porto avatar">
+        <br /><sub><b>Márcio Porto</b></sub></a><br />
+        <sub>OM NLP team / Contributor</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Nilanshrajput">
+        <img src="https://avatars0.githubusercontent.com/u/28673745?s=400&u=4573311779fc3cc924670e3e02108e35350c1f25&v=4"  width="170px;" alt="Nilansh Rajput avatar">
+        <br /><sub><b>Nilansh Rajput</b></sub></a><br />
+        <sub>OM NLP team / Contributor</sub>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/sachin-101">
+        <img src="https://avatars1.githubusercontent.com/u/44168164?s=400&u=df1c9d775a3312cacd4b330f469773e23260eb28&v=4"  width="170px;" alt="Sachin Kumar avatar">
+        <br /><sub><b>Sachin Kumar</b></sub></a><br />
+        <sub>OM NLP team / Contributor</sub>
+      </a>
+    </td>
+  </tr>
+  
+  
+</table>
+<br>
+
 
 ### SyferText News?
 To get news about feature and tutorial relseases:
@@ -32,6 +82,8 @@ To get news about feature and tutorial relseases:
 Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
 
  and join [#team_nlp channel on slack](https://openmined.slack.com/archives/CUWDZMED9)
+
+<br>
 
 -------
 
