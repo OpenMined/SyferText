@@ -69,6 +69,13 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluneer
         <sub>OM NLP team / Contributor</sub>
       </a>
     </td>
+    <td align="center">
+      <a href="https://github.com/bicycleman15">
+        <img src="https://avatars0.githubusercontent.com/u/47978882?s=400&u=521e48efe1a9a652f4449f64278b690aa27dfe03&v=4"  width="170px;" alt="Jatin Prakash avatar">
+        <br /><sub><b>Jatin Prakash</b></sub></a><br />
+        <sub>OM NLP team / Contributor</sub>
+      </a>
+    </td>
   </tr>
   
   
