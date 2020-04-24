@@ -82,16 +82,28 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluneer
 </table>
 <br>
 
+## SyferText News?
 
-### SyferText News?
 To get news about feature and tutorial relseases:
 
 Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
 
  and join [#team_nlp channel on slack](https://openmined.slack.com/archives/CUWDZMED9)
 
-<br>
 
+## Call for partners
+
+We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built. 
+
+If you think that SyferText, in its current state or by adding more features, could be useful to your research or company, please contact us as indicated below in the **Contact Us** section, and let us discuss how we can help.
+
+
+## Contact Us
+
+You can reach out to us by contacting Alan on one of the following channels:
+
+ [LinkedIn](https://www.linkedin.com/in/ala-aboudib/) | [Slack](https://app.slack.com/client/T6963A864/DDKH3SXKL/user_profile/UDKH3SH8S) | [Twitter](https://twitter.com/alan_aboudib)
+ 
 -------
 
 For more updates on our activities at OpenMined and for getting exciting news and announcements about our different projects, you can join our rapidly growing community of 7000+ on [Slack](https://slack.openmined.org/). You can follow our [official twitter page](https://twitter.com/openminedorg), as well as OpenMined [founder's twitter page](https://twitter.com/iamtrask).
