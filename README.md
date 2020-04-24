@@ -82,7 +82,7 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluneer
 </table>
 <br>
 
-## SyferText News?
+## SyferText News
 
 To get news about feature and tutorial relseases:
 
@@ -91,7 +91,7 @@ Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
  and join [#team_nlp channel on slack](https://openmined.slack.com/archives/CUWDZMED9)
 
 
-## Call for partners
+## Call for Partners
 
 We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built. 
 
