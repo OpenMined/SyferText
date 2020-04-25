@@ -8,6 +8,7 @@ from .utils import hash_string
 
 
 class Vectors:
+    
     def __init__(self, model_name):
 
         self.model_name = model_name
@@ -18,10 +19,13 @@ class Vectors:
         self.loaded = False
 
     def _load_data(self):
-
+        """Loads the vectors from the language model package named
+        `self.model_name` which should be installed.
+        """
+        
         # Import the language model
         model = importlib.import_module(f"syfertext_{self.model_name}")
-        print(model.LOADERS, dir(model))
+
         # Import the dictionary of loaders:
         # This dictionary will be used to laod
         # `vectors` array and `key2row` dictionary
