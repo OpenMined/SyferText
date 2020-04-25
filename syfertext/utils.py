@@ -11,7 +11,6 @@ import tempfile
 import shutil
 
 
-
 def hash_string(string: str) -> int:
     """Create a hash for a given string. 
     Hashes created by this functions will be used everywhere by
