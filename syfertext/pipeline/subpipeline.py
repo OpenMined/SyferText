@@ -133,6 +133,9 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
+        # set the owner of the doc object as the current worker
+        doc.owner = self.owner
+
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
@@ -152,19 +155,7 @@ class SubPipeline(AbstractObject):
             return doc.id
 
         # Otherwise, the `doc_or_id` variable is a Doc
-        # object, if it has no owner yet, assign it the
-        # same owner as the this object.
-        # It is not yet clear if a Doc object actually
-        # needs an owner. Are we going to ever need to
-        # send a Doc object to another worker? If yes
-        # then an owner is needed. Let's give it an
-        # owner for now.
-        # A Doc owner will usually be None when returned
-        # from the tokenizer, which is not itself aware
-        # of which worker it is in.
-        if doc.owner is None:
-            doc.owner = self.owner
-
+        # object
         return doc
 
     @staticmethod

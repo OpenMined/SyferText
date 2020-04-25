@@ -3,6 +3,7 @@ from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
+from . import utils
 
 import syft
 import syft.serde.msgpack.serde as serde
