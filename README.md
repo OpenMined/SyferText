@@ -7,13 +7,21 @@
 
 ## Installation
 
-You can clone this repo and install SyferText by running:
+In order to install and start using SyferText, you first have to install our experimental language model that we adapted form spaCy's `en_core_web_lg` model. This should take a few minutes since the model size is >800M.
+
+```
+$ pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
+```
+
+Then you can go ahead and install SyferText:
 
 ```
 $ git clone https://github.com/OpenMined/SyferText.git
 $ cd SyferText
 $ python setup.py install
 ```
+
+That's it, you are good to go!
 
 ## Getting Started
 
