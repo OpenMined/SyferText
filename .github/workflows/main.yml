@@ -14,7 +14,7 @@ jobs:
       with:
         python-version: '>=3.6'
     - name: Install language model 'syfertext_en_core_web_lg'
-        run: |
+      run: |
         pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
         echo syfertext_en_core_web_lg successfully installed
     - name: Install SyferText with test dependencies
