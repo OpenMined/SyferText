@@ -26,7 +26,7 @@ class Vectors:
         model = importlib.import_module(f"syfertext_{self.model_name}")
 
         # Import the dictionary of loaders:
-        # This dictionary will be used to laod
+        # This dictionary will be used to load
         # `vectors` array and `key2row` dictionary
         LOADERS = getattr(model, "LOADERS")
 

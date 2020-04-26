@@ -4,7 +4,7 @@ import sys
 import torch
 
 from syft.generic.string import String
-from syft.workers.virtual import VirtualWorker
+from syfertext.workers.virtual import VirtualWorker
 
 from syfertext.encdec import encrypt, decrypt
 
@@ -76,8 +76,8 @@ def test_diffie_hellman_key_exchange():
     bob_doc = nlp(text.send(bob))
     alice_doc = nlp(text.send(alice))
 
-    bob_enc_tokens = bob_doc.get_encrypted_tokens()
-    alice_enc_tokens = alice_doc.get_encrypted_tokens()
+    bob_enc_tokens = bob_doc.get_encrypted_tokens_set()
+    alice_enc_tokens = alice_doc.get_encrypted_tokens_set()
 
     # assert the sets are same, thus verifying the keys are same
     assert not bob_enc_tokens.difference(alice_enc_tokens)
@@ -95,8 +95,8 @@ def test_two_party_psi():
     alice_private_data = String("keeps your data private and secure").send(alice)
     alice_doc = nlp(alice_private_data)
 
-    bob_enc_tokens = bob_doc.get_encrypted_tokens()
-    alice_enc_tokens = alice_doc.get_encrypted_tokens()
+    bob_enc_tokens = bob_doc.get_encrypted_tokens_set()
+    alice_enc_tokens = alice_doc.get_encrypted_tokens_set()
 
     unique_tokens = 7  # [private, and, secure, nlp, keeps, your,data]
     common_tokens = 3  # [private, and, secure]
