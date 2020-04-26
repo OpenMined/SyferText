@@ -11,6 +11,29 @@ me = hook.local_worker
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
 
+def test_lazy_language_model_load():
+    """Test the the language model vectors are loaded only after
+    the first vector is requested
+    """
+
+    # Upon initialization of the language model, the vectors
+    # shouldn't be loaded
+    assert nlp.vocab.vectors.loaded == False
+    assert not hasattr(nlp.vocab.vectors, "data")
+
+    # Even when we tokenize a string, the language model should
+    # still be not loaded
+    doc = nlp("Language is lazy")
+    assert nlp.vocab.vectors.loaded == False
+    assert not hasattr(nlp.vocab.vectors, "data")
+
+    # Now, if an operation requiring that vectors be loaded is
+    # performed, vectors should become loaded.
+    doc[0].vector
+    assert nlp.vocab.vectors.loaded == True
+    assert hasattr(nlp.vocab.vectors, "data")
+
+
 def test_vector_valid_token_is_not_zero():
     """Test that the vector of a valid token is not all zeros"""
 
@@ -65,19 +88,3 @@ def test_correctness_of_tokens_created():
     excep = "U.S.A"
 
     assert len(nlp(excep)) == 1  # ['U.S.A']
-
-
-def test_language_model_download_path():
-    """Tests that downloading a model returns a valid & correct path"""
-
-    # Retrieve the model's path from its vocabulary
-    model_path = nlp.vocab.model_path
-
-    # Set the expected path for the `en_core_web_lg` model
-    expected_model_path = os.path.join(str(Path.home()), "SyferText", "en_core_web_lg")
-
-    # check if the model path exists
-    assert os.path.exists(model_path)
-
-    # check if the model path is the same as the expected path
-    assert model_path == expected_model_path

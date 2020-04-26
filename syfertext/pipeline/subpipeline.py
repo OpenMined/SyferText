@@ -157,6 +157,8 @@ class SubPipeline(AbstractObject):
             # Return the Doc's ID
             return doc.id
 
+        # Otherwise, the `doc_or_id` variable is a Doc
+        # object
         return doc
 
     @staticmethod
