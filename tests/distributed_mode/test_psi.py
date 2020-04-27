@@ -9,12 +9,13 @@ from syfertext.workers.virtual import VirtualWorker
 from syfertext.encdec import encrypt, decrypt
 
 hook = sy.TorchHook(torch)
+me = sy.local_worker
 
 # create workers
-me = sy.local_worker
 bob = VirtualWorker(hook, "bob")
 alice = VirtualWorker(hook, "alice")
-james = VirtualWorker(hook, "james")
+alan = VirtualWorker(hook, "alan")
+neo = VirtualWorker(hook, "neo")
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
@@ -22,10 +23,6 @@ shared_prime = 997
 shared_base = 2
 key = 1009
 temp_key = key.to_bytes(32, sys.byteorder)
-
-
-# TODO: Extend protocol to support more than 2 workers.
-# TODO: Test the limitations of DH protocol.
 
 
 def test_deterministic_encryption():
@@ -56,25 +53,25 @@ def test_encrypt_decrypt():
     assert text == dec_text
 
 
-def test_diffie_hellman_key_exchange():
+def test_two_party_diffie_hellman_key_exchange():
     """Test the Diffie-Hellman Key Exchange protocol.
     By encrypting same string we will verify that at the end of
     the exchange bob and alice have the same keys.
     """
-
-    # Generate public keys
-    bob_public_key = bob.generate_public_key(shared_prime, shared_base)
-    alice_public_key = alice.generate_public_key(shared_prime, shared_base)
-
-    # Generate Secret keys
-    alice.generate_secret_key(bob_public_key, shared_prime)
-    bob.generate_secret_key(alice_public_key, shared_prime)
 
     # Send same strings to bob and alice
     text = String("syfertext")
 
     bob_doc = nlp(text.send(bob))
     alice_doc = nlp(text.send(alice))
+
+    # Let james be our good guy here
+    secure_worker = VirtualWorker(hook, id="james")
+
+    workers = [bob, alice]
+
+    # Execute the DH key exchange protocol securely on Secure Worker
+    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
 
     bob_enc_tokens = bob_doc.get_encrypted_tokens_set()
     alice_enc_tokens = alice_doc.get_encrypted_tokens_set()
@@ -83,10 +80,56 @@ def test_diffie_hellman_key_exchange():
     assert not bob_enc_tokens.difference(alice_enc_tokens)
 
 
+def test_multi_party_diffie_hellman_key_exchange():
+    """Test the Diffie-Hellman Key Exchange protocol for more than 2 parties.
+    By encrypting same string we will verify that at the end of
+    the exchange bob and alice have the same keys.
+    """
+
+    text = String("syfertext")
+
+    # List of workers participating in DH Key exchange protocol
+    workers = [bob, alice, alan, neo]
+
+    docs = list()
+
+    for worker in workers:
+
+        cur_worker_doc = nlp(text.send(worker))
+
+        docs.append(cur_worker_doc)
+
+    # Let james again be our good guy here
+    secure_worker = VirtualWorker(hook, id="james")
+
+    # Execute the DH key exchange protocol securely on Jame's (SecureWorker) machine
+    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
+
+    # List of sets of encrypted tokens returned from each workers's doc
+    enc_token_sets = list()
+
+    for doc in docs:
+
+        cur_worker_set = doc.get_encrypted_tokens_set()
+
+        enc_token_sets.append(cur_worker_set)
+
+    # assert the sets are same, thus verifying the keys are same
+    for set1 in enc_token_sets:
+
+        for set2 in enc_token_sets:
+
+            if set1 is set2:  # both point to the same object
+                continue
+
+            # assert sets are same
+            assert not set1.difference(set2)
+
+
 def test_two_party_psi():
     """Test two party private set intersection."""
 
-    # NOTE: Keys were generated in test_diffie_hellman_key_exchange
+    # NOTE: Keys were generated previous tests
 
     # Simulate private dataset
     bob_private_data = String("private and secure nlp").send(bob)

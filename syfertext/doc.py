@@ -299,7 +299,7 @@ class Doc(AbstractObject):
             Set of tokens encrypted using the secret key of doc's owner `self.owner`.
         """
 
-        key = self.owner.secret
+        key = self.owner.secret_key
 
         # Making sure owner has generated secret keys
         assert key is not None, (
