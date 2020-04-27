@@ -9,7 +9,7 @@ from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 # from syfertext.span import Span
-import syfertext.pipeline.ner as ner
+
 
 from typing import List, Dict, Set
 from .underscore import Underscore
@@ -167,6 +167,11 @@ class Doc(AbstractObject):
                 Then this function returns:
                 [Span("Albert", "Einstein"), Span("New", "York")]
         """
+        # TODO: May be put the constants in syfertext.utils
+
+        # avoid circular imports
+        import syfertext.pipeline.ner as ner
+
         entities = list()
         start = -1
 

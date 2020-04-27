@@ -9,7 +9,7 @@ import syft.serde.msgpack.serde as serde
 begin_token_tag = "B"
 inner_token_tag = "I"
 last_token_tag = "L"
-single_entity_token_tag = "U"
+unit_entity_token_tag = "U"
 non_entity_token_tag = "O"
 
 
