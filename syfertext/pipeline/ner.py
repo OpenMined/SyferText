@@ -5,6 +5,13 @@ from typing import Union
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
+# Tags
+begin_token_tag = "B"
+inner_token_tag = "I"
+last_token_tag = "L"
+single_entity_token_tag = "U"
+non_entity_token_tag = "O"
+
 
 class EntityRecognizer:
     """This is a very simple model-free EntityRecognizer. It enables to tag specified
@@ -25,12 +32,6 @@ class EntityRecognizer:
             default_tag: (object, optional): The default entity tag to be assigned
                 in case the token text matches no entry in `lookups`.
         """
-
-        self.last_token_tag = "L"
-        self.inner_token_tag = "I"
-        self.begin_token_tag = "B"
-        self.non_entity_token_tag = "O"
-        self.single_entity_token_tag = "U"
 
         self.default_tag = default_tag
 
@@ -72,7 +73,7 @@ class EntityRecognizer:
                 if not begin_token or tag != prev_tag:
 
                     # Set tokens `ent_iob_` attribute to 'B'
-                    token.set_attribute(name="ent_iob_", value=self.begin_token_tag)
+                    token.set_attribute(name="ent_iob_", value=begin_token_tag)
 
                     # Indicate token part of an entity has been encountered
                     begin_token = True
@@ -81,13 +82,13 @@ class EntityRecognizer:
                 else:
 
                     # Set tokens `ent_iob_` attribute to 'I'
-                    token.set_attribute(name="ent_iob_", value=self.inner_token_tag)
+                    token.set_attribute(name="ent_iob_", value=inner_token_tag)
 
             # Token is not a part of an entity
             else:
 
                 # Set tokens `ent_iob_` attribute to 'O'
-                token.set_attribute(name="ent_iob_", value=self.non_entity_token_tag)
+                token.set_attribute(name="ent_iob_", value=non_entity_token_tag)
 
             # update prev_tag
             prev_tag = tag

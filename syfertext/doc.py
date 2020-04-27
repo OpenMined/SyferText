@@ -5,14 +5,13 @@ import numpy as np
 
 hook = syft.TorchHook(torch)
 
-
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
-from typing import List
-from typing import Dict
-from typing import Set
-from typing import Union
+# from syfertext.span import Span
+import syfertext.pipeline.ner as ner
+
+from typing import List, Dict, Set
 from .underscore import Underscore
 
 
@@ -155,6 +154,40 @@ class Doc(AbstractObject):
 
         return doc_vector
 
+    @property
+    def ents(self):
+        """
+        Returns:
+            List of entities in the document. Returns one span per entity.
+
+            Example:
+                If the tokens in Doc have the following values for attribute `ent_iob_`
+                [ ("Albert", `B`), ("Einstein", `I`), ("is", `O`), ("in", `O`), ("New", `B`), ("York", `I`)]
+
+                Then this function returns:
+                [Span("Albert", "Einstein"), Span("New", "York")]
+        """
+        entities = list()
+        start = -1
+
+        for i, token in enumerate(self):
+
+            if token._.ent_iob == ner.begin_token_tag:
+
+                # Handle case of two consecutive entities, eg. BIBIOO
+                if start != -1:
+                    entities.append(Span(self, start, i))
+
+                start = i
+
+            elif token._.ent_iob == ner.non_entity_token_tag:
+                entities.append(Span(self, start, i))
+
+                # reset start
+                start = -1
+
+        return entities
+
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
@@ -220,7 +253,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
@@ -305,16 +338,16 @@ class Doc(AbstractObject):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
                 (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, 
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document,
                 ingonoring the excluded token.
         """
 
