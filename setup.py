@@ -13,7 +13,7 @@ setup(
     license="Apache-2.0",
     version="0.1.0.dev2",
     packages=find_packages(),
-    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft", "requests==2.22.0"],
+    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft", "requests==2.22.0", "pycrypto==2.6.1"],
     dependency_links=["git+git://github.com/OpenMined/PySyft@master#egg=syft"],
     extras_require={
         "test": [
