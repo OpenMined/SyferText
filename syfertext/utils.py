@@ -69,3 +69,11 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
 
     expression = "|".join([piece for piece in entries if piece.strip()])
     return re.compile(expression)
+
+
+def batching(iterable, bs=8):
+    "for batching a stream of any object"
+
+    l = len(iterable)
+    for ndx in range(0, l, bs):
+        yield iterable[ndx : min(ndx + bs, l)]
