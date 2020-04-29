@@ -47,7 +47,7 @@ class SimpleMatcher:
                 pattern = [{"LOWER": "facebook"}, {"LEMMA": "be"}, {"POS": "ADV"},
                            {"POS": "ADJ"}]
 
-                matcher.add("facebook", pattern)
+                matcher.add("facebook", [pattern])
 
             2. Adding multiple patterns with the same key
 
@@ -70,11 +70,12 @@ class SimpleMatcher:
         Returns:
         """
 
-        # preprocess the patterns and add it to self._patterns
-        # Could save them as lists or structs, but right now
-        # going ahead without processing
-
+        key = self._normalize_key(key)
         self._patterns[key] = self._preprocess_patterns(patterns)
+
+    def get(self, key):
+        key = self._normalize_key(key)
+        return self._patterns[key]
 
     def remove(self, key):
         """Remove a rule from the matcher.
@@ -83,23 +84,24 @@ class SimpleMatcher:
             key (unicode): The ID of the match rule.
         """
 
+        key = self._normalize_key(key)
         try:
             del self._patterns[key]
         except KeyError:
             pass
 
-    def has_key(self, key):
-        """Checks whether the matcher has a rule with the given key.
-
-        Args:
-            key (string or int): The key to check
-
-        Returns:
-            True if the matcher has rule, else False.
-        """
-
-        key = self._normalize_key(key)
-        return key in self._patterns
+    # def has_key(self, key):
+    #     """Checks whether the matcher has a rule with the given key.
+    #
+    #     Args:
+    #         key (string or int): The key to check
+    #
+    #     Returns:
+    #         True if the matcher has rule, else False.
+    #     """
+    #
+    #     key = self._normalize_key(key)
+    #     return key in self._patterns
 
     def __call__(self, doc_or_span):
         """Find all token sequences matching the supplied pattern.
@@ -160,7 +162,7 @@ class SimpleMatcher:
                         if ptr == len(p):
 
                             # Add this match to the output
-                            output.append((p.key, i, temp))
+                            output.append((key, i, temp))
 
                             # Code continues from the next token
                             # of the last token in the match
@@ -175,6 +177,8 @@ class SimpleMatcher:
                             break
 
                     i += 1
+
+        return output
 
     def _normalize_key(self, key):
 
@@ -201,11 +205,16 @@ class SimpleMatcher:
 
         for pattern in patterns:
 
+            assert isinstance(pattern, list)
             cur_pattern = list()
 
             for part in pattern:
 
-                cur_pattern.append((key, value) for key, value in part.items())
+                assert isinstance(part, dict)
+                item = [(key.lower(), value) for key, value in part.items()]
+
+                assert len(item) == 1
+                cur_pattern.append(item[0])
 
             processed_patterns.append(cur_pattern)
 
