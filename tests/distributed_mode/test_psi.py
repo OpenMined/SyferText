@@ -129,7 +129,11 @@ def test_multi_party_diffie_hellman_key_exchange():
 def test_two_party_psi():
     """Test two party private set intersection."""
 
-    # NOTE: Keys were generated previous tests
+    workers = [bob, alice]
+    secure_worker = VirtualWorker(hook, id="james")
+
+    # Execute the DH key exchange protocol securely on Secure Worker
+    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
 
     # Simulate private dataset
     bob_private_data = String("private and secure nlp").send(bob)
