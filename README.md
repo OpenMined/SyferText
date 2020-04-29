@@ -17,9 +17,9 @@ $ pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
 
 If you had already installed `syfertext_en_core_web_lg` prior to installing `git-lfs` please do the following:
 
-- Uninstall `syfertext_en_core_web_lg`
-- Install `git-lfs`.
-- Reinstall `syfertext_en_core_web_lg`.
+1. Uninstall `syfertext_en_core_web_lg`
+2. Install `git-lfs`.
+3. Reinstall `syfertext_en_core_web_lg`.
 
 Now you can go ahead and install SyferText:
 
