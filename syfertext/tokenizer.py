@@ -143,6 +143,10 @@ class Tokenizer(AbstractObject):
         # The number of characters in the text
         text_size = len(text)
 
+        # Return empty doc for empty strings("")
+        if text_size == 0:
+            return doc
+
         # Initialize a pointer to the position of the first character of 'text'
         pos = 0
 
