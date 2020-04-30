@@ -1,6 +1,7 @@
 from .doc import Doc
 from .vocab import Vocab
 from .utils import hash_string
+from .tokenizer import Tokenizer
 
 from typing import Union, List
 
@@ -17,65 +18,91 @@ class PhraseMatcher:
         """Initialize the PhraseMatcher.
 
         Args:
-            vocab (Vocab): The shared vocabulary.
+            vocab (Vocab): The vocabulary object which must be shared with the documents
+                matcher will operate on.
         """
         
         # initialize trie for matching
-        self.main_trie = dict() 
+        self.main_trie = {}
 
         self.vocab = vocab
 
-        # list of ID of patterns rules to match with
-        self.patterns = set()
+        # set of hashes of match_id
+        self._patterns = set()
+
+        # dictionary of callback functions
+        self._callbacks = {}
 
         # hash used to denote that the pattern has been found
         self._terminal_hash = -1 # TODO : maybe use some other unique hash ?
 
 
-    def add(self, match_id : int , doc : Doc):
+    def add(self, match_id : str , pattern : str, on_match = None):
         """Add a match-rule to the phrase-matcher. 
         A match-rule consists of: an match ID, and one pattern in the form of doc.
 
         Args:
-            match_id (unicode): The match ID.
+            match_id (str): The match ID.
             doc (Doc) : `Doc` object representing match pattern.
         """
 
-        # push the pattern in patterns list
-        self.patterns.add(match_id)
+        # get the hash of the match_id and store in patterns list
+        match_id_hash = self.vocab.store[match_id]
+        self._patterns.add(match_id_hash)
+
+        # Add the callback function to self.callbacks
+        self._callbacks[match_id_hash] = on_match
+
+        # initialize the tokenizer
+        tokenizer = Tokenizer(vocab = self.vocab)
+
+        # tokenize the pattern string
+        doc = tokenizer(pattern)
 
         cur_trie = self.main_trie
         
-        for token in doc:
-            token_hash = hash_string(token.text)
+        for token_meta in doc.container:
+
+            # get the hash of the token
+            token_hash = token_meta.orth
             
             if token_hash not in cur_trie:
                 cur_trie[token_hash] = {}
             
             cur_trie = cur_trie[token_hash]
 
-        cur_trie[self._terminal_hash] = match_id
+        cur_trie[self._terminal_hash] = match_id_hash
     
     
     def __call__(self, doc : Doc):
-        """Find all sequences matching the supplied patterns on the doc provided.
+        """Find all sequences matching the supplied patterns on the `doc` provided. This function
+        in turn calls the `find_matches` fucntion where the real work happens. After finding the matches
+        it run the callback function of each found match.
 
         Args:
             doc (Doc): The document to match over.
 
         Returns: 
-        
             matches (list): A list of `(match_id, start, end)` tuples,
-            describing the matches. A match tuple describes a span
-            `doc[start:end]`.
+                describing the matches. A match tuple describes a span
+                `doc[start:end]`.
         """
-        matches = []
+
         if doc is None or len(doc) == 0:
             # if doc is empty or None just return empty list
-            return matches
+            return []
 
         # find the matches
         matches = self.find_matches(doc)
+
+        # run callback functions on the found matches
+
+        for i,(match_id,start,end) in enumerate(matches):
+            # get the callback function
+            on_match = self._callbacks[match_id]
+
+            if on_match is not None:
+                on_match(self, doc, i, matches)
         
         # return the list of matches found on doc
         return matches
@@ -116,7 +143,7 @@ class PhraseMatcher:
 
             # since we store hash value in the trie structure,
             # we only need the hash of the token at idx position in doc
-            token = hash_string(doc[idx].text)
+            token = doc.container[idx].orth
             
             # check if token is in current position in trie
             if token in cur:
@@ -132,7 +159,7 @@ class PhraseMatcher:
                 while idy < len(doc):
                     
                     # get hash of token at idy position
-                    token = hash_string(doc[idy].text)
+                    token = doc.container[idy].orth
                     
                     # if we have terminating hash at this position,
                     # that means we have reached end of one pattern
@@ -177,28 +204,28 @@ class PhraseMatcher:
         return matches
 
 
-    def remove(self,match_id : int):
+    def remove(self,match_id : str):
         """Remove the pattern from the main_trie using the 
         match_id if present.
 
         Args:
-            match_id (int): ID of match to remove
+            match_id (str): ID of match to remove
 
         """
         pass
 
-    def __contains__(self, match_id : int):
+    def __contains__(self, match_id : str):
         """Checks whether a match pattern corresponding to 
         match_id exists or not
 
         Args:
-            match_id (int) : ID to look for
+            match_id (str) : ID to look for
 
         Returns:
             Boolean value that ID is present is or not
         """
 
-        if match_id in self.patterns:
+        if self.vocab.store[match_id] in self._patterns:
             return True
         
         return False
