@@ -16,6 +16,7 @@ class SimpleMatcher:
         """
 
         self._patterns = {}
+        self._callbacks = {}
         self.vocab = vocab
 
     def __len__(self):
@@ -34,7 +35,7 @@ class SimpleMatcher:
 
         return self._normalize_key(key) in self._patterns
 
-    def add(self, key, patterns):
+    def add(self, key, patterns, on_match=None):
         """Add a match-rule to the matcher. A match-rule consists of: an ID
         key and one or more patterns.
 
@@ -64,16 +65,32 @@ class SimpleMatcher:
         TODO: Support on match callback.
 
         Args:
-            key (unicode):
-            patterns (List):
+            key (unicode): The match ID.
+            patterns (List): The patterns to add for the given key.
+            on_match (Callable): Optional callback executed on match.
 
         Returns:
         """
 
+        # Asserting on match is a callable object
+        if on_match is not None and not hasattr(on_match, "__call__"):
+            raise TypeError(f"`on_match` {on_match} is not callable")
+
         key = self._normalize_key(key)
         self._patterns[key] = self._preprocess_patterns(patterns)
+        self._callbacks[key] = on_match
 
     def get(self, key):
+        """ Retrieve the pattern stored for a key.
+
+        Args:
+            key (unicode): The key of the patterns to retrieve.
+
+        TODO: Convert preprocessed patterns back to dictionary?
+        Returns:
+            The rule, as an (on_match, patterns) tuple.
+        """
+
         key = self._normalize_key(key)
         return self._patterns[key]
 
@@ -125,16 +142,16 @@ class SimpleMatcher:
         #     length = len(doc)
 
         doc = doc_or_span
-        output = []
+        matches = []
 
         if len(doc) == 0:
             # Avoid processing of an empty doc
-            return output
+            return matches
 
         length = len(doc)
 
         # A naive way of performing matching.
-        # Time complexity O (Number of patterns * Length of Doc * Max_Length of pattern)
+        # Time complexity O(Number of patterns * Length of Doc * Max_Length of pattern)
         # Note number of patterns includes multiple patterns with the same key.
 
         # Iterate over all patterns
@@ -162,7 +179,7 @@ class SimpleMatcher:
                         if ptr == len(p):
 
                             # Add this match to the output
-                            output.append((key, i, temp))
+                            matches.append((key, i, temp))
 
                             # Code continues from the next token
                             # of the last token in the match
@@ -178,9 +195,29 @@ class SimpleMatcher:
 
                     i += 1
 
-        return output
+        # Execute callback on the matches
+
+        for i, (key, start, end) in enumerate(matches):
+
+            # Get the callback function
+            on_match = self._callbacks.get(key, None)
+
+            if on_match is not None:
+                on_match(self, doc, i, matches)
+
+        return matches
 
     def _normalize_key(self, key):
+        """Returns the hash value of the string. Saves memory by storing
+        hash values instead of texts.
+
+        Args:
+            key (string or unicode): The key to normalize.
+
+        Returns:
+            Hash value of the string, if key is a string. Else, returns the
+            hash value itself.
+        """
 
         if isinstance(key, str):
             return self.vocab.store[key]
