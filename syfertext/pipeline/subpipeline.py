@@ -11,7 +11,10 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+
+from typing import Union
+from typing import List
+from typing import Dict
 
 
 class SubPipeline(AbstractObject):

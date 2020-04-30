@@ -1,6 +1,8 @@
 from syft.generic.object import AbstractObject
 from syft.worker.base import BaseWorker
 
+from typing import Union
+from typing import Set
 class LanguageModel(AbstractObject):
     """This class is responsible of serving the resources and 
     the configurations that help create a Language object or
@@ -21,9 +23,11 @@ class LanguageModel(AbstractObject):
     """
     
     def __init__(self,
+                 source: str,
+                 name: str,
                  id: Union[str, int] = None,
                  owner: BaseWorker = None,
-                 tags: set[str] = None,
+                 #tags: set[str] = None,
                  description: str = None,
     ):
         """Initializes the object.
@@ -75,4 +79,96 @@ class LanguageModel(AbstractObject):
                  its contents, and any other features.
            
         """ 
- 
+
+        self.name = name
+
+        # Set the tag ad #<model_name>. This tag will be
+        # used to search for this language model on PyGrid
+        if tags is None:
+            self.tags = set()
+
+        self.tags.add(f'#{name}')
+
+        # Initialize the pipeline template
+        self.pipeline = []
+
+        
+        # Initialize the parent class
+        super(LanguageModel, self).__init__(id = id,
+                                            owner = owner,
+                                            tags = tags,
+                                            description = description)
+
+
+
+    @property
+    def pipe_names(self):
+        """Get a list of all pipe names included in the pipeline.
+
+        Returns:
+            name (List[str]): A list of all pipe name in the pipeline.
+        """
+        
+        names = set([pipe_template['name'] for pipe_template in self.pipeline_template])
+
+        return names
+
+    
+
+    def remove_pipe(self, name: str):
+        """Remove a pipe template from the pipeline template.
+
+        Args:
+            name: The name of the pipe to remove.
+        """
+
+        self.pipeline_template = [pipe for pipe in self.pipeline_template if pipe['name'] != name]
+        
+
+        
+    def add_pipe_template(self,
+                          source: str = 'syfertext',
+                          name: str,
+                          owner_id: str,
+                          access: Union[None, Set[int, str]]
+    ):
+        """Adds a pipe template to the pipeline template of 
+        the language model.
+        """
+
+        assert name not in self.pipe_names, f"A pipe with name '{name}' already exist in the pipeline"
+
+        
+        # Create the pipe template
+        pipe_template = dict(source = source,
+                             name = name,
+                             owner_id = owner_id,
+                             access = access
+        )
+        
+        # Add the pipe template to the pipeline template
+        self.pipeline_template.append(pipe_template)
+
+
+
+
+    """
+    1- To create a brand new language model, we always start by creating
+    a Language object, and then calling calling nlp.to_grid(worker) which
+    will create the LanguageModel object and the underlying LanguageResource
+    objects and push it to PyGrid. We should never create the LanguageModel directly.
+
+    tokenizer = Tokenizer().set_resources(prefixes, ...)  # Should know how to convert itself to LanguageResource
+
+    vocab = Vocab().set_resources(keys = keys, key2row = key2row, vectors = vectors) # Should know ...... get_resources() called by nlp.to_grid()
+
+    nlp = Language(model_name = 'my_new_model')
+    nlp.set_tokenizer(tokenizer)
+    nlp.set_vocab(vocab)
+
+    nlp.to_grid(worker) # This will put all components on same worker with public access
+    nlp.to_grid(tokenizer = {'owner': bob, 'access': None}},
+                vocab = {'owner' : alice, access': {alice, james}}
+                my_tagger = {'owner' alice},
+    ) # notice that the component/pipe name is used as kwarg.
+    """
