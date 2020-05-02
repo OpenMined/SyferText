@@ -96,20 +96,6 @@ class Span(AbstractObject):
             # Create a Token object with owner same as the span object
             token = Token(doc=self.doc, token_meta=token_meta, owner=self.owner)
 
-            # If the following condition is satisfied, this means that this
-            # Span is on a different worker (the Span's owner) than the one where
-            # the Language object that operates the pipeline is located (the Span's client).
-            # In this case we will create the Token at the same worker as
-            # this Span, and return its ID to the client worker where a TokenPointer
-            # will be made out of  this id.
-            if self.owner.id != self.client_id:
-
-                # Register the Token on it's owners object store
-                self.owner.register_obj(obj=token)
-
-                # Return token_id using which we can create the TokenPointer
-                return token.id
-
             return token
 
         if isinstance(key, slice):
@@ -127,7 +113,12 @@ class Span(AbstractObject):
             # Create a new span object
             span = Span(self.doc, start, end, owner=owner)
 
-            # Reason is same as explained above
+            # If the following condition is satisfied, this means that this
+            # Span is on a different worker (the Span's owner) than the one where
+            # the Language object that operates the pipeline is located (the Span's client).
+            # In this case we will create the new Span at the same worker as
+            # this Span, and return its ID to the client worker where a SpanPointer
+            # will be made out of this id.
             if span.owner.id != span.client_id:
 
                 # Register the Span on it's owners object store

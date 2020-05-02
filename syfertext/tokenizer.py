@@ -199,11 +199,11 @@ class Tokenizer(AbstractObject):
                 # Update the character type of which we are searching
                 # the opposite (space vs. not space).
                 # prevent 'pos' from being out of bound
-                if pos < text_len:
+                if pos < text_size:
                     is_space = text[pos].isspace()
 
             # Create the last token if the end of the string is reached
-            if i == text_len - 1 and pos <= i:
+            if i == text_size - 1 and pos <= i:
 
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text

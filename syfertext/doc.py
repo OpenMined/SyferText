@@ -87,23 +87,10 @@ class Doc(AbstractObject):
             token_meta = self.container[idx]
 
             # Create a Token object with owner same as the doc object
-            token = Token(doc=self, token_meta=token_meta, owner=self.owner)
+            token = Token(
+                doc=self, token_meta=token_meta, owner=self.owner, client_id=self.client_id
+            )
 
-            # If the following condition is satisfied, this means that this
-            # Doc is on a different worker (the Doc owner) than the one where
-            # the Language object that operates the pipeline is located (the Doc client).
-            # In this case we will create the Token at the same worker as
-            # this Doc, and return its ID to the client worker where a TokenPointer
-            # will be made out of  this id.
-            if self.owner.id != self.client_id:
-
-                # Register the Token on it's owner's object store
-                self.owner.register_obj(obj=token)
-
-                # Return token_id using which we can create the TokenPointer
-                return token.id
-
-            # It is Token object then
             return token
 
         if isinstance(key, slice):
@@ -114,8 +101,12 @@ class Doc(AbstractObject):
             # Create a new span object
             span = Span(self, start, end, owner=self.owner)
 
-            # Same as above, in this case we will create the span on the remote worker and return the id
-            # of that span object where a SpanPointer will be made of out the id.
+            # If the following condition is satisfied, this means that this
+            # Doc is on a different worker (the Doc owner) than the one where
+            # the Language object that operates the pipeline is located (the Doc client).
+            # In this case we will create the Span at the same worker as
+            # this Doc, and return its ID to the client worker where a SpanPointer
+            # will be made out of  this id.
             if self.owner.id != self.client_id:
 
                 # Register the Span on it's owners object store
