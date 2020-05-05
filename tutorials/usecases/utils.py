@@ -2,6 +2,7 @@ from tqdm import tqdm
 import urllib.request as request
 import os
 
+
 def download_dataset(dataset_name: str, urls: list, root_path: str):
     """Download the dataset files from a list of urls.
 
