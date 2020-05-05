@@ -13,11 +13,7 @@ hook = sy.TorchHook(torch)
 
 class Token(AbstractObject):
     def __init__(
-        self,
-        doc: "Doc",
-        token_meta: "TokenMeta",
-        id: int = None,
-        owner: BaseWorker = None,
+        self, doc: "Doc", token_meta: "TokenMeta", id: int = None, owner: BaseWorker = None,
     ):
         super(Token, self).__init__(id=id, owner=owner)
 

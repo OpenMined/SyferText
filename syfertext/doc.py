@@ -87,9 +87,7 @@ class Doc(AbstractObject):
             token_meta = self.container[idx]
 
             # Create a Token object with owner same as the doc object
-            token = Token(
-                doc=self, token_meta=token_meta, owner=self.owner, client_id=self.client_id
-            )
+            token = Token(doc=self, token_meta=token_meta, owner=self.owner)
 
             return token
 
