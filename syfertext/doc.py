@@ -49,12 +49,39 @@ class Doc(AbstractObject):
             value (object): value of the custom named attribute.
         """
 
-        # make sure there is no space in name as well prevent empty name
+        # make sure that the name is not empty and does not contains any spaces
         assert (
-            isinstance(name, str) and len(name) > 0 and (not (" " in name))
+            isinstance(name, str) and len(name) > 0 and (" " not in name)
         ), "Argument name should be a non-empty str type containing no spaces"
 
         setattr(self._, name, value)
+
+    def has_attribute(self, name: str) -> bool:
+        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False` 
+
+        Args:
+            name (str): name of the custom attribute.
+        
+        Returns:
+            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`  
+        """
+
+        # `True` if `self._` has attribute `name`, `False` otherwise
+        attr_exists = hasattr(self._, name)
+
+        return attr_exists
+
+    def remove_attribute(self, name: str):
+        """Removes the attribute `name` from the Underscore object `self._`
+
+        Args:
+            name (str): name of the custom attribute.
+        """
+
+        # Before removing the attribute, check if it exists
+        assert self.has_attribute(name), "Document does not have the attribute {}".format(name)
+
+        delattr(self._, name)
 
     def __getitem__(self, key: int):
         """Returns a Token object at position `key`.
@@ -71,7 +98,7 @@ class Doc(AbstractObject):
         token_meta = self.container[key]
 
         # Create a Token object
-        token = Token(doc=self, token_meta=token_meta)
+        token = Token(doc=self, token_meta=token_meta, i=key)
 
         return token
 

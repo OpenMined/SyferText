@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .utils import hash_string
 
 import syft as sy
@@ -7,7 +8,7 @@ hook = sy.TorchHook(torch)
 
 
 class Token:
-    def __init__(self, doc, token_meta: "TokenMeta"):
+    def __init__(self, doc, token_meta: "TokenMeta", i: int):
 
         self.doc = doc
 
@@ -21,6 +22,7 @@ class Token:
         self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
         self.is_space = token_meta.is_space
         self.space_after = token_meta.space_after
+        self.i = i
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -29,6 +31,11 @@ class Token:
 
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
+
+    def __len__(self):
+        """Returns the length of the token's text."""
+
+        return len(self.text)
 
     def __str__(self):
 
@@ -39,9 +46,63 @@ class Token:
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
+
+        Args:
+            name (str): name of the custom attribute.
+            value (object): value of the custom named attribute.
         """
 
+        # make sure that the name is not empty and does not contains any spaces
+        assert (
+            isinstance(name, str) and len(name) > 0 and (" " not in name)
+        ), "Argument name should be a non-empty str type containing no spaces"
+
         setattr(self._, name, value)
+
+    def has_attribute(self, name: str) -> bool:
+        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False`
+
+        Args:
+            name (str): name of the custom attribute.
+        
+        Returns:
+            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`  
+        """
+
+        # `True` if `self._` has attribute `name`, `False` otherwise
+        attr_exists = hasattr(self._, name)
+
+        return attr_exists
+
+    def remove_attribute(self, name: str):
+        """Removes the attribute `name` from the Underscore object `self._`
+
+        Args:
+            name (str): name of the custom attribute.
+        """
+
+        # Before removing the attribute, check if it exist
+        assert self.has_attribute(name), "token does not have the attribute {}".format(name)
+
+        delattr(self._, name)
+
+    def nbor(self, i=1) -> Token:
+        """Gets the neighbouring token at `self.i + i` if it exists
+        Args:
+            i (int): the relative position of the neighbour with respect to current token.
+        
+        Returns:
+            neighbor (Token): the neighbor of the current token with a relative position i.
+        """
+
+        # The neighbor's index should be within the document's range of indices
+        assert 0 <= self.i + i < len(self.doc), "Token at position {} does not exist".format(
+            self.i + i
+        )
+
+        neighbor = self.doc[self.i + i]
+
+        return neighbor
 
     @property
     def text(self):
