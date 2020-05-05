@@ -30,8 +30,8 @@ class Tagger():
         scores = self.model(tokvecs)
         predictions = []
         for doc_scores in scores:
-            doc predictions = doc_scores.argmax(axis=1)
-            predictions.append(doc predictions)
+            prediction = doc_scores.argmax(axis=1)
+            predictions.append(prediction)
         return  predictions
 
     def set_attribute(self, obj:object, name: str, value: object):
