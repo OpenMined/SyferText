@@ -118,4 +118,3 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
     prog_bar.close()
     return tmp_model_path
-
