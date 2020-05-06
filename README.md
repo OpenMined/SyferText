@@ -7,13 +7,21 @@
 
 ## Installation
 
-In order to install and start using SyferText, you first have to install our experimental language model that we adapted form spaCy's `en_core_web_lg` model. This should take a few minutes since the model size is >800M.
+In order to install and start using SyferText, you first have to install `git-lfs` by following [this short guide](https://github.com/git-lfs/git-lfs/wiki/Installation). 
+
+Then go ahead and install our experimental language model that we adapted form spaCy's `en_core_web_lg` model. This should take a few minutes since the model size is >800M.
 
 ```
 $ pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
 ```
 
-Then you can go ahead and install SyferText:
+If you had already installed `syfertext_en_core_web_lg` prior to installing `git-lfs` please do the following:
+
+1. Uninstall `syfertext_en_core_web_lg`
+2. Install `git-lfs`.
+3. Reinstall `syfertext_en_core_web_lg`.
+
+Now you can go ahead and install SyferText:
 
 ```
 $ git clone https://github.com/OpenMined/SyferText.git
