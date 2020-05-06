@@ -36,6 +36,11 @@ class Doc(AbstractObject):
         # file
         self.container = list()
 
+        # This dict is populated in the `self.map_token_to_index` method.
+        # It contains tokens's hashes mapped to a unique index and
+        # is helpful in creating one-hot vectors for tokens
+        self.token_to_index = dict()
+
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
         # using the `self.set_attribute` method
@@ -294,9 +299,10 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_encrypted_tokens_set(self):
-        """Encrypt doc's tokens using owner's key.
+        """Encrypts containing tokens text using owner's key.
+
         Returns:
-            Set of tokens encrypted using the secret key of doc's owner `self.owner`.
+            Set of tokens encrypted using the secret key of doc's owner (`self.owner`).
         """
 
         key = self.owner.secret_key
@@ -359,3 +365,32 @@ class Doc(AbstractObject):
         )
 
         return token_vectors
+
+    def set_indices(self, token_to_index: Dict):
+        """Decrypts encrypted tokens using `self.owner`'s key and maps token to
+        unique index.
+
+        Args:
+            token_to_index (dict): Contains encrypted tokens mapped to
+                unique indices.
+        """
+
+        key = self.owner.secret_key
+
+        # Making sure owner has generated secret keys
+        assert key is not None, (
+            f"The owner `{self.owner.id}` on which this Doc resides does not has"
+            "secret key to decrypt tokens. Please follow the Diffie-Hellman protocol"
+            "to generate a secret key for the owner."
+        )
+
+        for enc_token, index in token_to_index.items():
+
+            # Decrypt token and convert it from bytes to utf-8 encoding
+            dec_token_text = decrypt(enc_token, key).decode("utf-8")
+
+            # hash of the token text
+            hash_key = self.vocab.store[dec_token_text]
+
+            # map hash to index
+            self.token_to_index[hash_key] = index
