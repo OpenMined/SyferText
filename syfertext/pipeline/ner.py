@@ -1,4 +1,5 @@
 from ..tagger import Tagger
+from .. import utils
 from typing import Union
 
 from syft.workers.base import BaseWorker

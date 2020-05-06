@@ -1,4 +1,7 @@
 from . import utils
+from .model import Model
+
+import torch
 
 class Tagger():
     """Class for Sequence tagging.
