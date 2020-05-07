@@ -3,8 +3,10 @@
 from abc import abstractmethod
 from syft.workers.base import BaseWorker
 
+import binascii
+import hashlib
+import os
 import random
-import sys
 from typing import Union, List
 
 
@@ -42,35 +44,53 @@ class ExtendedBaseWorker(BaseWorker):
         self.secret = None
         self.secret_key = None
 
-    def generate_private_key(self, shared_prime):
+    def generate_private_key(self, bytes_len):
         """Generates a private key.
+
+        Args:
+            bytes_len (int): Bytes length of the private key
         """
 
-        # TODO: Replace with a pseudo random number generator ??
-        self.private_key = random.randint(1, shared_prime)
+        # TODO: Check private key is smaller than shared_prime
+        _rand = 0
+        while _rand.bit_length() < bytes_len:
+            # Generate string of random bytes of size bytes_len
+            hex_key = binascii.hexlify(os.urandom(bytes_len))
+            _rand = int(hex_key, 16)
+
+        self.private_key = _rand
 
     def generate_public_key(self, shared_prime, shared_base):
         """ Generates and returns a public key.
+
+        Args:
+            shared_prime (int): The prime number in DHKE
+            shared_base (int): The generator in DHKE
         """
+        assert self.private_key is not None, (
+            f"{self.id} has no private key." "Please generate private key first."
+        )
 
-        if self.private_key is None:
-            self.generate_private_key(shared_prime)
-
-        public_key = (shared_base ** self.private_key) % shared_prime
+        # public_key = ( shared_base ^ private_key ) % shared_prime
+        public_key = pow(shared_base, self.private_key, shared_prime)
         return public_key
 
     def generate_secret_key(self, shared_prime, received_public_key):
         """ Generates a secret key for the worker using the received_public_key.
         """
 
-        if self.private_key is None:
-            self.generate_private_key(shared_prime)
+        assert self.private_key is not None, (
+            f"{self.id} has no private key." "Please generate private key first."
+        )
 
-        self.secret = (received_public_key ** self.private_key) % shared_prime
+        # secret = ( public_key ^ private_key ) % shared_prime
+        self.secret = pow(received_public_key, self.private_key, shared_prime)
 
-        # Convert the secret key to bytes of lengths 16, 24 or 32
-        # Useful for AES encryption
-        self.secret_key = self.secret.to_bytes(32, sys.byteorder)
+        # Convert the secret to secret key of type bytes and lengths 32
+        secret_bytes = bytes(str(self.secret), "utf-8")
+        key = hashlib.sha256()
+        key.update(secret_bytes)
+        self.secret_key = key.digest()
 
     @staticmethod
     def execute_dh_key_exchange(shared_prime, shared_base, workers: List["ExtendedBaseWorker"]):
@@ -89,6 +109,12 @@ class ExtendedBaseWorker(BaseWorker):
         """
 
         num_workers = len(workers)
+
+        # Generate private key for each worker
+        for worker in workers:
+            # Generate length of private key in bytes
+            key_len = random.randint(1, 128) % 64
+            worker.generate_private_key(key_len)
 
         # If there are n workers, at max n-1 exchanges are needed before
         # generating the secret key for a worker.
