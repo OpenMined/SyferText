@@ -8,7 +8,7 @@ hook = sy.TorchHook(torch)
 
 
 class Token:
-    def __init__(self, doc, token_meta: "TokenMeta", i: int):
+    def __init__(self, doc, token_meta: "TokenMeta"):
 
         self.doc = doc
 
@@ -22,7 +22,7 @@ class Token:
         self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
         self.is_space = token_meta.is_space
         self.space_after = token_meta.space_after
-        self.i = i
+        self.position = token_meta.position
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -52,7 +52,7 @@ class Token:
             value (object): value of the custom named attribute.
         """
 
-        # make sure that the name is not empty and does not contains any spaces
+        # make sure that the name is not empty and does not contain any spaces
         assert (
             isinstance(name, str) and len(name) > 0 and (" " not in name)
         ), "Argument name should be a non-empty str type containing no spaces"
@@ -86,21 +86,21 @@ class Token:
 
         delattr(self._, name)
 
-    def nbor(self, i=1) -> Token:
-        """Gets the neighbouring token at `self.i + i` if it exists
+    def nbor(self, offset=1) -> Token:
+        """Gets the neighbouring token at `self.position + offset` if it exists
         Args:
-            i (int): the relative position of the neighbour with respect to current token.
+            offset (int): the relative position of the neighbour with respect to current token.
         
         Returns:
-            neighbor (Token): the neighbor of the current token with a relative position i.
+            neighbor (Token): the neighbor of the current token with a relative position `offset`.
         """
 
         # The neighbor's index should be within the document's range of indices
-        assert 0 <= self.i + i < len(self.doc), "Token at position {} does not exist".format(
-            self.i + i
-        )
+        assert (
+            0 <= self.position + offset < len(self.doc)
+        ), "Token at position {} does not exist".format(self.position + offset)
 
-        neighbor = self.doc[self.i + i]
+        neighbor = self.doc[self.position + offset]
 
         return neighbor
 

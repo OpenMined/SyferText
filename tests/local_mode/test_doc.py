@@ -234,4 +234,4 @@ def test_nbor():
     # Test indices ranging from `-2` to `1`
     nbor_ids = range(-2, 2)
 
-    assert all([doc[idx].text == token.nbor(i).text for idx, i in enumerate(nbor_ids)])
+    assert all([doc[idx].text == token.nbor(offset).text for idx, offset in enumerate(nbor_ids)])

@@ -49,7 +49,7 @@ class Doc(AbstractObject):
             value (object): value of the custom named attribute.
         """
 
-        # make sure that the name is not empty and does not contains any spaces
+        # make sure that the name is not empty and does not contain any spaces
         assert (
             isinstance(name, str) and len(name) > 0 and (" " not in name)
         ), "Argument name should be a non-empty str type containing no spaces"
@@ -97,8 +97,11 @@ class Doc(AbstractObject):
         # Get the corresponding TokenMeta object
         token_meta = self.container[key]
 
+        # Add token position information
+        token_meta.position = key
+
         # Create a Token object
-        token = Token(doc=self, token_meta=token_meta, i=key)
+        token = Token(doc=self, token_meta=token_meta)
 
         return token
 
