@@ -62,6 +62,7 @@ class DocPointer(ObjectPointer):
             requires_grad=requires_grad,
             excluded_tokens=excluded_tokens,
         )
+
         command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
 
         # Send the command
