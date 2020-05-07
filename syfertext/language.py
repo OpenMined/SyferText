@@ -420,7 +420,7 @@ class Language(AbstractObject):
         # Doc object on the remote worker.
         doc_or_id = self.pipeline[template_index][location_id](input)
 
-        # If the doc is of type str or int, this means that a
+        # If the doc is of type (str or int), this means that a
         # DocPointer should be created
         if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
 
