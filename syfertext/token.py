@@ -52,6 +52,11 @@ class Token(AbstractObject):
         setattr(self._, name, value)
 
     @property
+    def text(self):
+        """Get the token text in str type"""
+        return self.orth_
+
+    @property
     def orth_(self):
         """Get the token text in str type"""
         return str(self.doc.vocab.store[self.orth])
