@@ -156,7 +156,8 @@ class Language(AbstractObject):
         first: bool = False,
         last: bool = True,
     ):
-        """Adds a pipe template to a subpipeline templates.
+
+        """Adds a pipe template to the pipeline template. 
 
         A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
         Few main steps are carried out here:
@@ -419,7 +420,7 @@ class Language(AbstractObject):
         # Doc object on the remote worker.
         doc_or_id = self.pipeline[template_index][location_id](input)
 
-        # If the doc is of type str or int, this means that a
+        # If the doc is of type (str or int), this means that a
         # DocPointer should be created
         if isinstance(doc_or_id, int) or isinstance(doc_or_id, str):
 
