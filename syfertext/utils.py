@@ -62,10 +62,6 @@ def normalize_slice(length: int, start: int, stop: int, step: int = None):
     # stop should be less than or equal to length. Also max(start,stop) ensures that start <= stop
     stop = min(length, max(start, stop))
 
-    # if this occurs, that means we have an empty range.
-    if start == stop:
-        return 0, 0
-
     return start, stop
 
 
