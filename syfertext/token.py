@@ -14,7 +14,12 @@ hook = sy.TorchHook(torch)
 
 class Token(AbstractObject):
     def __init__(
-        self, doc: "Doc", token_meta: "TokenMeta", id: int = None, owner: BaseWorker = None,
+        self,
+        doc: "Doc",
+        token_meta: "TokenMeta",
+        position: int,
+        id: int = None,
+        owner: BaseWorker = None,
     ):
         super(Token, self).__init__(id=id, owner=owner)
 
@@ -30,7 +35,7 @@ class Token(AbstractObject):
         self.stop_pos = token_meta.end_pos + 1 if token_meta.end_pos is not None else None
         self.is_space = token_meta.is_space
         self.space_after = token_meta.space_after
-        self.position = token_meta.position
+        self.position = position
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set

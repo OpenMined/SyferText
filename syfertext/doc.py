@@ -67,7 +67,6 @@ class Doc(AbstractObject):
 
         setattr(self._, name, value)
 
-
     def has_attribute(self, name: str) -> bool:
         """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False` 
 
@@ -95,7 +94,6 @@ class Doc(AbstractObject):
 
         delattr(self._, name)
 
-
     def __getitem__(self, key: Union[int, slice]) -> Union[Token, Span, int]:
         """Returns a Token object at position `key` or Span object using slice.
 
@@ -116,12 +114,8 @@ class Doc(AbstractObject):
             # Get the corresponding TokenMeta object
             token_meta = self.container[idx]
 
-            # Add token position information
-            token_meta.position = key
-
             # Create a Token object with owner same as the doc object
-            token = Token(doc=self, token_meta=token_meta, owner=self.owner)        
-
+            token = Token(doc=self, token_meta=token_meta, position=key, owner=self.owner)
 
             return token
 
