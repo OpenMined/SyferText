@@ -1,10 +1,10 @@
 from .doc import Doc
+import re
 
-# from .span import Span
-
-
+# TODO: Change name to Matcher! Cause it ain't simple any more.
 class SimpleMatcher:
     """Match sequences of tokens, based on pattern rules.
+    NOTE: ASSUMPTION IS THAT ALL TOKEN ATTRIBUTES ARE STORED IN `token._` (notice the underscore)
     """
 
     def __init__(self, vocab):
@@ -62,7 +62,6 @@ class SimpleMatcher:
                  Each dictionary is a single token
 
         TODO: Support quantifier operator.
-        TODO: Support on match callback.
 
         Args:
             key (unicode): The match ID.
@@ -107,19 +106,6 @@ class SimpleMatcher:
         except KeyError:
             pass
 
-    # def has_key(self, key):
-    #     """Checks whether the matcher has a rule with the given key.
-    #
-    #     Args:
-    #         key (string or int): The key to check
-    #
-    #     Returns:
-    #         True if the matcher has rule, else False.
-    #     """
-    #
-    #     key = self._normalize_key(key)
-    #     return key in self._patterns
-
     def __call__(self, doc_or_span):
         """Find all token sequences matching the supplied pattern.
 
@@ -141,6 +127,10 @@ class SimpleMatcher:
         #     doc = doc_or_span.as_doc()
         #     length = len(doc)
 
+        # TODO: Support Other predicates
+        # TODO: Do we need to support Quantifiers ?
+        # TODO: Support empty match tokens, will be useful for "Username {name}"
+
         doc = doc_or_span
         matches = []
 
@@ -158,11 +148,11 @@ class SimpleMatcher:
         for key, patterns in self._patterns.items():
 
             # Iterate over all patterns with this key
-            for p in patterns:
+            for pattern in patterns:
 
                 # Iterate over all tokens in doc
                 i = 0
-                while i < length:  # Allows us to skip tokens after we find a match
+                while i < length:  # While loop allows us to skip tokens after we find a match
 
                     token = doc_or_span[i]
 
@@ -170,13 +160,13 @@ class SimpleMatcher:
                     temp = i
 
                     # Try matching this token with the beginning of current pattern
-                    while hasattr(token._, p[ptr][0]) and getattr(token._, p[ptr][0]) == p[ptr][1]:
+                    while _check_match(pattern[ptr], token):
 
                         ptr += 1
                         temp += 1
 
                         # All the sub parts of this pattern matched
-                        if ptr == len(p):
+                        if ptr == len(pattern):
 
                             # Add this match to the output
                             matches.append((key, i, temp))
@@ -196,7 +186,6 @@ class SimpleMatcher:
                     i += 1
 
         # Execute callback on the matches
-
         for i, (key, start, end) in enumerate(matches):
 
             # Get the callback function
@@ -230,11 +219,11 @@ class SimpleMatcher:
 
         Example:
             patterns = [[{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "world"}],
-                            [{"LOWER": "hello"}, {"LOWER": "world"}]
+                            [{"LOWER": "hello"}, {"lower': {"REGEX": "^[Ii](ndia)"}}]
                     ]
 
             processed_patterns = [[("lower", "hello"), ("is_punct", True), ("lower", "world")],
-                                        [("lower", "hello"), ("lower", "world")]
+                                    [("lower", "hello"), ("lower", _RegexPredicate(attr="lower", value="^[Ii](ndia)")]
                                 ]
         """
 
@@ -247,12 +236,96 @@ class SimpleMatcher:
 
             for part in pattern:
 
+                # Assert it's a dict containing a match pattern
+                # for exactly one token
                 assert isinstance(part, dict)
-                item = [(key.lower(), value) for key, value in part.items()]
+                assert len(part) == 1
 
-                assert len(item) == 1
-                cur_pattern.append(item[0])
+                for key, value in part.items():
+
+                    attr = key.lower()
+
+                    if isinstance(value, dict):
+                        # It is a predicate
+                        predicate = _get_predicates(attr, value)
+                        cur_pattern.append((attr, predicate))
+                    else:
+                        cur_pattern.append((attr, value))
 
             processed_patterns.append(cur_pattern)
 
         return processed_patterns
+
+
+# End of Matcher class
+
+
+def _check_match(target, token):
+    """
+    Args:
+        target (tuple): Consists of attribute and it's value to match
+        token (Token): Token whose attribute's value should match with target
+
+    Returns:
+        True if target pattern matches with token.
+    """
+    attr, value = target
+    if not hasattr(token._, attr):
+        return False
+
+    if isinstance(value, str) or isinstance(value, int):
+        # Perform normal comparison
+        return getattr(token._, attr) == value
+    else:
+        # It is a predicate
+        assert callable(value)  # Assert it has `__call__()`
+        return value(token)
+
+
+def _get_predicates(attr, value):
+    """
+    Args:
+        attr (unicode): Attribute of token to which Predicate will compare it's value
+        value (dict): Contains keys as predicate_type (Eg. "REGEX") and value as corresponding
+            value to compare
+    Returns:
+        Reference to new initialized predicate class, depending upon predicate type.
+    """
+    predicate_types = {"REGEX": _RegexPredicate}
+
+    # Current design supports only one predicate
+    assert len(value) == 1
+
+    for pred_type, pred_value in value.items():
+        # Initialize an appropriate class based on the predicate type
+        predicate_class = predicate_types[pred_type]
+        return predicate_class(attr, pred_value)
+
+
+class _RegexPredicate:
+    """Matches the token based on regex.
+    Can be applied on `TEXT`, `LOWER` and `TAG` attributes
+    of token."""
+
+    # TODO: Extend RegexPredicate for TAG
+
+    def __init__(self, attr, value):
+        """
+        Args:
+            attr (unicode): Attribute of token which will be matched.
+            value (unicode): Regex pattern to find in self.attr attribute of token
+        """
+        self.value = re.compile(value)
+        self.attr = attr
+
+    def __call__(self, token):
+        """
+        Args:
+            token: Token which needs to be matched
+
+        Returns:
+            True if the `self.value` regex pattern finds matches
+            with the `self.attr` attribute of token.
+        """
+        attr_value = getattr(token._, self.attr)
+        return bool(self.value.search(attr_value))
