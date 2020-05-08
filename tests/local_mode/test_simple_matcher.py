@@ -13,6 +13,8 @@ me = hook.local_worker
 
 
 def test_addition_and_deletion_of_patterns():
+    """Test addition and deletion of patterns in Matcher. Each pattern
+    is referenced by a key assigned during adding it to the matcher."""
 
     # Get a SyferText Language object
     nlp = syfertext.load("en_core_web_lg", owner=me)
@@ -22,9 +24,10 @@ def test_addition_and_deletion_of_patterns():
 
     pattern = [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "world"}]
 
-    # Note: Pattern needs to be a list of lists
-    matcher.add("helloworld", [pattern])
+    # Here "helloworld" is the key which references to this pattern
+    matcher.add("helloworld", [pattern])  # Note: Pattern needs to be a list of lists
 
+    # Check availability of pattern using key
     assert "helloworld" in matcher
 
     patterns = [
@@ -47,6 +50,7 @@ def test_addition_and_deletion_of_patterns():
 
 
 def test_matching_patterns():
+    """Test matcher to search for a basic pattern in the document."""
 
     # Get a SyferText Language object
     nlp = syfertext.load("en_core_web_lg", owner=me)
@@ -91,6 +95,10 @@ def test_matching_patterns():
 
 
 def test_matching_regex():
+    """When searching for many possible ways of representing a word/token we can pass
+    in regex patterns to Matcher. This allows us to avoid adding multiple patterns to
+    cover all ways of representing that token.
+    """
 
     # Get a SyferText Language object
     nlp = syfertext.load("en_core_web_lg", owner=me)
@@ -131,6 +139,10 @@ def test_matching_regex():
 
 
 def test_callback_on_match():
+    """We can pass callback functions to match, which are called by the matcher upon a
+    successful match against the patterns. This test demonstrates how it can be used to
+    determine the overall sentiment of a document.
+    """
 
     # Get a SyferText Language object
     nlp = syfertext.load("en_core_web_lg", owner=me)
@@ -185,3 +197,51 @@ def test_callback_on_match():
 
         # assert callback function sets the right sentiment value
         assert doc._.sentiment < 0
+
+
+def test_matching_against_list_of_possible_values():
+    """Matcher allows token's attributes to be compared against list of possible
+    values. For example, we can search for a token with it's lemma being
+    any one among 'love' or 'like' or 'respect'. This can be achieved by
+    adding {"LEMMA": {"IN": ["love", "like", "respect"]}} to the patterns.
+    """
+
+    # Get a SyferText Language object
+    nlp = syfertext.load("en_core_web_lg", owner=me)
+
+    # For tagging pronouns
+    pronoun_tagger = SimpleTagger("pro_noun", ["I", "He", "She"], tag=True)
+    nlp.add_pipe(pronoun_tagger, name="pron_tagger")
+
+    doc = nlp("I love to code. I like to dance")
+
+    # TODO: Can this be done using SimpleTagger ?
+    for token in doc:
+        token.set_attribute("lower", token.text.lower())
+
+    hobbies = list()
+
+    def extract_hobbies(matcher, doc, i, matches):
+        """Callback function to be passed to matcher."""
+
+        key, start, end = matches[i]
+        if nlp.vocab.store[key] == "hobbies":
+            hobbies.append(doc[end].text)
+
+    # Passing list of possible values for LOWER (Later, we can move to LEMMA, making it more powerful)
+    pattern = [{"PRO_NOUN": True}, {"LOWER": {"IN": ["love", "like"]}}, {"LOWER": "to"}]
+
+    matcher = SimpleMatcher(nlp.vocab)
+
+    # Add patterns to the matcher, along with callback function
+    matcher.add("hobbies", [pattern], on_match=extract_hobbies)
+
+    # Find the matches in the doc
+    matcher(doc)
+
+    true_hobbies = ["code", "dance"]
+
+    # Assert extracted hobbies and true hobbies have the same content
+    assert len(hobbies) == len(true_hobbies)
+    for hobby in true_hobbies:
+        assert hobby in hobbies
