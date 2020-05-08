@@ -46,7 +46,7 @@ def test_addition_and_deletion_of_patterns():
     assert "hellonlp" not in matcher
 
 
-def test_preprocess_patterns():
+def test_matching_patterns():
 
     # Get a SyferText Language object
     nlp = syfertext.load("en_core_web_lg", owner=me)
@@ -60,7 +60,7 @@ def test_preprocess_patterns():
     # Set lower attributes to all the tokens
     # TODO: Can this be done using SimpleTagger ?
     for token in doc:
-        token.set_attribute("lower", token.text.lower)
+        token.set_attribute("lower", token.text.lower())
 
     # Initialize the matcher class
     matcher = SimpleMatcher(nlp.vocab)
@@ -81,6 +81,46 @@ def test_preprocess_patterns():
         # Matching the first pattern in patterns
         ("hellonlp", 4, 6),  # 4: "Hello", 5: "nlp"
         # Matching the second pattern in patterns
+    ]
+
+    for (match_id, start, end), true_match in zip(matches, true_matches):
+
+        string_id = nlp.vocab.store[match_id]  # Get string representation
+
+        assert (string_id, start, end) == true_match
+
+
+def test_matching_regex():
+
+    # Get a SyferText Language object
+    nlp = syfertext.load("en_core_web_lg", owner=me)
+
+    doc = nlp("How to refer to United States of America? USA or U.S.A. or US or U.S.")
+
+    # Set lower attributes to all the tokens
+    # TODO: Can this be done using SimpleTagger ?
+    for token in doc:
+        token.set_attribute("lower", token.text.lower())
+
+    # Initialize the matcher class
+    matcher = SimpleMatcher(nlp.vocab)
+
+    pattern = [
+        {"LOWER": {"REGEX": "^[Uu](nited|\.?) ?[Ss](tates|\.?)( ?(of )?[Aa](merica|\.?))?$"}}
+    ]
+
+    # Add patterns to the matcher
+    matcher.add("america", [pattern])
+
+    # Find the matches in the doc
+    matches = matcher(doc)
+
+    true_matches = [
+        # ("america", 4, 6),      # 4: "United", 5: "States", 6: "of", 7: "America"
+        ("america", 9, 10),  # 9: "USA"
+        ("america", 11, 12),  # 11: U.S.A.
+        ("america", 13, 14),  # 14: US
+        ("america", 15, 16),  # 15: U.S.
     ]
 
     for (match_id, start, end), true_match in zip(matches, true_matches):

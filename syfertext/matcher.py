@@ -315,8 +315,8 @@ class _RegexPredicate:
             attr (unicode): Attribute of token which will be matched.
             value (unicode): Regex pattern to find in self.attr attribute of token
         """
-        self.value = re.compile(value)
         self.attr = attr
+        self.value = re.compile(value)
 
     def __call__(self, token):
         """
@@ -329,3 +329,6 @@ class _RegexPredicate:
         """
         attr_value = getattr(token._, self.attr)
         return bool(self.value.search(attr_value))
+
+    def __repr__(self):
+        return f"_RegexPredicate ({self.attr}, {self.value})"
