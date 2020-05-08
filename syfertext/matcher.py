@@ -1,7 +1,7 @@
 from .doc import Doc
 import re
 
-# TODO: Change name to Matcher! Cause it ain't simple any more.
+
 class SimpleMatcher:
     """Match sequences of tokens, based on pattern rules.
     NOTE: ASSUMPTION IS THAT ALL TOKEN ATTRIBUTES ARE STORED IN `token._` (notice the underscore)
@@ -61,7 +61,7 @@ class SimpleMatcher:
             Note:
                  Each dictionary is a single token
 
-        TODO: Support quantifier operator.
+        TODO: Avoid the necessity of pattern being a Lists of Lists.
 
         Args:
             key (unicode): The match ID.
@@ -269,11 +269,12 @@ def _check_match(target, token):
     Returns:
         True if target pattern matches with token.
     """
+
     attr, value = target
     if not hasattr(token._, attr):
         return False
 
-    if isinstance(value, str) or isinstance(value, int):
+    if isinstance(value, str) or isinstance(value, bool):
         # Perform normal comparison
         return getattr(token._, attr) == value
     else:
@@ -291,7 +292,12 @@ def _get_predicates(attr, value):
     Returns:
         Reference to new initialized predicate class, depending upon predicate type.
     """
-    predicate_types = {"REGEX": _RegexPredicate}
+
+    predicate_types = {
+        "REGEX": _RegexPredicate,
+        "IN": _SetMemberPredicate,
+        "NOT_IN": _SetMemberPredicate,
+    }
 
     # Current design supports only one predicate
     assert len(value) == 1
@@ -299,7 +305,7 @@ def _get_predicates(attr, value):
     for pred_type, pred_value in value.items():
         # Initialize an appropriate class based on the predicate type
         predicate_class = predicate_types[pred_type]
-        return predicate_class(attr, pred_value)
+        return predicate_class(attr, pred_type, pred_value)
 
 
 class _RegexPredicate:
@@ -309,12 +315,17 @@ class _RegexPredicate:
 
     # TODO: Extend RegexPredicate for TAG
 
-    def __init__(self, attr, value):
+    def __init__(self, attr, predicate, value):
         """
         Args:
             attr (unicode): Attribute of token which will be matched.
+            predicate (unicode): The type of predicate
             value (unicode): Regex pattern to find in self.attr attribute of token
         """
+
+        self.predicate = predicate
+        assert self.predicate is "REGEX"
+
         self.attr = attr
         self.value = re.compile(value)
 
@@ -327,8 +338,53 @@ class _RegexPredicate:
             True if the `self.value` regex pattern finds matches
             with the `self.attr` attribute of token.
         """
+
         attr_value = getattr(token._, self.attr)
         return bool(self.value.search(attr_value))
 
     def __repr__(self):
         return f"_RegexPredicate ({self.attr}, {self.value})"
+
+
+class _SetMemberPredicate:
+    """Matches token attribute value against a set of values.
+    """
+
+    # Todo: Optimize memory storage by storing hashes of strings
+
+    def __init__(self, attr, predicate, values):
+        """
+        Args:
+            attr (unicode): Attribute of token which will be matched.
+            predicate (unicode): Type of predicate
+            values (list): Dictionary containing key in ["IN", "NOT_IN"] and list of values to check against
+                When key is "IN" then if value of token's attr attribute is in the list, then
+                it is a successful match else not a unsuccessful match
+                When key is "NOT_IN" then if value of token's attr attribute is not in the list,
+                then it is a successful match else unsuccessful match
+        """
+
+        self.attr = attr
+        self.predicate = predicate
+        assert self.predicate in [
+            "IN",
+            "NOT_IN",
+        ], "Please pass only `IN` or `NOT_IN` against a list of values for the attribute"
+
+        self.values = set(values)  # Storing set of values
+
+    def __call__(self, token):
+        """
+        Args:
+            token: Token which needs to be matched
+
+        Returns:
+            True if a successful match else False
+        """
+
+        attr_value = getattr(token._, self.attr)
+        if self.predicate == "IN":
+            return attr_value in self.values
+
+        elif self.predicate == "NOT_IN":
+            return attr_value not in self.values
