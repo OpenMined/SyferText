@@ -2,7 +2,7 @@ import pytest
 import syft
 import torch
 import syfertext
-from syfertext.matcher import SimpleMatcher
+from syfertext.matcher import Matcher
 from syfertext.pipeline.simple_tagger import SimpleTagger
 
 # Create a torch hook for PySyft
@@ -20,7 +20,7 @@ def test_addition_and_deletion_of_patterns():
     nlp = syfertext.load("en_core_web_lg", owner=me)
     shared_vocab = nlp.vocab
 
-    matcher = SimpleMatcher(vocab=shared_vocab)
+    matcher = Matcher(vocab=shared_vocab)
 
     pattern = [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "world"}]
 
@@ -67,7 +67,7 @@ def test_matching_patterns():
         token.set_attribute("lower", token.text.lower())
 
     # Initialize the matcher class
-    matcher = SimpleMatcher(nlp.vocab)
+    matcher = Matcher(nlp.vocab)
 
     patterns = [
         [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "nlp"}],
@@ -111,7 +111,7 @@ def test_matching_regex():
         token.set_attribute("lower", token.text.lower())
 
     # Initialize the matcher class
-    matcher = SimpleMatcher(nlp.vocab)
+    matcher = Matcher(nlp.vocab)
 
     pattern = [
         {"LOWER": {"REGEX": "^[Uu](nited|\.?) ?[Ss](tates|\.?)( ?(of )?[Aa](merica|\.?))?$"}}
@@ -178,7 +178,7 @@ def test_callback_on_match():
         elif nlp.vocab.store[key] == "negative":
             doc.set_attribute("sentiment", -1.0)
 
-    matcher = SimpleMatcher(nlp.vocab)
+    matcher = Matcher(nlp.vocab)
 
     # Add patterns to the matcher, along with callback function
     matcher.add("positive", [pos_patterns], on_match=tag_doc_sentiment)
@@ -231,7 +231,7 @@ def test_matching_against_list_of_possible_values():
     # Passing list of possible values for LOWER (Later, we can move to LEMMA, making it more powerful)
     pattern = [{"PRO_NOUN": True}, {"LOWER": {"IN": ["love", "like"]}}, {"LOWER": "to"}]
 
-    matcher = SimpleMatcher(nlp.vocab)
+    matcher = Matcher(nlp.vocab)
 
     # Add patterns to the matcher, along with callback function
     matcher.add("hobbies", [pattern], on_match=extract_hobbies)

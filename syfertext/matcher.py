@@ -2,7 +2,7 @@ from .doc import Doc
 import re
 
 
-class SimpleMatcher:
+class Matcher:
     """Match sequences of tokens, based on pattern rules.
     NOTE: ASSUMPTION IS THAT ALL TOKEN ATTRIBUTES ARE STORED IN `token._` (notice the underscore)
     """
