@@ -1,7 +1,8 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
-import pickle
+import syft as sy
 
+from .span_pointer import SpanPointer
 from typing import List
 from typing import Union
 from typing import Dict
@@ -9,6 +10,8 @@ from typing import Set
 
 
 class DocPointer(ObjectPointer):
+    """An Object Pointer that points to the Doc Object at remote location"""
+
     def __init__(
         self,
         location: BaseWorker = None,
@@ -19,6 +22,20 @@ class DocPointer(ObjectPointer):
         tags: List[str] = None,
         description: str = None,
     ):
+        """Create a Doc Pointer from `location` where the `Doc` object resides and
+        `id_at_location`, the id of the `Doc` object at that location. 
+
+        Args:
+            location (BaseWorker): the worker where the `Doc` object resides that this
+                DocPointer will point to.
+            
+            id_at_location (int or str): the id of the `Doc` object at the `location` worker.
+            
+            owner (BaseWorker): the owner of the this object ie. `DocPointer`
+
+        Returns:
+            A `DocPointer` object
+        """
 
         super(DocPointer, self).__init__(
             location=location,
@@ -62,6 +79,7 @@ class DocPointer(ObjectPointer):
             requires_grad=requires_grad,
             excluded_tokens=excluded_tokens,
         )
+
         command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
 
         # Send the command
@@ -71,6 +89,24 @@ class DocPointer(ObjectPointer):
         doc_vector = doc_vector.get()
 
         return doc_vector
+
+    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
+
+        # if item is int, so we are trying to access to token
+        assert isinstance(
+            item, slice
+        ), "You are not authorised to access a `Token` from a `DocPointer`"
+
+        # Create the command
+        command = ("__getitem__", self.id_at_location, [item], {})
+
+        # Send the command
+        obj_id = self.owner.send_command(self.location, command)
+
+        # we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+        return span
 
     def get_encrypted_token_vectors(
         self,
@@ -116,6 +152,25 @@ class DocPointer(ObjectPointer):
         token_vectors = token_vectors.get()
 
         return token_vectors
+
+    def __getitem__(self, item):
+
+        assert isinstance(item, slice), (
+            "DocPointer object can't return a Token. Please call"
+            "__getitem__ on a slice to get a pointer to a Span residing"
+            "on remote machine."
+        )
+
+        # Create the command
+        command = ("__getitem__", self.id_at_location, [item], {})
+
+        # Send the command
+        span_id = self.owner.send_command(self.location, command)
+
+        # Create a SpanPointer from the span_id
+        span = SpanPointer(location=self.location, id_at_location=span_id, owner=sy.local_worker)
+
+        return span
 
     def __len__(self):
 

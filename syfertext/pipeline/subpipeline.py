@@ -17,6 +17,7 @@ from typing import List
 from typing import Dict
 
 
+
 class SubPipeline(AbstractObject):
     """This class defines a subpipeline. A subpipeline
     is an PySyft object that encapsulate one or more
@@ -136,8 +137,16 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # set the owner of the doc object as the current worker
+        # set the owner of the Doc object to this SupPipeline's owner
         doc.owner = self.owner
+
+        # Assign the doc object the worker it will serve if
+        # it is at a remote location. When working locally `doc.client_id`
+        # will be the id of `doc.owner`. But when the doc is at remote site,
+        # `doc.client_id` would be different from the id of `doc.owner`.
+        # `doc.client_id` would be the id of the worker where the pointer of
+        # this doc resides.
+        doc.client_id = self.client_id
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
