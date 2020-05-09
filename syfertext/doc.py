@@ -220,7 +220,7 @@ class Doc(AbstractObject):
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
-        Args
+        Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
@@ -298,11 +298,17 @@ class Doc(AbstractObject):
 
         return doc_vector
 
-    def get_encrypted_tokens_set(self):
-        """Encrypts containing tokens text using owner's key.
+    def get_encrypted_tokens_set(self, excluded_tokens: Dict[str, Set[object]] = None):
+        """Get set of encrypted tokens  encrypted using `self.owner`'s secret key,
+        excluding token according to the excluded_tokens dictionary.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Set of tokens encrypted using the secret key of doc's owner (`self.owner`).
+            enc_tokens(set) : Set of encrypted tokens
         """
 
         key = self.owner.secret_key
@@ -314,13 +320,37 @@ class Doc(AbstractObject):
             "to generate a secret key for the owner."
         )
 
-        # stores unique encrypted tokens
+        # Stores unique encrypted tokens
         enc_tokens = set()
 
-        # Iterate over the tokens
-        for token in self:
-            # encrypt the token text using owner's secret key
-            enc_tokens.add(encrypt(token.text, key))
+        if excluded_tokens is not None:
+
+            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
+
+            for token in self:
+
+                # Encrypt the token and add it to the set if the token is not excluded
+                include_token = True
+
+                include_token = all(
+                    [
+                        getattr(token._, key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if hasattr(token._, key)
+                    ]
+                )
+
+                if include_token:
+                    enc_tokens.add(encrypt(token.text, key))
+
+        # If the excluded_token dict in None all token are included
+        else:
+            for token in self:
+                # encrypt the token text using owner's secret key
+                enc_tokens.add(encrypt(token.text, key))
 
         return enc_tokens
 

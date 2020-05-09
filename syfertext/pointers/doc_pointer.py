@@ -72,14 +72,14 @@ class DocPointer(ObjectPointer):
 
         return doc_vector
 
-    def get_encrypted_tokens_set(self):
+    def get_encrypted_tokens_set(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Encrypt doc's tokens using owner's key.
         Returns:
             Set of tokens encrypted using owner's secret key `self.owner.secret`.
         """
 
         # Create the command
-        command = ("get_encrypted_tokens_set", self.id_at_location, [], {})
+        command = ("get_encrypted_tokens_set", self.id_at_location, [excluded_tokens], {})
 
         # Send the command
         enc_tokens = self.owner.send_command(self.location, command)
