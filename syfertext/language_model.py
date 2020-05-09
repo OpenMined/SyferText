@@ -129,20 +129,20 @@ class LanguageModel(AbstractObject):
     def add_pipe_template(self,
                           source: str = 'syfertext',
                           name: str,
-                          owner_id: str,
-                          access: Union[None, Set[int, str]]
+                          owner: str,
+                          access: Union[None, Set[str]]
     ):
         """Adds a pipe template to the pipeline template of 
         the language model.
         """
 
-        assert name not in self.pipe_names, f"A pipe with name '{name}' already exist in the pipeline"
+        assert name not in self.pipe_names, f"A pipe with name '{name}' already exists in the pipeline"
 
         
         # Create the pipe template
         pipe_template = dict(source = source,
                              name = name,
-                             owner_id = owner_id,
+                             owner = owner,
                              access = access
         )
         
@@ -171,4 +171,35 @@ class LanguageModel(AbstractObject):
                 vocab = {'owner' : alice, access': {alice, james}}
                 my_tagger = {'owner' alice},
     ) # notice that the component/pipe name is used as kwarg.
+
+    - Factories should be removed and replace by the class name 'SimpleTagger' that
+      is known to SyferText. The factory method is replaced by 'load_resources()' and
+      'dump_resources() -> LanguageResource'
+
+    - We need a method in PySyft similar to .get() but does not remove object
+      from destination, just copy it .copy() to  copy language resources from
+      their pointers inside the 'load_resources()' methods. Or in LanguageResourcePointer
+      object I implement a method 'pull_resource()' that calls the 'send()' method of
+      LanguageResource, which in turn, compresses the simple object and returns it.
+
+    - start by adding dump/load_resources() to Tokenizer and Vocab
+
+    - add set_tokenizer() and set_vocab() to Language
+
+    - when adding any pipe or set_vocab/tokenizer, we call directly dump_resources()
+      this stores the corresponding LanguageResources objects in the store.
+
+    - Then I create the pipeline template as (name = 'stop_tagger', class_name = 'SimpleTagger', owner = Union[None, str])
+
+    - in SubPipeline, I remove the factory and use something like
+      syfertext.factories['<class_name>'](name = <resource/pipe_name>, model_name = "<language_model_name>")
+
+    - The LanguageResource object contains as properties: resource (simple object style), tag = <language_model>:<resource_name>
+
+    - Predictive models should be plans. encapsulated in object Classifier for instance that calls the plan's build() method. and
+      implements dump_resources() and load_resources(). The dump_resources() methods create a LanguageResource object with
+      'resource = built plan'
+
+
+
     """
