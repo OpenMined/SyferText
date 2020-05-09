@@ -379,20 +379,14 @@ for pron in ["he", "she", "it"]:
             {ORTH: "'s", NORM: "'s"},
         ]
 
-        _exc[orth + "s"] = [
-            {ORTH: orth, LEMMA: PRON_LEMMA, NORM: pron, TAG: "PRP"},
-            {ORTH: "s"},
-        ]
+        _exc[orth + "s"] = [{ORTH: orth, LEMMA: PRON_LEMMA, NORM: pron, TAG: "PRP"}, {ORTH: "s"}]
 
 
 # W-words, relative pronouns, prepositions etc.
 
 for word in ["who", "what", "when", "where", "why", "how", "there", "that"]:
     for orth in [word, word.title()]:
-        _exc[orth + "'s"] = [
-            {ORTH: orth, LEMMA: word, NORM: word},
-            {ORTH: "'s", NORM: "'s"},
-        ]
+        _exc[orth + "'s"] = [{ORTH: orth, LEMMA: word, NORM: word}, {ORTH: "'s", NORM: "'s"}]
 
         _exc[orth + "s"] = [{ORTH: orth, LEMMA: word, NORM: word}, {ORTH: "s"}]
 
@@ -438,10 +432,7 @@ for word in ["who", "what", "when", "where", "why", "how", "there", "that"]:
             {ORTH: "ve", LEMMA: "have", NORM: "have", TAG: "VB"},
         ]
 
-        _exc[orth + "'d"] = [
-            {ORTH: orth, LEMMA: word, NORM: word},
-            {ORTH: "'d", NORM: "'d"},
-        ]
+        _exc[orth + "'d"] = [{ORTH: orth, LEMMA: word, NORM: word}, {ORTH: "'d", NORM: "'d"}]
 
         _exc[orth + "d"] = [{ORTH: orth, LEMMA: word, NORM: word}, {ORTH: "d"}]
 
@@ -479,15 +470,9 @@ for verb_data in [
     verb_data_tc = dict(verb_data)
     verb_data_tc[ORTH] = verb_data_tc[ORTH].title()
     for data in [verb_data, verb_data_tc]:
-        _exc[data[ORTH] + "n't"] = [
-            dict(data),
-            {ORTH: "n't", LEMMA: "not", NORM: "not", TAG: "RB"},
-        ]
+        _exc[data[ORTH] + "n't"] = [dict(data), {ORTH: "n't", LEMMA: "not", NORM: "not", TAG: "RB"}]
 
-        _exc[data[ORTH] + "nt"] = [
-            dict(data),
-            {ORTH: "nt", LEMMA: "not", NORM: "not", TAG: "RB"},
-        ]
+        _exc[data[ORTH] + "nt"] = [dict(data), {ORTH: "nt", LEMMA: "not", NORM: "not", TAG: "RB"}]
 
         _exc[data[ORTH] + "n't've"] = [
             dict(data),
@@ -530,15 +515,9 @@ for verb_data in [
     verb_data_tc = dict(verb_data)
     verb_data_tc[ORTH] = verb_data_tc[ORTH].title()
     for data in [verb_data, verb_data_tc]:
-        _exc[data[ORTH] + "n't"] = [
-            dict(data),
-            {ORTH: "n't", LEMMA: "not", NORM: "not", TAG: "RB"},
-        ]
+        _exc[data[ORTH] + "n't"] = [dict(data), {ORTH: "n't", LEMMA: "not", NORM: "not", TAG: "RB"}]
 
-        _exc[data[ORTH] + "nt"] = [
-            dict(data),
-            {ORTH: "nt", LEMMA: "not", NORM: "not", TAG: "RB"},
-        ]
+        _exc[data[ORTH] + "nt"] = [dict(data), {ORTH: "nt", LEMMA: "not", NORM: "not", TAG: "RB"}]
 
 
 # Other contractions with trailing apostrophe
@@ -578,15 +557,9 @@ for exc_data in [
 
 for h in range(1, 12 + 1):
     for period in ["a.m.", "am"]:
-        _exc["%d%s" % (h, period)] = [
-            {ORTH: "%d" % h},
-            {ORTH: period, LEMMA: "a.m.", NORM: "a.m."},
-        ]
+        _exc["%d%s" % (h, period)] = [{ORTH: "%d" % h}, {ORTH: period, LEMMA: "a.m.", NORM: "a.m."}]
     for period in ["p.m.", "pm"]:
-        _exc["%d%s" % (h, period)] = [
-            {ORTH: "%d" % h},
-            {ORTH: period, LEMMA: "p.m.", NORM: "p.m."},
-        ]
+        _exc["%d%s" % (h, period)] = [{ORTH: "%d" % h}, {ORTH: period, LEMMA: "p.m.", NORM: "p.m."}]
 
 
 # Rest
@@ -620,13 +593,13 @@ _other_exc = {
         {ORTH: "Not", LEMMA: "not", NORM: "not", TAG: "RB"},
         {ORTH: "ve", LEMMA: "have", NORM: "have", TAG: "VB"},
     ],
-    "cannot": [{ORTH: "can", LEMMA: "can", TAG: "MD"}, {ORTH: "not", LEMMA: "not", TAG: "RB"},],
+    "cannot": [{ORTH: "can", LEMMA: "can", TAG: "MD"}, {ORTH: "not", LEMMA: "not", TAG: "RB"}],
     "Cannot": [
         {ORTH: "Can", LEMMA: "can", NORM: "can", TAG: "MD"},
         {ORTH: "not", LEMMA: "not", TAG: "RB"},
     ],
-    "gonna": [{ORTH: "gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"},],
-    "Gonna": [{ORTH: "Gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"},],
+    "gonna": [{ORTH: "gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"}],
+    "Gonna": [{ORTH: "Gon", LEMMA: "go", NORM: "going"}, {ORTH: "na", LEMMA: "to", NORM: "to"}],
     "gotta": [{ORTH: "got"}, {ORTH: "ta", LEMMA: "to", NORM: "to"}],
     "Gotta": [{ORTH: "Got", NORM: "got"}, {ORTH: "ta", LEMMA: "to", NORM: "to"}],
     "let's": [{ORTH: "let"}, {ORTH: "'s", LEMMA: PRON_LEMMA, NORM: "us"}],

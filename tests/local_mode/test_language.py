@@ -78,7 +78,7 @@ def test_correctness_of_tokens_created():
         assert str(token_created) == actual_tokens[i]
 
     # check correct infix are tokenized only
-    str1 = "Hell#o"  # this string does not contains infix.
+    str1 = "Hell#o"  # this string does not contain infix.
     str2 = "Hell-o"  # This string contains logical infix.
 
     assert len(nlp(str1)) == 1  # ['Hell#o']

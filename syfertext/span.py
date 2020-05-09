@@ -94,7 +94,7 @@ class Span(AbstractObject):
                 token_meta = self.doc.container[self.start + key]
 
             # Create a Token object with owner same as the span object
-            token = Token(doc=self.doc, token_meta=token_meta, owner=self.owner)
+            token = Token(doc=self.doc, token_meta=token_meta, position=key, owner=self.owner)
 
             return token
 
