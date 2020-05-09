@@ -4,7 +4,7 @@ import nbformat
 import papermill as pm
 
 
-all_notebooks = [n for n in glob.glob("tutorials/**/*.ipynb", recursive=True)]
+all_notebooks = [n for n in glob.glob("tutorials/*.ipynb", recursive=True)]
 
 
 @pytest.mark.parametrize("notebook", sorted(all_notebooks))

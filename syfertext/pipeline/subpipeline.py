@@ -11,7 +11,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 
 class SubPipeline(AbstractObject):
@@ -133,6 +133,17 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
+        # set the owner of the Doc object to this SupPipeline's owner
+        doc.owner = self.owner
+
+        # Assign the doc object the worker it will serve if
+        # it is at a remote location. When working locally `doc.client_id`
+        # will be the id of `doc.owner`. But when the doc is at remote site,
+        # `doc.client_id` would be different from the id of `doc.owner`.
+        # `doc.client_id` would be the id of the worker where the pointer of
+        # this doc resides.
+        doc.client_id = self.client_id
+
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
@@ -152,19 +163,7 @@ class SubPipeline(AbstractObject):
             return doc.id
 
         # Otherwise, the `doc_or_id` variable is a Doc
-        # object, if it has no owner yet, assign it the
-        # same owner as the this object.
-        # It is not yet clear if a Doc object actually
-        # needs an owner. Are we going to ever need to
-        # send a Doc object to another worker? If yes
-        # then an owner is needed. Let's give it an
-        # owner for now.
-        # A Doc owner will usually be None when returned
-        # from the tokenizer, which is not itself aware
-        # of which worker it is in.
-        if doc.owner is None:
-            doc.owner = self.owner
-
+        # object
         return doc
 
     @staticmethod

@@ -7,15 +7,22 @@ import syft as sy
 import torch
 import numpy as np
 from typing import Union
+from syft.generic.string import String
+
+from syft.generic.object import AbstractObject
+from syft.workers.base import BaseWorker
 
 
 hook = sy.TorchHook(torch)
 
 
-class Token:
-    def __init__(self, vocab, doc, token_meta: "TokenMeta"):
+class Token(AbstractObject):
+    def __init__(
+        self, doc: "Doc", token_meta: "TokenMeta", id: int = None, owner: BaseWorker = None,
+    ):
+        super(Token, self).__init__(id=id, owner=owner)
 
-        self.vocab = vocab
+        self.vocab = doc.vocab
         self.doc = doc
 
         # corresponding hash value of this token
@@ -33,13 +40,13 @@ class Token:
         self._ = token_meta._
 
         # Whether this token has a vector or not
-        self.has_vector = self.doc.vocab.vectors.has_vector(self.text)
+        self.has_vector = self.doc.vocab.vectors.has_vector(self.orth_)
 
     def __str__(self):
 
         # The call to `str()` in the following is to account for the case
         # when text is of type String or StringPointer (which are Syft string types)
-        return self.text
+        return self.orth_
 
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
@@ -60,9 +67,21 @@ class Token:
         return self.lex.length
 
     @property
+    def text_with_ws(self) -> str:
+        """Get the text with trailing whitespace if it exists"""
+
+        if self.space_after:
+            return self.orth_ + " "
+        else:
+            return self.orth_
+
+    def __repr__(self):
+        return "Token[{}]".format(self.orth_)
+
+    @property
     def vector(self):
         """Get the token vector"""
-        return self.doc.vocab.vectors[self.text]
+        return self.doc.vocab.vectors[self.orth_]
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """Get the mean of the vectors of each Token in this documents.
@@ -82,7 +101,7 @@ class Token:
         ), "You need at least two workers in order to encrypt the vector with SMPC"
 
         # Get the vector
-        vector = self.doc.vocab.vectors[self.text]
+        vector = self.doc.vocab.vectors[self.orth_]
 
         # Create a Syft/Torch tensor
         vector = torch.Tensor(vector)
