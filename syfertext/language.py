@@ -3,6 +3,7 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .state import State
 
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -11,6 +12,7 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 from typing import List, Union, Tuple
 
+import numpy
 
 class BaseDefaults(object):
     """A class that defines all the defaults of the Language class
@@ -86,6 +88,7 @@ class Language(AbstractObject):
 
         super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
+        
     @property
     def pipe_names(self) -> List[str]:
         """Returns a list of component names in the pipeline in order of execution.
@@ -96,6 +99,63 @@ class Language(AbstractObject):
 
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
+
+    def set_tokenizer(self, tokenizer: Tokenizer):
+        """Set the tokenizer object. This modifies the `tokenizer` property.
+
+        Args:
+            tokenizer: the Tokenizer object.
+        """
+
+        # Set the `tokenizer` property
+        # Remove this line
+        #self.tokenizer = tokenizer
+
+        # Get the tokenizer state 
+        tokenizer_state = tokenizer.dump_state()
+
+        # Save the tokenizer state
+        self._save_state(tokenizer_state)
+        
+
+
+    def set_vocab(self, vocab: Vocab):
+        """Load a new vocab to the Language object. This methods modifies the
+        `vocab` propery.
+
+        Args:
+            keys: A list of all hashes of all tokens known to the vocabulary.
+                Not required if `key2row` is set.
+            key2row: A dictionary that maps each token hash to an index that
+                points to the embedding vector of that token in `vectors`.
+            vectors: A 2D numpy array that contains the word embeddings of tokens.
+        """
+
+        # Set the language model name to which this vocab object belongs.
+        # And set its owner.
+        vocab.model_name = self.model_name
+        vocab.owner = self.owner
+        
+        # Get the state of the vocab object
+        vocab_state = vocab.dump_state()
+
+        # Save the state in the object store
+        self._register_state(vocab_state)
+
+
+        
+    def _register_state(state: State):
+        """Saves a State object in the object store of the local worker.
+        Make sure that the local workers `is_client_worker` is set to False.
+
+        Args:
+            state: The State object to save to the object store of the local
+                worker.
+        """
+
+        self.owner.register_obj(state)
+
+            
     def _parse_pipeline_template(self):
         """Parses the `pipeline_template` property to
         create the `subpipeline_templates` property.

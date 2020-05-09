@@ -201,5 +201,7 @@ class LanguageModel(AbstractObject):
       'resource = built plan'
 
 
+    - I think the method load_state should be called explicitely in the SubPipeline after each object is sent to the
+      corresponding worker.
 
     """
