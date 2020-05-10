@@ -1,4 +1,3 @@
-from __future__ import annotations
 from .utils import hash_string
 
 import syft as sy
@@ -99,7 +98,7 @@ class Token(AbstractObject):
 
         delattr(self._, name)
 
-    def nbor(self, offset=1) -> Token:
+    def nbor(self, offset=1):
         """Gets the neighbouring token at `self.position + offset` if it exists
         Args:
             offset (int): the relative position of the neighbour with respect to current token.
