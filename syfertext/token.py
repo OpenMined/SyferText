@@ -1,4 +1,3 @@
-from __future__ import annotations
 from .utils import hash_string
 
 import syft as sy
@@ -50,12 +49,6 @@ class Token(AbstractObject):
 
         return len(self.text)
 
-    def __str__(self):
-
-        # The call to `str()` in the following is to account for the case
-        # when text is of type String or StringPointer (which are Syft string types)
-        return self.orth_
-
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
@@ -77,9 +70,9 @@ class Token(AbstractObject):
 
         Args:
             name (str): name of the custom attribute.
-        
+
         Returns:
-            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`  
+            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`
         """
 
         # `True` if `self._` has attribute `name`, `False` otherwise
@@ -95,15 +88,28 @@ class Token(AbstractObject):
         """
 
         # Before removing the attribute, check if it exist
-        assert self.has_attribute(name), "token does not have the attribute {}".format(name)
+        assert self.has_attribute(name), f"token does not have the attribute {name}"
 
         delattr(self._, name)
 
-    def nbor(self, offset=1) -> Token:
+    def get_attribute(self, name: str):
+        """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
+
+        Args:
+            name (str): name of the custom attribute.
+
+        Returns:
+            value (obj): value of the custom attribute with name `name`.
+        """
+
+        return getattr(self._, name)
+
+    def nbor(self, offset=1):
         """Gets the neighbouring token at `self.position + offset` if it exists
+
         Args:
             offset (int): the relative position of the neighbour with respect to current token.
-        
+
         Returns:
             neighbor (Token): the neighbor of the current token with a relative position `offset`.
         """
@@ -111,11 +117,16 @@ class Token(AbstractObject):
         # The neighbor's index should be within the document's range of indices
         assert (
             0 <= self.position + offset < len(self.doc)
-        ), "Token at position {} does not exist".format(self.position + offset)
+        ), f"Token at position {self.position + offset} does not exist"
 
         neighbor = self.doc[self.position + offset]
 
         return neighbor
+
+    def __str__(self):
+        # The call to `str()` in the following is to account for the case
+        # when text is of type String or StringPointer (which are Syft string types)
+        return self.orth_
 
     @property
     def text(self):
@@ -141,7 +152,7 @@ class Token(AbstractObject):
             return self.orth_
 
     def __repr__(self):
-        return "Token[{}]".format(self.orth_)
+        return f"Token[{self.orth_}]"
 
     @property
     def vector(self):

@@ -68,13 +68,13 @@ class Doc(AbstractObject):
         setattr(self._, name, value)
 
     def has_attribute(self, name: str) -> bool:
-        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False` 
+        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False`
 
         Args:
             name (str): name of the custom attribute.
-        
+
         Returns:
-            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`  
+            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`
         """
 
         # `True` if `self._` has attribute `name`, `False` otherwise
@@ -90,16 +90,28 @@ class Doc(AbstractObject):
         """
 
         # Before removing the attribute, check if it exists
-        assert self.has_attribute(name), "Document does not have the attribute {}".format(name)
+        assert self.has_attribute(name), f"Document does not have the attribute {name}"
 
         delattr(self._, name)
+
+    def get_attribute(self, name: str):
+        """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
+
+        Args:
+            name (str): name of the custom attribute.
+
+        Returns:
+            value (obj): value of the custom attribute with name `name`.
+        """
+
+        return getattr(self._, name)
 
     def __getitem__(self, key: Union[int, slice]) -> Union[Token, Span, int]:
         """Returns a Token object at position `key` or Span object using slice.
 
 
         Args:
-            key (int or slice): The index of the token within the Doc, 
+            key (int or slice): The index of the token within the Doc,
                 or the slice of the Doc to return as a Span object.
         Returns:
             Token or Span or id of the Span object.
@@ -258,7 +270,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
@@ -343,16 +355,16 @@ class Doc(AbstractObject):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
                 (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, 
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document,
                 ingonoring the excluded token.
         """
 
