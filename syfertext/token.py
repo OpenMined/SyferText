@@ -44,11 +44,6 @@ class Token(AbstractObject):
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.orth_)
 
-    def __len__(self):
-        """Returns the length of the token's text."""
-
-        return len(self.text)
-
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
