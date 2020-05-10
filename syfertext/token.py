@@ -1,4 +1,3 @@
-from __future__ import annotations
 from .utils import hash_string
 
 import syft as sy
