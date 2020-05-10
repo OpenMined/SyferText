@@ -46,11 +46,6 @@ class Vocab:
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
-        # Initialize vectors for the provided model_name
-        # If data is not yet loaded, then load it
-        if not self.vectors.loaded:
-            self.vectors._load_data()
-
     def load_strings(self):
         """load the pickled list of words that the Vocab object knows and has vectors for"""
 
@@ -143,6 +138,11 @@ class Vocab:
             return self._create_lex(self.store[orth])
 
     def _create_lex(self, string: str) -> LexemeMeta:
+
+        # Initialize vectors for the provided model_name
+        # If data is not yet loaded, then load it
+        if not self.vectors.loaded:
+            self.vectors._load_data()
 
         # create the new LexemeMeta object
         lex = LexemeMeta()
