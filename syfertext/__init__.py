@@ -17,6 +17,8 @@ import os
 # Get a torch hook
 hook = syft.TorchHook(torch)
 
+# Set the local worker
+local_worker = hook.local_worker
 
 def load(
     model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
@@ -73,4 +75,4 @@ SubPipeline.proto_id = register_to_serde(SubPipeline)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 
 # Set the default owners of some classes
-SubPipeline.owner = hook.local_worker
+SubPipeline.owner = local_worker

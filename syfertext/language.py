@@ -83,6 +83,9 @@ class Language(AbstractObject):
         # It only contains the tokenizer at initialization
         self.pipeline_template = [{"remote": True, "name": "tokenizer"}]
 
+        # Initialize an empty list of State object
+        self.states = []
+        
         # Intialize the main pipeline
         self._reset_pipeline()
 
@@ -112,10 +115,11 @@ class Language(AbstractObject):
         #self.tokenizer = tokenizer
 
         # Get the tokenizer state 
-        tokenizer_state = tokenizer.dump_state()
+        state = tokenizer.dump_state()
 
+        
         # Save the tokenizer state
-        self._save_state(tokenizer_state)
+        self._save_state(state)
         
 
 
@@ -132,19 +136,18 @@ class Language(AbstractObject):
         """
 
         # Set the language model name to which this vocab object belongs.
-        # And set its owner.
-        vocab.model_name = self.model_name
-        vocab.owner = self.owner
+         vocab.model_name = self.model_name
+
         
         # Get the state of the vocab object
-        vocab_state = vocab.dump_state()
+        state = vocab.dump_state()
 
         # Save the state in the object store
-        self._register_state(vocab_state)
+        self._save_state(state)
 
 
         
-    def _register_state(state: State):
+    def _save_state(state: State):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
 
@@ -152,7 +155,10 @@ class Language(AbstractObject):
             state: The State object to save to the object store of the local
                 worker.
         """
+        # Add to the list of State objects known to this Language object
+        self.states.append(state)
 
+        # Register it in the object store
         self.owner.register_obj(state)
 
             

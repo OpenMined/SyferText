@@ -1,14 +1,15 @@
+from . import local_worker
+from . import State
+
 import mmh3
 import os
 import re
-from pathlib import Path
+
 
 from typing import Pattern
 from typing import Match
 from typing import Tuple
-
-import tempfile
-import shutil
+from typing import Union
 
 
 def hash_string(string: str) -> int:
@@ -111,6 +112,59 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     """
 
     expression = "|".join([piece for piece in entries if piece.strip()])
+    
     return re.compile(expression)
-    prog_bar.close()
-    return tmp_model_path
+
+
+
+def search_state(query: str) -> Union[State, None]:
+    """Searches for a State object on the grid of workers.
+    It first checks out whether the object could be found on the local worker.
+    If not, search is triggered across all workers known to the
+    local worker.
+
+    Args:
+        query: The ID of the State object to be searched for.
+
+    Returns:
+        A State object whose ID is specified by `query`. If no state is 
+            found, None is returned.
+    """
+    
+    # Start first by searching for the state on the local worker.
+    result = local_worker.search(query = query)
+
+    # If a state is found, then return it.
+    if result:
+
+        # Make sure only on state is found
+        assert len(results) > 1, f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{local_worker}`."
+
+        return result[0]
+
+    
+    # If no state is found on the local worker, search on all
+    # workers connected to the local_worker
+    for location in local_worker._known_workers:
+
+        # Search for the state on this worker. The result is a list
+        result = local_worker.request_search(query = state_id, location = location)
+
+        # If a state is found, process the result.
+        if result:
+            
+            # Make sure only on state is found
+            assert len(results) > 1, f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{location}`."
+
+            # Get the StatePointer object returned
+            state_ptr = result[0]
+
+            # Get the state using its pointer
+            state = state_ptr.get()
+
+            return state
+
+
+
+
+    

@@ -6,6 +6,7 @@ from .vectors import Vectors
 from .string_store import StringStore
 
 from . import State
+from . import local_worker
 
 import syft.serde.msgpack.serde as serde
 
@@ -47,11 +48,25 @@ class Vocab:
                 `vectors` array. 
         """
 
-        # Create the query. This is the tag according to which the
+        # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        tag = f"#{self.model_name}:vocab"
+        state_id = f"{self.model_name}:vocab"
 
-        # Create the Vectors object
+        # Search for the state
+        state = utils.search_state(query = state_id)
+
+
+        # If no state is found, just return
+        if not state:
+            return
+        
+        # Detail the simple object contained in the state
+        key2index_simple, vectors_simple  = state.simple_obj
+
+        key2index = serde._detail(local_worker, key2index_simple)
+        vectors = serde._detail(local_worker, vectors_simple)
+
+        # Load the state
         self.vectors.set_vectors(vectors = vectors)
         self.vectors.set_key2index(key2index = key2index)
 
@@ -67,16 +82,16 @@ class Vocab:
         """
 
         # Simply the state variables
-        key2index_simple = serde._simplify(self.owner, self.vectors.key2index)
-        vectors_simple = serde._simplify(self.owner, self.vectors.vectors)
+        key2index_simple = serde._simplify(local_worker, self.vectors.key2index)
+        vectors_simple = serde._simplify(local_worker, self.vectors.vectors)
 
-        # Create the query. This is the tag according to which the
+        # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        tag = f"#{self.model_name}:vocab"
+        state_id = f"{self.model_name}:vocab"
         
         # Create the State object
         state = State(simple_obj = (key2index_simple, vectors_simple),
-                      tags = set().add(tag))
+                      id = state_id)
 
 
 
