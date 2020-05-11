@@ -173,3 +173,75 @@ def test_get_encrypted_tokens_set():
 
     # Verify length of intersection of sets is same as number of common tokens
     assert len(david_enc_tokens.intersection(carol_enc_tokens)) == common_tokens
+
+
+def test_set_indices_and_get_indices():
+    """Test Doc returns a list of indices representing its tokens."""
+
+    workers = [david, carol]
+    secure_worker = VirtualWorker(hook, id="secure_worker")
+
+    # Execute the DH key exchange protocol securely on Secure Worker
+    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
+
+    # Add stop word tagger to the pipeline
+    stop_word_tagger = SimpleTagger(attribute="is_stop", lookups=["and", "your"], tag=True)
+    nlp.add_pipe(stop_word_tagger, name="stop tagger", remote=True)
+
+    # Simulate private dataset
+    david_private_data = String("private and secure nlp").send(david)
+    david_doc = nlp(david_private_data)
+
+    carol_private_data = String("keeps your data private and secure").send(carol)
+    carol_doc = nlp(carol_private_data)
+
+    david_enc_tokens = david_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
+    carol_enc_tokens = carol_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
+
+    # Take a union of both sets
+    all_tokens = david_enc_tokens.union(carol_enc_tokens)
+
+    token_to_index = dict()
+
+    # Assign each unique token to an index
+    for i, enc_token in enumerate(all_tokens):
+        token_to_index[enc_token] = i
+
+    def map_to_indices(enc_tokens, token_to_index):
+        """
+        Args:
+            enc_tokens (set): Set of encrypted tokens
+            token_to_index (dict): Maps each unique token to an index
+
+        Returns:
+            mapped_enc_tokens (dict): Each token in enc_tokens
+                mapped to an index
+        """
+        mapped_enc_tokens = dict()
+
+        for token in enc_tokens:
+            index = token_to_index[token]
+            mapped_enc_tokens[token] = index
+
+        return mapped_enc_tokens
+
+    david_mapped_tokens = map_to_indices(david_enc_tokens, token_to_index)
+    carol_mapped_tokens = map_to_indices(carol_enc_tokens, token_to_index)
+
+    david_doc.set_indices(david_mapped_tokens)
+    carol_doc.set_indices(carol_mapped_tokens)
+
+    # Get tuple of indices
+    david_tokens = david_doc.get_indices()
+    carol_tokens = carol_doc.get_indices()
+
+    assert david_tokens.shape[0] == 3  # [private, secure, nlp]
+    assert carol_tokens.shape[0] == 4  # [keeps, data, private, secure]
+
+    count = 0
+    for i1 in david_tokens:
+        for i2 in carol_tokens:
+            if i1 == i2:
+                count += 1
+
+    assert count == 2  # [private, secure]
