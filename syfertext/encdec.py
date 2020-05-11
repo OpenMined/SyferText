@@ -11,6 +11,9 @@ shared_prime = 0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC7
 shared_base = 2
 
 # TODO: Verify the security of ECB (Deterministic) mode.
+# TODO: Discuss with experts about : https://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29
+
+# TODO: AES fails on accented text, Eg. "clichés".
 
 
 def encrypt(raw, key):

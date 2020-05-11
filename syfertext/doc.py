@@ -344,13 +344,13 @@ class Doc(AbstractObject):
                 )
 
                 if include_token:
-                    enc_tokens.add(encrypt(token.text, key))
+                    enc_tokens.add(encrypt(token.text, key).decode("utf-8"))
 
         # If the excluded_token dict in None all token are included
         else:
             for token in self:
                 # encrypt the token text using owner's secret key
-                enc_tokens.add(encrypt(token.text, key))
+                enc_tokens.add(encrypt(token.text, key).decode("utf-8"))
 
         return enc_tokens
 
@@ -396,6 +396,7 @@ class Doc(AbstractObject):
 
         return token_vectors
 
+    # TODO: WRITE A LOCAL VERSION ?????
     def set_indices(self, token_to_index: Dict):
         """Decrypts encrypted tokens using `self.owner`'s key and maps token to
         unique index.
@@ -424,3 +425,24 @@ class Doc(AbstractObject):
 
             # map hash to index
             self.token_to_index[hash_key] = index
+
+    def get_indices(self):
+        """Returns a tensor composed of indices corresponding to tokens in self.
+
+        Returns:
+            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+                The order of indices is relative order of the token stored in doc.
+                Tokens which are not assigned an index are skipped.
+        """
+
+        indices = list()
+
+        for token in self:
+            try:
+                # TODO: Add hash property to token
+                indices.append(self.token_to_index[token.orth])
+            except KeyError:
+                pass
+
+        indices_tensor = torch.tensor(indices, dtype=torch.long)
+        return indices_tensor

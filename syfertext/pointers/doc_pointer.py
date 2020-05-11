@@ -155,3 +155,22 @@ class DocPointer(ObjectPointer):
 
         # Send the command
         self.owner.send_command(self.location, command)
+
+    def get_indices(self):
+        """Returns a tensor composed of indices corresponding to tokens in remote Doc.
+
+        Returns:
+            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+                The order of indices is relative order of the token stored in doc.
+                Tokens which are not assigned an index are skipped.
+        """
+
+        # Create the command
+        command = ("get_indices", self.id_at_location, [], {})
+
+        # Send the command
+        indices_tensor = self.owner.send_command(self.location, command)
+
+        # Call .get() on Pointer Tensor
+        indices_tensor = indices_tensor.get()
+        return indices_tensor
