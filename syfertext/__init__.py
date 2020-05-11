@@ -3,7 +3,9 @@ from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
+from .state import State
 from . import utils
+
 
 import syft
 import syft.serde.msgpack.serde as serde
@@ -73,6 +75,7 @@ def register_to_serde(class_type: type):
 Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
+State.proto_id = register_to_serde(State)
 
 # Set the default owners of some classes
 SubPipeline.owner = local_worker

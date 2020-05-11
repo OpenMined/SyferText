@@ -15,6 +15,7 @@ import pickle
 from typing import Union
 from typing import List
 from typing import Dict
+from typing import Tuple
 
 
 
@@ -216,7 +217,7 @@ class SubPipeline(AbstractObject):
         return subpipeline_pointer
 
     @staticmethod
-    def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> tuple:
+    def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> Tuple[object]:
         """Simplifies a SubPipeline object. 
 
         This requires simplifying each underlying pipe
