@@ -9,9 +9,11 @@ me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
-bob = VirtualWorker(hook, id="bob")
+# NOTE: Keep this worker different from all other workers used
+# in other tests in tests/distributed_mode/*.py
+david = VirtualWorker(hook, id="david")
 
-text_ptr = String("Private and Secure NLP").send(bob)
+text_ptr = String("Private and Secure NLP").send(david)
 
 remote_doc = nlp(text_ptr)
 
