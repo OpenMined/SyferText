@@ -11,7 +11,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 
 class SubPipeline(AbstractObject):
@@ -133,12 +133,16 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # Assign Doc object the same owner as the this object.
-        # A Doc owner will be `sy.local_worker`(id = "me") when
-        # returned from the tokenizer, cause when initialized in
-        # the tokenizer we don't pass owner parameter to the
-        # doc's constructor, and it defaults to sy.local_worker
+        # set the owner of the Doc object to this SupPipeline's owner
         doc.owner = self.owner
+
+        # Assign the doc object the worker it will serve if
+        # it is at a remote location. When working locally `doc.client_id`
+        # will be the id of `doc.owner`. But when the doc is at remote site,
+        # `doc.client_id` would be different from the id of `doc.owner`.
+        # `doc.client_id` would be the id of the worker where the pointer of
+        # this doc resides.
+        doc.client_id = self.client_id
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
