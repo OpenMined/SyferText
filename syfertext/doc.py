@@ -298,30 +298,15 @@ class Doc(AbstractObject):
 
         return doc_vector
 
-    def get_encrypted_tokens_set(self, excluded_tokens: Dict[str, Set[object]] = None):
-        """Get set of encrypted tokens  encrypted using `self.owner`'s secret key,
-        excluding token according to the excluded_tokens dictionary.
+    def add_tokens_to_vocab(self, excluded_tokens: Dict[str, Set[object]] = None):
+        """Adds it's tokens to it's owner's vocabulary, excluding tokens according
+        to the excluded_tokens dictionary.
 
         Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
-
-        Returns:
-            enc_tokens(set) : Set of encrypted tokens
         """
-
-        key = self.owner.secret_key
-
-        # Making sure owner has generated secret keys
-        assert key is not None, (
-            f"The owner `{self.owner.id}` on which this Doc resides does not has"
-            "secret key to encrypt tokens. Please follow the Diffie-Hellman protocol"
-            "to generate a secret key for the owner."
-        )
-
-        # Stores unique encrypted tokens
-        enc_tokens = set()
 
         if excluded_tokens is not None:
 
@@ -332,7 +317,6 @@ class Doc(AbstractObject):
 
             for token in self:
 
-                # Encrypt the token and add it to the set if the token is not excluded
                 include_token = True
 
                 include_token = all(
@@ -344,15 +328,13 @@ class Doc(AbstractObject):
                 )
 
                 if include_token:
-                    enc_tokens.add(encrypt(token.text, key).decode("utf-8"))
+                    # Add hash value of token to owner's vocab
+                    self.owner.vocab.add(token.hash)
 
-        # If the excluded_token dict in None all token are included
+        # If the excluded_token dict in None all tokens are included
         else:
             for token in self:
-                # encrypt the token text using owner's secret key
-                enc_tokens.add(encrypt(token.text, key).decode("utf-8"))
-
-        return enc_tokens
+                self.owner.vocab.add(token.hash)
 
     def get_encrypted_token_vectors(
         self,
@@ -396,53 +378,42 @@ class Doc(AbstractObject):
 
         return token_vectors
 
-    # TODO: WRITE A LOCAL VERSION ?????
-    def set_indices(self, token_to_index: Dict):
-        """Decrypts encrypted tokens using `self.owner`'s key and maps token to
-        unique index.
+    # def set_indices(self, token_to_index: Dict):
+    #     """Decrypts encrypted tokens using `self.owner`'s key and maps token to
+    #     unique index.
+    #
+    #     Args:
+    #         token_to_index (dict): Contains encrypted tokens mapped to
+    #             unique indices.
+    #     """
+    #
+    #     key = self.owner.secret_key
+    #
+    #     # Making sure owner has generated secret keys
+    #     assert key is not None, (
+    #         f"The owner `{self.owner.id}` on which this Doc resides does not has"
+    #         "secret key to decrypt tokens. Please follow the Diffie-Hellman protocol"
+    #         "to generate a secret key for the owner."
+    #     )
+    #
+    #     for enc_token, index in token_to_index.items():
+    #
+    #         # Decrypt token and convert it from bytes to utf-8 encoding
+    #         dec_token_text = decrypt(enc_token, key).decode("utf-8")
+    #
+    #         # hash of the token text
+    #         hash_key = self.vocab.store[dec_token_text]
+    #
+    #         # map hash to index
+    #         self.token_to_index[hash_key] = index
 
-        Args:
-            token_to_index (dict): Contains encrypted tokens mapped to
-                unique indices.
-        """
-
-        key = self.owner.secret_key
-
-        # Making sure owner has generated secret keys
-        assert key is not None, (
-            f"The owner `{self.owner.id}` on which this Doc resides does not has"
-            "secret key to decrypt tokens. Please follow the Diffie-Hellman protocol"
-            "to generate a secret key for the owner."
-        )
-
-        for enc_token, index in token_to_index.items():
-
-            # Decrypt token and convert it from bytes to utf-8 encoding
-            dec_token_text = decrypt(enc_token, key).decode("utf-8")
-
-            # hash of the token text
-            hash_key = self.vocab.store[dec_token_text]
-
-            # map hash to index
-            self.token_to_index[hash_key] = index
-
-    def get_indices(self):
-        """Returns a tensor composed of indices corresponding to tokens in self.
+    def get_index(self, item):
+        """Get vocabulary index of the token at position item.
 
         Returns:
-            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
-                The order of indices is relative order of the token stored in doc.
-                Tokens which are not assigned an index are skipped.
+            index (int): vocabulary index of the token at position item.
         """
 
-        indices = list()
-
-        for token in self:
-            try:
-                # TODO: Add hash property to token
-                indices.append(self.token_to_index[token.orth])
-            except KeyError:
-                pass
-
-        indices_tensor = torch.tensor(indices, dtype=torch.long)
-        return indices_tensor
+        token = self[item]
+        index = self.owner.indexed_vocab[token]
+        return index

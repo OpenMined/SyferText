@@ -72,20 +72,6 @@ class DocPointer(ObjectPointer):
 
         return doc_vector
 
-    def get_encrypted_tokens_set(self, excluded_tokens: Dict[str, Set[object]] = None):
-        """Encrypt doc's tokens using owner's key.
-        Returns:
-            Set of tokens encrypted using owner's secret key `self.owner.secret`.
-        """
-
-        # Create the command
-        command = ("get_encrypted_tokens_set", self.id_at_location, [excluded_tokens], {})
-
-        # Send the command
-        enc_tokens = self.owner.send_command(self.location, command)
-
-        return enc_tokens
-
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
@@ -141,36 +127,36 @@ class DocPointer(ObjectPointer):
 
         return length
 
-    def set_indices(self, token_to_index: Dict):
-        """Decrypts encrypted tokens using `self.owner`'s key and maps token to
-        unique index.
+    # def set_indices(self, token_to_index: Dict):
+    #     """Decrypts encrypted tokens using `self.owner`'s key and maps token to
+    #     unique index.
+    #
+    #     Args:
+    #         token_to_index (dict): Contains encrypted tokens mapped to
+    #             unique indices.
+    #     """
+    #
+    #     # Create the command
+    #     command = ("set_indices", self.id_at_location, [token_to_index], {})
+    #
+    #     # Send the command
+    #     self.owner.send_command(self.location, command)
 
-        Args:
-            token_to_index (dict): Contains encrypted tokens mapped to
-                unique indices.
-        """
-
-        # Create the command
-        command = ("set_indices", self.id_at_location, [token_to_index], {})
-
-        # Send the command
-        self.owner.send_command(self.location, command)
-
-    def get_indices(self):
-        """Returns a tensor composed of indices corresponding to tokens in remote Doc.
-
-        Returns:
-            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
-                The order of indices is relative order of the token stored in doc.
-                Tokens which are not assigned an index are skipped.
-        """
-
-        # Create the command
-        command = ("get_indices", self.id_at_location, [], {})
-
-        # Send the command
-        indices_tensor = self.owner.send_command(self.location, command)
-
-        # Call .get() on Pointer Tensor
-        indices_tensor = indices_tensor.get()
-        return indices_tensor
+    # def get_indices(self):
+    #     """Returns a tensor composed of indices corresponding to tokens in remote Doc.
+    #
+    #     Returns:
+    #         indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+    #             The order of indices is relative order of the token stored in doc.
+    #             Tokens which are not assigned an index are skipped.
+    #     """
+    #
+    #     # Create the command
+    #     command = ("get_indices", self.id_at_location, [], {})
+    #
+    #     # Send the command
+    #     indices_tensor = self.owner.send_command(self.location, command)
+    #
+    #     # Call .get() on Pointer Tensor
+    #     indices_tensor = indices_tensor.get()
+    #     return indices_tensor
