@@ -48,6 +48,49 @@ class ExtendedBaseWorker(BaseWorker):
         self.secret = None
         self.secret_key = None
 
+        # Should I create a class, inheriting set and AbstractObject?
+        self.vocab = set()
+
+        # Register it on the object store ?
+        # self.register_obj(obj=self.vocab_set)
+
+    def get_enc_vocab(self):
+        """Get Encrypted Vocabulary of worker.
+
+        Returns:
+            enc_vocab (set): Vocabulary of the worker encrypted using it' secret key.
+        """
+        # TODO: I guess it will not work out of the box with Grid workers.
+
+        enc_vocab = set()
+
+        for token in self.vocab:
+            enc_token = encrypt(token, self.secret_key)
+            enc_vocab.add(enc_token)
+        return enc_vocab
+
+    def receive_indexed_vocab(self, indexed_vocab):
+        """Map vocabulary token to indices.
+
+        Args:
+            indexed_vocab (dict): Dictionary containing keys as encrypted tokens
+                and value as it's index.
+        """
+
+        key = self.secret_key
+
+        assert key is not None, ()
+
+        self.indexed_vocab = dict()
+
+        for enc_token, index in indexed_vocab.items():
+
+            # Decrypt token and convert it from bytes to utf-8 encoding
+            dec_token_hash = decrypt(enc_token, key).decode("utf-8")
+
+            # map hash to index
+            self.indexed_vocab[dec_token_hash] = index
+
     def generate_private_key(self, bytes_len):
         """Generates a private key.
 
