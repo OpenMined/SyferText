@@ -2,12 +2,16 @@
 
 from abc import abstractmethod
 from syft.workers.base import BaseWorker
+from syfertext.pointers import DocPointer
+from syfertext.encdec import encrypt, decrypt
 
 import binascii
 import hashlib
 import os
 import random
-from typing import Union, List
+from typing import Union
+from typing import List
+from typing import Dict
 
 
 class ExtendedBaseWorker(BaseWorker):
@@ -147,6 +151,112 @@ class ExtendedBaseWorker(BaseWorker):
 
             # Generate the secret key for the worker at the end of the cycle
             workers[pointer].generate_secret_key(shared_prime, received_public_key=public_key)
+
+    def create_vocabulary(
+        self,
+        dataset: Dict["ExtendedBaseWorker", List[DocPointer]],
+        excluded_tokens: Dict[str, Dict],
+    ):
+        """Combines the vocabulary of each worker to create a new vocabulary `combined_vocab`.
+        Please, try to execute this function only once, as it is has a high communication
+        overhead.
+
+        TODO: Measure the communication overhead due to this function.
+
+        Args:
+            dataset (dict): Dict containing keys as workers and values as list of DocPointers on the worker.
+            excluded_tokens (dict): Tokens which need not be assigned indices.
+
+                # TODO: Remove this constraint ?
+                Examples:
+                    If you are sure, you are not going to use stop words anywhere in your application.
+                    Then you can exclude those tokens from being assigned an index. This helps to avoid unnecessary
+                    communication overhead.
+
+                    NOTE: If you aren't sure about excluding certain tokens, then better assign them indices
+                    so that later if required you don't have to execute the function again.
+
+        Returns:
+            vocab_size (int): The size of vocabulary across all workers, which is size of `combined_vocab`.
+        """
+
+        combined_vocab = set()
+
+        # Dict mapping worker to it's vocab
+        # Helps avoiding calling worker.get_vocab() again
+        # while assigning indices
+        worker_to_vocab = dict()
+
+        for worker, documents in dataset.items():
+
+            for doc in documents:
+
+                # Add doc's tokens to worker's vocabulary
+                doc.add_tokens_to_vocab(excluded_tokens)
+
+            # Get workers vocabulary
+            vocab = worker.get_enc_vocab()
+            worker_to_vocab[worker] = vocab
+
+            # Take union with `combined_vocab` set
+            combined_vocab = combined_vocab.union(vocab)
+
+        vocab_size = len(combined_vocab)
+
+        self._return_indexed_vocab(combined_vocab, dataset)
+
+        return vocab_size
+
+    def _return_indexed_vocab(self, combined_vocab, worker_to_vocab):
+        """Maps each token in `combined_vocab` to a index. Returns a dictionary to each worker
+        mapping its vocab to indices.
+
+        Args:
+            combined_vocab (set): The combined vocabulary across all workers
+            worker_to_vocab (Dict): Dict containing keys as workers and values their corresponding vocabularies.
+
+        Examples:
+            Bob.vocab = ["private", "and", "secure", "nlp"]
+            Alice.vocab = ["keeps", "your", "data", "private", "and", "secure"]
+            combined_vocab = ["and", "data", "keeps", "nlp", "secure", "private", "your"]
+
+            token_to_index = {"and": 0, "data": 1, "keeps": 2, "nlp": 3, "secure": 4, "private": 5, "your": 6}
+
+            Bob gets back  : {"private": 5, "and": 0, "secure": 4, "nlp": 3}
+            Alice gets back: {"keeps": 2, "your": 6, "data": 1, "private": 5, "and": 0, "secure": 4}
+        """
+        # Assign indices to each token in vocab
+        token_to_index = dict()
+
+        for index, token in enumerate(combined_vocab):
+            token_to_index[token] = index
+
+        # Assign indices to each of the worker's vocab
+        for worker, vocab in worker_to_vocab.items():
+
+            # Map this vocab to indices
+            indexed_vocab = self._map_to_indices(vocab, token_to_index)
+
+            # Send the indexed vocab back to worker
+            worker.receive_indexed_vocab(indexed_vocab)
+
+    @staticmethod
+    def _map_to_indices(vocab, token_to_index):
+        """
+        Args:
+            vocab (set): Set of tokens
+            token_to_index (dict): Maps each unique token to an index
+
+        Returns:
+            indexed_vocab (dict): Each token in vocab mapped to an index
+        """
+        indexed_vocab = dict()
+
+        for token in vocab:
+            index = token_to_index[token]
+            indexed_vocab[token] = index
+
+        return indexed_vocab
 
     @abstractmethod
     def _send_msg(self, message: bin, location: BaseWorker):
