@@ -22,6 +22,7 @@ hook = syft.TorchHook(torch)
 # Set the local worker
 local_worker = hook.local_worker
 
+
 def load(
     model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
 ):

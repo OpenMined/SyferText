@@ -4,7 +4,9 @@ from syft.workers.base import BaseWorker
 
 from ...pointers.doc_pointer import DocPointer
 
-from typing import Union, Dict, List
+from typing import Union
+from typing import Dict
+from typing import List
 
 
 class SubPipelinePointer(ObjectPointer):

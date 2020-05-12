@@ -1,5 +1,6 @@
 from syft.generic.object import AbstractObject
 from syft.worker.base import BaseWorker
+from .pointers import StatePointer
 
 import syft.serde.msgpack.serde as serde
 
@@ -7,15 +8,15 @@ from typing import Union
 from typing import Set
 from typing import Tuple
 
+
 class State(AbstractObject):
-
-
-    def __init__(self,
-                 simple_obj: Tuple(object),                 
-                 id: str,
-                 owner: BaseWorker = None,
-                 tags: set[str] = None,
-                 description: str = None
+    def __init__(
+        self,
+        simple_obj: Tuple(object),
+        id: str,
+        owner: BaseWorker = None,
+        tags: set[str] = None,
+        description: str = None,
     ):
         """Initializes the object.
 
@@ -40,9 +41,8 @@ class State(AbstractObject):
 
         self.simple_obj = simple_obj
 
-        super(State, self).__init__(id = id, owner = owner, tags = tags, description = description)
+        super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-        
     def send_copy(self, location: BaseWorker) -> "State":
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
@@ -58,15 +58,72 @@ class State(AbstractObject):
         """
 
         # Create the copy
-        state = State(simple_obj = self.simple_obj,
-                      id = self.id,
-                      tags = self.tags,
-                      description = self.description
+        state = State(
+            simple_obj=self.simple_obj, id=self.id, tags=self.tags, description=self.description
         )
 
         return state
 
-    
+    def send(self, location: BaseWorker) -> StatePointer:
+        """Sends this object to the worker specified by `location`. 
+
+        Args:
+            location (BaseWorker): The BaseWorker object to which the state object is 
+                to be sent.
+
+            Returns:
+                (StatePointer): A pointer to this object.
+        """
+
+        state_pointer = self.owner.send(self, location)
+
+        return state_pointer
+
+    @staticmethod
+    def create_pointer(
+        state: "State",
+        owner: BaseWorker,
+        location: BaseWorker,
+        id_at_location: str,
+        register: bool = True,
+        ptr_id: Union[str, int] = None,
+        garbage_collect_data: bool = False,
+    ) -> StatePointer:
+        """Creates a SupPipelinePointer object that points to a given
+        SupPipeline object.
+
+        Args:
+            state (State): The State object to which the pointer refers.
+            owner (BaseWorker): The worker that will own the pointer object.
+            location (BaseWorker): The worker on which the State
+                object pointed to by this object is located.
+            id_at_location (str, int): The ID of the State object
+                referenced by the pointer.
+            register (bool): Whether to register the pointer object 
+                in the object store or not. (it is required by the 
+                the BaseWorker's object send() method in PySyft, but
+                not used for the moment in this method).
+            ptr_id (str, int): The ID of the pointer object.
+            garbage_collect_data (bool): Activate garbage collection or not. 
+                default to False meaning that the State object shouldn't
+                be GCed once this pointer is removed.
+
+        
+        Returns:
+            A StatePointer object pointing to this state object.
+        """
+
+        # Create the pointer object
+        state_pointer = StatePointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+            id=ptr_id,
+            garbage_collect_data=garbage_collect_data,
+        )
+
+        return state_pointer
+
     @staticmethod
     def simplify(worker: BaseWorker, state: "State") -> Tuple[object]:
         """Simplifies a State object. This method is required by PySyft
@@ -86,13 +143,12 @@ class State(AbstractObject):
         # Simplify the State object attributes
         id_simple = serde._simplify(worker, state.id)
         tags_simple = serde._simplify(worker, state.tags)
-        description_simple = serde._simplify(worker, state.description)        
+        description_simple = serde._simplify(worker, state.description)
 
         # create the simple State object
         state_simple = (id_simple, tags_simple, description_simple, state.simple_obj)
-        
-        return state_simple
 
+        return state_simple
 
     @staticmethod
     def detail(worker: Baseworker, state_simple: Tuple[object]) -> "State":
@@ -117,13 +173,8 @@ class State(AbstractObject):
         description = serde._detail(description_simple)
 
         # Create a State object
-        state = State(simple_obj = simple_obj,
-                      id = id,
-                      owner  = worker,
-                      tags = tags,
-                      description = description
+        state = State(
+            simple_obj=simple_obj, id=id, owner=worker, tags=tags, description=description
         )
 
         return state
-        
-        
