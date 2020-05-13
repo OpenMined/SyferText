@@ -182,22 +182,7 @@ class DocPointer(ObjectPointer):
 
         return length
 
-    # def set_indices(self, token_to_index: Dict):
-    #     """Decrypts encrypted tokens using `self.owner`'s key and maps token to
-    #     unique index.
-    #
-    #     Args:
-    #         token_to_index (dict): Contains encrypted tokens mapped to
-    #             unique indices.
-    #     """
-    #
-    #     # Create the command
-    #     command = ("set_indices", self.id_at_location, [token_to_index], {})
-    #
-    #     # Send the command
-    #     self.owner.send_command(self.location, command)
-
-    def get_indices(self):
+    def get_indices_tensor(self):
         """Returns a pointer to the tensor composed of indices corresponding to tokens in remote Doc.
 
         Returns:
@@ -214,6 +199,43 @@ class DocPointer(ObjectPointer):
 
         return indices_tensor
 
+    # def get_index(self, item):
+    #     """Get vocabulary index of the token at position item.
+    #
+    #     Returns:
+    #         index (tensor): vocabulary index of the token at position item.
+    #     """
+    #
+    #     # Create the command
+    #     command = ("get_index", self.id_at_location, [item], {})
+    #
+    #     # Send the command
+    #     indices_tensor = self.owner.send_command(self.location, command)
+    #
+    #     return indices_tensor
+
+    # TODO: Should we implement different exclude_tokens for context and target ?
+    def get_context_target_tensors(self, relative_context_pos, excluded_tokens=None):
+        """Returns target context tensors.
+
+        Args:
+            relative_context_pos (list): Abstract positions of context tokens considering target token is at pos 0.
+            excluded_tokens (Dict): A dictionary used to ignore tokens from being included in the context.
+
+        Returns:
+            context_tensor (torch.LongTensor):
+            target_tensor (torch.LongTensor)
+        """
+
+        # Create the command
+        args = [relative_context_pos, excluded_tokens]
+        command = ("get_context_target_tensors", self.id_at_location, args, {})
+
+        # Send the command
+        context_tensor, target_tensor = self.owner.send_command(self.location, command)
+
+        return context_tensor, target_tensor
+
     def add_tokens_to_vocab(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Adds it's tokens to it's owner's vocabulary, excluding tokens according
         to the excluded_tokens dictionary.
@@ -227,4 +249,8 @@ class DocPointer(ObjectPointer):
         command = ("add_tokens_to_vocab", self.id_at_location, [excluded_tokens], {})
 
         # Send the command
+        self.owner.send_command(self.location, command)
+
+    def verbose(self):
+        command = ("verbose", self.id_at_location, [], {})
         self.owner.send_command(self.location, command)

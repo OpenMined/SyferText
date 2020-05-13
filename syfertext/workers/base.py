@@ -62,7 +62,7 @@ class ExtendedBaseWorker(BaseWorker):
             enc_vocab (set): Vocabulary of the worker encrypted using it' secret key.
         """
         # TODO: I guess it will not work out of the box with Grid workers.
-
+        # TODO: Shuffle the vocabulary, before sending.
         enc_vocab = set()
 
         for token in self.vocab:
@@ -89,7 +89,7 @@ class ExtendedBaseWorker(BaseWorker):
         for enc_token, index in indexed_vocab.items():
 
             # Decrypt token and convert it from bytes to utf-8 encoding
-            dec_token_hash = decrypt(enc_token, key).decode("utf-8")
+            dec_token_hash = int(decrypt(enc_token, key).decode("utf-8"))
 
             # map hash to index
             self.indexed_vocab[dec_token_hash] = index

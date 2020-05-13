@@ -425,55 +425,116 @@ class Doc(AbstractObject):
 
         return token_vectors
 
-    # def set_indices(self, token_to_index: Dict):
-    #     """Decrypts encrypted tokens using `self.owner`'s key and maps token to
-    #     unique index.
-    #
-    #     Args:
-    #         token_to_index (dict): Contains encrypted tokens mapped to
-    #             unique indices.
-    #     """
-    #
-    #     key = self.owner.secret_key
-    #
-    #     # Making sure owner has generated secret keys
-    #     assert key is not None, (
-    #         f"The owner `{self.owner.id}` on which this Doc resides does not has"
-    #         "secret key to decrypt tokens. Please follow the Diffie-Hellman protocol"
-    #         "to generate a secret key for the owner."
-    #     )
-    #
-    #     for enc_token, index in token_to_index.items():
-    #
-    #         # Decrypt token and convert it from bytes to utf-8 encoding
-    #         dec_token_text = decrypt(enc_token, key).decode("utf-8")
-    #
-    #         # hash of the token text
-    #         hash_key = self.vocab.store[dec_token_text]
-    #
-    #         # map hash to index
-    #         self.token_to_index[hash_key] = index
+    def _get_index(self, pos):
+        """
 
-    def get_indices(self):
-        """Returns a tensor composed of indices corresponding to tokens in self.
+        Args:
+            pos:
 
         Returns:
-            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+
+        """
+
+        token = self[pos]
+        index = self.owner.indexed_vocab[token.hash]
+        return index
+
+    def get_indices_tensor(self, excluded_tokens):
+        """Returns a tensor composed of indices corresponding to tokens in self. Throws KeyError
+        if the token's index is not in vocab.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency,
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+
+        Returns:
+            indices_tensor (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
                 The order of indices is relative order of the token stored in doc.
                 Tokens which are not assigned an index are skipped.
         """
 
-        indices = list()
-
-        for token in self:
-            try:
-                index = self.owner.indexed_vocab[token.hash]
-                indices.append(index)
-            except KeyError:
-                pass
-
-        indices_tensor = torch.tensor(indices, dtype=torch.long)
+        valid_pos = self._get_valid_positions(excluded_tokens)
+        indices_tensor = torch.tensor([self._get_index(pos) for pos in valid_pos], dtype=torch.long)
         return indices_tensor
+
+    def get_context_target_tensors(self, relative_context_pos, excluded_tokens=None):
+        """Returns target context tensors.
+
+        Args:
+            relative_context_pos (list): Abstract positions of context tokens considering target token is at pos 0.
+            excluded_tokens (Dict): A dictionary used to ignore tokens from being included in the context.
+
+        Returns:
+            context_tensor (torch.LongTensor):
+            target_tensor (torch.LongTensor)
+        """
+
+        contexts = list()
+        targets = list()
+
+        valid_tokens = self._get_valid_positions(excluded_tokens)
+
+        pos_to_index = {pos: i for i, pos in enumerate(valid_tokens)}
+
+        for target_pos in valid_tokens:
+
+            index = pos_to_index[target_pos]
+            context_indices = [index + i for i in relative_context_pos]
+
+            valid_context_indices = all([0 <= pos < len(valid_tokens) for pos in context_indices])
+
+            if valid_context_indices:
+
+                cur_context = list()
+                for index in context_indices:
+                    context_pos = valid_tokens[index]
+                    cur_context.append(self._get_index(context_pos))
+
+                contexts.append(cur_context)
+                targets.append(self._get_index(target_pos))
+
+        # Make torch.LongTensors out of contexts and targets lists
+        context_tensor = torch.tensor(contexts, dtype=torch.long)
+        target_tensor = torch.tensor(targets, dtype=torch.long)
+
+        return context_tensor, target_tensor
+
+    def _get_valid_positions(self, excluded_tokens=None):
+        """Returns a list of indices corresponding to tokens in self. """
+
+        length = len(self)
+        valid_pos = list()
+
+        if excluded_tokens is not None:
+
+            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
+
+            for pos in range(length):
+
+                token = self[pos]
+                include_token = True
+
+                include_token = all(
+                    [
+                        getattr(token._, key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if hasattr(token._, key)
+                    ]
+                )
+
+                if include_token:
+                    valid_pos.append(pos)
+
+        # If the excluded_token dict in None all tokens are included
+        else:
+            valid_pos = [pos for pos in range(length)]
+
+        return valid_pos
 
     @staticmethod
     def create_pointer(
@@ -509,3 +570,11 @@ class Doc(AbstractObject):
         )
 
         return doc_pointer
+
+    def verbose(self):
+        for token in self:
+            try:
+                index = self.owner.indexed_vocab[token.hash]
+                print(token.text, index)
+            except KeyError:
+                pass
