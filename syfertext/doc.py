@@ -355,6 +355,15 @@ class Doc(AbstractObject):
 
             for token in self:
 
+                # TODO: Fix this logic
+                # include_token = True and all(
+                #                             [
+                #                                 getattr(token._, key) not in excluded_tokens[key]
+                #                                 for key in excluded_tokens.keys()
+                #                                 if hasattr(token._, key)
+                #                             ]
+                #                         )
+
                 include_token = True
 
                 include_token = all(
@@ -445,16 +454,26 @@ class Doc(AbstractObject):
     #         # map hash to index
     #         self.token_to_index[hash_key] = index
 
-    def get_index(self, item):
-        """Get vocabulary index of the token at position item.
+    def get_indices(self):
+        """Returns a tensor composed of indices corresponding to tokens in self.
 
         Returns:
-            index (int): vocabulary index of the token at position item.
+            indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+                The order of indices is relative order of the token stored in doc.
+                Tokens which are not assigned an index are skipped.
         """
 
-        token = self[item]
-        index = self.owner.indexed_vocab[token]
-        return index
+        indices = list()
+
+        for token in self:
+            try:
+                index = self.owner.indexed_vocab[token.hash]
+                indices.append(index)
+            except KeyError:
+                pass
+
+        indices_tensor = torch.tensor(indices, dtype=torch.long)
+        return indices_tensor
 
     @staticmethod
     def create_pointer(

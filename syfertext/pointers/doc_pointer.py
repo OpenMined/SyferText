@@ -197,21 +197,34 @@ class DocPointer(ObjectPointer):
     #     # Send the command
     #     self.owner.send_command(self.location, command)
 
-    # def get_indices(self):
-    #     """Returns a tensor composed of indices corresponding to tokens in remote Doc.
-    #
-    #     Returns:
-    #         indices (torch.LongTensor): Tensor of indices representing tokens in remote Doc.
-    #             The order of indices is relative order of the token stored in doc.
-    #             Tokens which are not assigned an index are skipped.
-    #     """
-    #
-    #     # Create the command
-    #     command = ("get_indices", self.id_at_location, [], {})
-    #
-    #     # Send the command
-    #     indices_tensor = self.owner.send_command(self.location, command)
-    #
-    #     # Call .get() on Pointer Tensor
-    #     indices_tensor = indices_tensor.get()
-    #     return indices_tensor
+    def get_indices(self):
+        """Returns a pointer to the tensor composed of indices corresponding to tokens in remote Doc.
+
+        Returns:
+            indices (PointerTensor to torch.LongTensor): Tensor of indices representing tokens in remote Doc.
+                The order of indices is relative order of the token stored in doc.
+                Tokens which are not assigned an index are skipped.
+        """
+
+        # Create the command
+        command = ("get_indices", self.id_at_location, [], {})
+
+        # Send the command
+        indices_tensor = self.owner.send_command(self.location, command)
+
+        return indices_tensor
+
+    def add_tokens_to_vocab(self, excluded_tokens: Dict[str, Set[object]] = None):
+        """Adds it's tokens to it's owner's vocabulary, excluding tokens according
+        to the excluded_tokens dictionary.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+        """
+
+        command = ("add_tokens_to_vocab", self.id_at_location, [excluded_tokens], {})
+
+        # Send the command
+        self.owner.send_command(self.location, command)

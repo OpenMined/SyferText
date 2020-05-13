@@ -12,6 +12,7 @@ import random
 from typing import Union
 from typing import List
 from typing import Dict
+from typing import Set
 
 
 class ExtendedBaseWorker(BaseWorker):
@@ -65,6 +66,8 @@ class ExtendedBaseWorker(BaseWorker):
         enc_vocab = set()
 
         for token in self.vocab:
+            # convert hash value to string
+            token = str(token)
             enc_token = encrypt(token, self.secret_key)
             enc_vocab.add(enc_token)
         return enc_vocab
@@ -196,9 +199,7 @@ class ExtendedBaseWorker(BaseWorker):
             workers[pointer].generate_secret_key(shared_prime, received_public_key=public_key)
 
     def create_vocabulary(
-        self,
-        dataset: Dict["ExtendedBaseWorker", List[DocPointer]],
-        excluded_tokens: Dict[str, Dict],
+        self, dataset: List[Dict], key: str, excluded_tokens: Dict[str, Set[object]] = None
     ):
         """Combines the vocabulary of each worker to create a new vocabulary `combined_vocab`.
         Please, try to execute this function only once, as it is has a high communication
@@ -207,7 +208,8 @@ class ExtendedBaseWorker(BaseWorker):
         TODO: Measure the communication overhead due to this function.
 
         Args:
-            dataset (dict): Dict containing keys as workers and values as list of DocPointers on the worker.
+            dataset (List): List of dictionaires, where each dictionary is a single example
+            key (str): The key in dictionary, which maps to DocPointer
             excluded_tokens (dict): Tokens which need not be assigned indices.
 
                 # TODO: Remove this constraint ?
@@ -230,12 +232,19 @@ class ExtendedBaseWorker(BaseWorker):
         # while assigning indices
         worker_to_vocab = dict()
 
-        for worker, documents in dataset.items():
+        # A list of all workers encountered in the dataset
+        workers = set()
 
-            for doc in documents:
+        for example in dataset:
 
-                # Add doc's tokens to worker's vocabulary
-                doc.add_tokens_to_vocab(excluded_tokens)
+            doc = example[key]
+
+            # Add doc's tokens to worker's vocabulary
+            doc.add_tokens_to_vocab(excluded_tokens)
+
+            workers.add(doc.location)
+
+        for worker in workers:
 
             # Get workers vocabulary
             vocab = worker.get_enc_vocab()
@@ -246,7 +255,7 @@ class ExtendedBaseWorker(BaseWorker):
 
         vocab_size = len(combined_vocab)
 
-        self._return_indexed_vocab(combined_vocab, dataset)
+        self._return_indexed_vocab(combined_vocab, worker_to_vocab)
 
         return vocab_size
 
