@@ -43,7 +43,7 @@ More tutorials are coming soon. Stay tuned!
 
 ## Our Team
 
-SyferText is created and maintained by the NLP team at OpenMined and by voluneer contributors from all around the world. Here are the current members of the core NLP team. The team is growing!
+SyferText is created and maintained by the NLP team at OpenMined and by volunteer contributors from all around the world. Here are the current members of the core NLP team. The team is growing!
 
 <br>
 <table>

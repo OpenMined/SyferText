@@ -11,7 +11,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
 
 import pickle
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 
 class SubPipeline(AbstractObject):
@@ -56,7 +56,7 @@ class SubPipeline(AbstractObject):
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_template(
-        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable],
+        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable]
     ):
         """Loads the subpipeline template.
 
@@ -96,7 +96,7 @@ class SubPipeline(AbstractObject):
         return ptr
 
     def __call__(
-        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
+        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
@@ -133,8 +133,16 @@ class SubPipeline(AbstractObject):
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
 
-        # set the owner of the doc object as the current worker
+        # set the owner of the Doc object to this SupPipeline's owner
         doc.owner = self.owner
+
+        # Assign the doc object the worker it will serve if
+        # it is at a remote location. When working locally `doc.client_id`
+        # will be the id of `doc.owner`. But when the doc is at remote site,
+        # `doc.client_id` would be different from the id of `doc.owner`.
+        # `doc.client_id` would be the id of the worker where the pointer of
+        # this doc resides.
+        doc.client_id = self.client_id
 
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
