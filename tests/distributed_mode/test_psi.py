@@ -54,38 +54,8 @@ def test_encrypt_decrypt():
     assert text == dec_text
 
 
-def test_two_party_diffie_hellman_key_exchange():
-    """Test the Diffie-Hellman Key Exchange protocol.
-    By encrypting same string we will verify that at the end of
-    the exchange david and carol have the same keys.
-    """
-
-    # Send same strings to david and carol
-    text = String("syfertext")
-
-    david_doc = nlp(text.send(david))
-    carol_doc = nlp(text.send(carol))
-
-    # Let james be our good guy here
-    secure_worker = VirtualWorker(hook, id="secure_worker")
-
-    workers = [david, carol]
-
-    # Execute the DH key exchange protocol securely on Secure Worker
-    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
-
-    david_enc_tokens = david_doc.get_encrypted_tokens_set()
-    carol_enc_tokens = carol_doc.get_encrypted_tokens_set()
-
-    # assert the sets are same, thus verifying the keys are same
-    assert not david_enc_tokens.difference(carol_enc_tokens)
-
-
-def test_multi_party_diffie_hellman_key_exchange():
-    """Test the Diffie-Hellman Key Exchange protocol for more than 2 parties.
-    By encrypting same string we will verify that at the end of
-    the exchange david and carol have the same keys.
-    """
+def test_diffie_hellman_key_exchange():
+    """Test the Diffie-Hellman Key Exchange protocol for more than 2 parties."""
 
     text = String("nlp")
 
@@ -94,13 +64,11 @@ def test_multi_party_diffie_hellman_key_exchange():
 
     docs = list()
 
+    # Simulate private dataset across multiple workers
     for worker in workers:
-
         text_ptr = text.send(worker)
-
-        cur_worker_doc = nlp(text_ptr)
-
-        docs.append(cur_worker_doc)
+        doc = nlp(text_ptr)
+        docs.append(doc)
 
     # Let james again be our good guy here
     secure_worker = VirtualWorker(hook, id="secure_worker")
@@ -108,29 +76,10 @@ def test_multi_party_diffie_hellman_key_exchange():
     # Execute the DH key exchange protocol securely on Jame's (SecureWorker) machine
     secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
 
-    # List of sets of encrypted tokens returned from each workers's doc
-    enc_token_sets = list()
-
-    for doc in docs:
-
-        cur_worker_set = doc.get_encrypted_tokens_set()
-
-        enc_token_sets.append(cur_worker_set)
-
-    # assert the sets are same, thus verifying the keys are same
-    for set1 in enc_token_sets:
-
-        for set2 in enc_token_sets:
-
-            if set1 is set2:  # both point to the same object
-                continue
-
-            # assert sets are same
-            assert not set1.difference(set2)
+    # TODO: How to verify now ?
 
 
-def test_get_encrypted_tokens_set():
-    """Test get encrypted tokens set from workers."""
+def test_combining_vocabulary():
 
     workers = [david, carol]
     secure_worker = VirtualWorker(hook, id="secure_worker")
@@ -139,109 +88,21 @@ def test_get_encrypted_tokens_set():
     secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
 
     # Add stop word tagger to the pipeline
-    stop_word_tagger = SimpleTagger(attribute="is_stop", lookups=["and", "your"], tag=True)
+    stop_word_tagger = SimpleTagger(attribute="is_stop", lookups=["and", "the", "are"], tag=True)
     nlp.add_pipe(stop_word_tagger, name="stop tagger", remote=True)
 
     # Simulate private dataset
-    david_private_data = String("private and secure nlp").send(david)
+    david_private_data = String("the quick brown fox jumps over the lazy dog").send(david)
     david_doc = nlp(david_private_data)
 
-    carol_private_data = String("keeps your data private and secure").send(carol)
+    carol_private_data = String("the dog and fox are good friends").send(carol)
     carol_doc = nlp(carol_private_data)
 
-    david_enc_tokens = david_doc.get_encrypted_tokens_set()
-    carol_enc_tokens = carol_doc.get_encrypted_tokens_set()
+    dataset = [{"data": david_doc}, {"data": carol_doc}]
+    excluded_tokens = {"is_stop": {True}}
 
-    unique_tokens = 7  # [private, and, secure, nlp, keeps, your,data]
-    common_tokens = 3  # [private, and, secure]
+    vocab_size = secure_worker.create_vocabulary(dataset, "data", excluded_tokens=excluded_tokens)
 
-    # Verify length of union is same as number of unique_tokens
-    assert len(david_enc_tokens.union(carol_enc_tokens)) == unique_tokens
-
-    # Verify length of intersection of sets is same as number of common tokens
-    assert len(david_enc_tokens.intersection(carol_enc_tokens)) == common_tokens
-
-    # Get set excluding stop words
-    david_enc_tokens = david_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
-    carol_enc_tokens = carol_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
-
-    unique_tokens = 5  # [private, secure, nlp, keeps, data]
-    common_tokens = 2  # [private, secure]
-
-    # Verify length of union is same as number of unique_tokens
-    assert len(david_enc_tokens.union(carol_enc_tokens)) == unique_tokens
-
-    # Verify length of intersection of sets is same as number of common tokens
-    assert len(david_enc_tokens.intersection(carol_enc_tokens)) == common_tokens
-
-
-def test_set_indices_and_get_indices():
-    """Test Doc returns a list of indices representing its tokens."""
-
-    workers = [david, carol]
-    secure_worker = VirtualWorker(hook, id="secure_worker")
-
-    # Execute the DH key exchange protocol securely on Secure Worker
-    secure_worker.execute_dh_key_exchange(shared_prime, shared_base, workers)
-
-    # Add stop word tagger to the pipeline
-    stop_word_tagger = SimpleTagger(attribute="is_stop", lookups=["and", "your"], tag=True)
-    nlp.add_pipe(stop_word_tagger, name="stop tagger", remote=True)
-
-    # Simulate private dataset
-    david_private_data = String("private and secure nlp").send(david)
-    david_doc = nlp(david_private_data)
-
-    carol_private_data = String("keeps your data private and secure").send(carol)
-    carol_doc = nlp(carol_private_data)
-
-    david_enc_tokens = david_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
-    carol_enc_tokens = carol_doc.get_encrypted_tokens_set(excluded_tokens={"is_stop": {True}})
-
-    # Take a union of both sets
-    all_tokens = david_enc_tokens.union(carol_enc_tokens)
-
-    token_to_index = dict()
-
-    # Assign each unique token to an index
-    for i, enc_token in enumerate(all_tokens):
-        token_to_index[enc_token] = i
-
-    def map_to_indices(enc_tokens, token_to_index):
-        """
-        Args:
-            enc_tokens (set): Set of encrypted tokens
-            token_to_index (dict): Maps each unique token to an index
-
-        Returns:
-            mapped_enc_tokens (dict): Each token in enc_tokens
-                mapped to an index
-        """
-        mapped_enc_tokens = dict()
-
-        for token in enc_tokens:
-            index = token_to_index[token]
-            mapped_enc_tokens[token] = index
-
-        return mapped_enc_tokens
-
-    david_mapped_tokens = map_to_indices(david_enc_tokens, token_to_index)
-    carol_mapped_tokens = map_to_indices(carol_enc_tokens, token_to_index)
-
-    david_doc.set_indices(david_mapped_tokens)
-    carol_doc.set_indices(carol_mapped_tokens)
-
-    # Get tuple of indices
-    david_tokens = david_doc.get_indices()
-    carol_tokens = carol_doc.get_indices()
-
-    assert david_tokens.shape[0] == 3  # [private, secure, nlp]
-    assert carol_tokens.shape[0] == 4  # [keeps, data, private, secure]
-
-    count = 0
-    for i1 in david_tokens:
-        for i2 in carol_tokens:
-            if i1 == i2:
-                count += 1
-
-    assert count == 2  # [private, secure]
+    assert vocab_size == len(
+        ["quick", "brown", "fox", "jumps", "over", "lazy", "dog", "good", "freinds"]
+    )

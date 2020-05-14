@@ -234,7 +234,7 @@ class DocPointer(ObjectPointer):
         # Send the command
         context_tensor, target_tensor = self.owner.send_command(self.location, command)
 
-        return context_tensor, target_tensor
+        return context_tensor.get(), target_tensor.get()
 
     def add_tokens_to_vocab(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Adds it's tokens to it's owner's vocabulary, excluding tokens according

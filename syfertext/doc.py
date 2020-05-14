@@ -496,8 +496,9 @@ class Doc(AbstractObject):
                 targets.append(self._get_index(target_pos))
 
         # Make torch.LongTensors out of contexts and targets lists
-        context_tensor = torch.tensor(contexts, dtype=torch.long)
-        target_tensor = torch.tensor(targets, dtype=torch.long)
+        # TODO: Is sending to self.owner required ?
+        context_tensor = torch.tensor(contexts, dtype=torch.long).send(self.owner)
+        target_tensor = torch.tensor(targets, dtype=torch.long).send(self.owner)
 
         return context_tensor, target_tensor
 
