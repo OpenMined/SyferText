@@ -36,7 +36,7 @@ class Doc(AbstractObject):
 
         # we assign the client_id in the __call__ method of the SubPipeline
         # This is used to keep track of the worker where the pointer
-        # of this doc resides. However if it is passed explicitely
+        # of this doc resides. However if it is passed explicitly
         # in init , we assign this client_id
         if client_id is not None:
             self.client_id = client_id
@@ -239,9 +239,9 @@ class Doc(AbstractObject):
 
             include_token = all(
                 [
-                    getattr(token._, key) not in excluded_tokens[key]
+                    token.get_attribute(key) not in excluded_tokens[key]
                     for key in excluded_tokens.keys()
-                    if hasattr(token._, key)
+                    if token.has_attribute(key)
                 ]
             )
 
@@ -291,9 +291,9 @@ class Doc(AbstractObject):
             if excluded_tokens is not None:
                 include_token = all(
                     [
-                        getattr(token._, key) not in excluded_tokens[key]
+                        token.get_attribute(key) not in excluded_tokens[key]
                         for key in excluded_tokens.keys()
-                        if hasattr(token._, key)
+                        if token.has_attribute(key)
                     ]
                 )
 
