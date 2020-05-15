@@ -1,5 +1,11 @@
-from .doc import Doc
+from syfertext.doc import Doc
+from syft.workers.base import BaseWorker
+import syft.serde.msgpack.serde as serde
+
 import re
+from typing import Dict
+from typing import List
+from typing import Union
 
 
 class Matcher:
@@ -15,9 +21,12 @@ class Matcher:
                 matcher will operate on.
         """
 
-        self._patterns = {}
-        self._callbacks = {}
         self.vocab = vocab
+
+        # Initialize empty dicts
+        self._patterns = {}
+        self._preprocessed_patterns = {}
+        self._callbacks = {}
 
     def __len__(self):
         """Get the number of rules added ot the matcher."""
@@ -39,8 +48,8 @@ class Matcher:
         """Add a match-rule to the matcher. A match-rule consists of: an ID
         key and one or more patterns.
 
-        A pattern consists of one or more `token_specs`, where a `token_spec`
-        is a dictionary mapping attribute IDs to values.
+        A pattern consists of one or more `token_specs` (token specifications),
+        where a `token_spec` is a dictionary mapping attribute IDs to values.
 
         Example:
             1. Adding a single pattern to matcher.
@@ -76,7 +85,8 @@ class Matcher:
             raise TypeError(f"`on_match` {on_match} is not callable")
 
         key = self._normalize_key(key)
-        self._patterns[key] = self._preprocess_patterns(patterns)
+        self._patterns[key] = patterns
+        self._preprocessed_patterns[key] = self._process_patterns(patterns)
         self._callbacks[key] = on_match
 
     def get(self, key):
@@ -85,7 +95,6 @@ class Matcher:
         Args:
             key (unicode): The key of the patterns to retrieve.
 
-        TODO: Convert preprocessed patterns back to dictionary?
         Returns:
             The rule, as an (on_match, patterns) tuple.
         """
@@ -106,13 +115,13 @@ class Matcher:
         except KeyError:
             pass
 
-    def __call__(self, doc_or_span):
+    def __call__(self, doc):
         """Find all token sequences matching the supplied pattern.
 
         Doc must be parsed and it's tokens must have the default attributes.
 
         Args:
-            doc_or_span (Doc or Span): The document to match tokens over.
+            doc (Doc): The document to match tokens over.
 
         Returns:
             A list of `(key, start, end)` tuples, describing the matches.
@@ -120,18 +129,20 @@ class Matcher:
             to the `key` of the pattern that has matched.
         """
 
-        # if isinstance(doc_or_span, Doc):
-        #     doc = doc_or_span
+        # TODO: Add support for Span.
+
+        # if isinstance(doc, Doc):
+        #     doc = doc
         #     length = len(doc)
-        # elif isinstance(doc_or_span, Span):
-        #     doc = doc_or_span.as_doc()
+        # elif isinstance(doc, Span):
+        #     doc = doc.as_doc()
         #     length = len(doc)
 
         # TODO: Support Other predicates
         # TODO: Do we need to support Quantifiers ?
         # TODO: Support empty match tokens, will be useful for "Username {name}"
 
-        doc = doc_or_span
+        # doc = doc
         matches = []
 
         if len(doc) == 0:
@@ -145,7 +156,7 @@ class Matcher:
         # Note number of patterns includes multiple patterns with the same key.
 
         # Iterate over all patterns
-        for key, patterns in self._patterns.items():
+        for key, patterns in self._preprocessed_patterns.items():
 
             # Iterate over all patterns with this key
             for pattern in patterns:
@@ -154,7 +165,7 @@ class Matcher:
                 i = 0
                 while i < length:  # While loop allows us to skip tokens after we find a match
 
-                    token = doc_or_span[i]
+                    token = doc[i]
 
                     ptr = 0
                     temp = i
@@ -179,7 +190,7 @@ class Matcher:
                         # If sub parts to be matched are still in pattern
                         # Try matching the next token to the next sub part of pattern
                         if temp < length:
-                            token = doc_or_span[temp]
+                            token = doc[temp]
                         else:
                             break
 
@@ -214,7 +225,7 @@ class Matcher:
             return key
 
     @staticmethod
-    def _preprocess_patterns(patterns):
+    def _process_patterns(patterns):
         """Saves list of list of dicts as list of list of tuples.
 
         Example:
@@ -234,16 +245,16 @@ class Matcher:
             assert isinstance(pattern, list)
             cur_pattern = list()
 
-            for part in pattern:
+            for token_spec in pattern:
 
                 # Assert it's a dict containing a match pattern
                 # for exactly one token
-                assert isinstance(part, dict)
-                assert len(part) == 1
+                assert isinstance(token_spec, dict)
+                assert len(token_spec) == 1
 
-                for key, value in part.items():
+                for attr, value in token_spec.items():
 
-                    attr = key.lower()
+                    attr = attr.lower()
 
                     if isinstance(value, dict):
                         # It is a predicate
@@ -256,21 +267,72 @@ class Matcher:
 
         return processed_patterns
 
+    @staticmethod
+    def simplify(worker: BaseWorker, matcher: "Matcher"):
+        """Simplifies a Matcher object.
+
+        Args:
+            worker (BaseWorker): The worker on which the simplify operation is carried out.
+            matcher (Matcher): the Matcher object to simplify.
+
+        Returns:
+            (tuple): The simplified Matcher object.
+        """
+
+        # Simplify the object properties
+        # TODO: HOW TO SIMPLIFY VOCAB OBJECT ?
+        # IT REQUIRES ACCESS TO THE LANGUAGE OBJECT"S VOCAB
+        vocab = serde._simplify(worker, matcher.vocab)
+        patterns = serde._simplify(worker, matcher._patterns)
+        callbacks = serde._simplify(worker, matcher._callbacks)
+
+        return (vocab, patterns, callbacks)
+
+    @staticmethod
+    def detail(worker: BaseWorker, simple_obj: tuple):
+        """Takes a simplified Matcher object, details it
+           and returns a Matcher object.
+
+        Args:
+            worker (BaseWorker): The worker on which the detail operation is carried out.
+            simple_obj (tuple): The simplified SubPipeline object.
+
+        Returns:
+            (Matcher): The Matcher object.
+        """
+
+        # Unpack the simplified object
+        vocab, patterns, callbacks = simple_obj
+
+        # Detail each property
+        vocab = serde._detail(worker, vocab)
+        patterns = serde._detail(worker, patterns)
+        callbacks = serde._detail(worker, callbacks)
+
+        # Instantiate a Matcher object
+        matcher = Matcher(vocab=vocab)
+
+        # Add patterns to matcher
+        for key, patterns_ in patterns.items():
+            matcher.add(key, patterns_, callbacks.get(key, None))
+
+        return matcher
+
 
 # End of Matcher class
 
 
-def _check_match(target, token):
+def _check_match(token_spec, token):
     """
     Args:
-        target (tuple): Consists of attribute and it's value to match
+        token_spec (tuple): Consists of attribute and it's value to match.
         token (Token): Token whose attribute's value should match with target
 
     Returns:
         True if target pattern matches with token.
     """
 
-    attr, value = target
+    attr, value = token_spec
     if not hasattr(token._, attr):
         return False
 

@@ -1,9 +1,10 @@
-import pytest
 import syft
 import torch
 import syfertext
-from syfertext.matcher import Matcher
+from syfertext.pipeline.matcher import Matcher
 from syfertext.pipeline.simple_tagger import SimpleTagger
+
+from syft.workers.virtual import VirtualWorker
 
 # Create a torch hook for PySyft
 hook = syft.TorchHook(torch)
@@ -20,33 +21,35 @@ def test_addition_and_deletion_of_patterns():
     nlp = syfertext.load("en_core_web_lg", owner=me)
     shared_vocab = nlp.vocab
 
-    matcher = Matcher(vocab=shared_vocab)
+    hello_world_patterns = [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "world"}]
 
-    pattern = [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "world"}]
+    matcher = Matcher(shared_vocab)
 
-    # Here "helloworld" is the key which references to this pattern
-    matcher.add("helloworld", [pattern])  # Note: Pattern needs to be a list of lists
+    matcher.add("hello_world", [hello_world_patterns])
 
     # Check availability of pattern using key
-    assert "helloworld" in matcher
+    assert "hello_world" in matcher
 
-    patterns = [
+    hello_nlp_patterns = [
         [{"LOWER": "hello"}, {"IS_PUNCT": True}, {"LOWER": "nlp"}],
         [{"LOWER": "hello"}, {"LOWER": "nlp"}],
     ]
-    matcher.add("hellonlp", patterns)
 
-    assert "hellonlp" in matcher
+    # Adding extra patterns using add method
+    matcher.add("hello_nlp", patterns=hello_nlp_patterns)
 
-    matcher.remove("helloworld")
+    assert "hello_world" in matcher
+    assert "hello_nlp" in matcher
 
-    # Assert pattern has been removed from matcher
-    assert "helloworld" not in matcher
-
-    matcher.remove("hellonlp")
+    matcher.remove("hello_world")
 
     # Assert pattern has been removed from matcher
-    assert "hellonlp" not in matcher
+    assert "hello_world" not in matcher
+
+    matcher.remove("hello_nlp")
+
+    # Assert pattern has been removed from matcher
+    assert "hello_nlp" not in matcher
 
 
 def test_matching_patterns():
@@ -124,7 +127,6 @@ def test_matching_regex():
     matches = matcher(doc)
 
     true_matches = [
-        # ("america", 4, 6),      # 4: "United", 5: "States", 6: "of", 7: "America"
         ("america", 9, 10),  # 9: "USA"
         ("america", 11, 12),  # 11: U.S.A.
         ("america", 13, 14),  # 14: US
