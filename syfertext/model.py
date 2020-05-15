@@ -13,13 +13,12 @@ class Model(nn.Module):
 
 
     @abstractmethod
-    def loss(self, batch, compute_predictions=False)-> torch.tensor :
+    def loss(self,  predictions, labels)-> torch.tensor :
         """
         -to compute negative log likelihood.
         -Performs a forward pass and returns a loss tensor for backpropagation. Implement this to enable training.
         Parameters:
-            batch: A minibatch, instance of torchtext.data.Batch
-            compute_predictions: If true compute and provide predictions, else None
+            
         Returns:
             Tuple of loss and predictions
         """
