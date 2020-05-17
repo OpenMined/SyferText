@@ -17,18 +17,21 @@ import numpy
 
 class Vocab:
     
-    def __init__(self, key2index: Dict[int, int] = None, vectors: numpy.array = None);
+    def __init__(self, key2index: Dict[int, int] = None, vectors: numpy.array = None, model_name: str = None);
         """Initializes the Vocab object.
 
         Args:
-            key2index: A dictionary that maps each token hash to an index that
+            key2index (optional): A dictionary that maps each token hash to an index that
                 points to the embedding vector of that token in `vectors`.
                 This index can also be used as an input a an embedding layer.
-            vectors: A 2D numpy array that contains the word embeddings of tokens.
+            vectors (optional):: A 2D numpy array that contains the word embeddings of tokens.
+            model_name (optional): The name of the language model the owns this vocab.
         """
 
         # Create the Vectors object
         self.vectors = Vectors(key2index, vectors)
+
+        self.model_name = model_name
         
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
@@ -91,7 +94,9 @@ class Vocab:
         
         # Create the State object
         state = State(simple_obj = (key2index_simple, vectors_simple),
-                      id = state_id)
+                      id = state_id,
+                      access = {'*'}
+        )
 
 
 

@@ -3,6 +3,7 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .pipeline import SimpleTagger
 from .state import State
 
 from syft.generic.object import AbstractObject
@@ -13,41 +14,6 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 from typing import List, Union, Tuple
 
 import numpy
-
-class BaseDefaults(object):
-    """A class that defines all the defaults of the Language class
-    """
-
-    @classmethod
-    def create_vocab(cls, model_name) -> Vocab:
-        """Creates the Vocab object that holds the vocabulary along with vocabulary meta data
-
-        Todo:
-            I started by a very simple Vocab class that
-            contains only a variable called 'vectors' of type DICT to hold word vectors
-            vocab.vectors['word'] = float. To be reviewed for more complex functionality.
-        """
-
-        # Instantiate the Vocab object
-        vocab = Vocab(model_name)
-
-        return vocab
-
-    @classmethod
-    def create_tokenizer(cls, vocab) -> Tokenizer:
-        """Creates a Tokenizer object that will be used to create the Doc object, which is the
-        main container for annotated tokens.
-        
-        This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
-        infixes, suffixes, tokenization exceptions into account.
-        Of course, more features should be added later.
-
-        """
-
-        # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab)
-
-        return tokenizer
 
 
 class Language(AbstractObject):
@@ -69,26 +35,21 @@ class Language(AbstractObject):
         description: str = None,
     ):
 
-        # Define the default settings
-        self.Defaults = BaseDefaults
-
-        # Create the vocabulary
-        self.vocab = self.Defaults.create_vocab(model_name)
-
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = {"tokenizer": self.Defaults.create_tokenizer(self.vocab)}
+        self.factories = dict(Tokenizer = Tokenizer,
+                              SimpleTagger = SimpleTagger
+        )
 
         # Initialize the subpipeline template
-        # It only contains the tokenizer at initialization
-        self.pipeline_template = [{"remote": True, "name": "tokenizer"}]
+        self.pipeline_template = []
 
-        # Initialize an empty list of State object
-        self.states = []
+        # Initialize an empty dict of State object.
+        # The keys of this dict are the names of the components
+        # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
+        self.states = {}
+
         
-        # Intialize the main pipeline
-        self._reset_pipeline()
-
         super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
         
@@ -110,9 +71,12 @@ class Language(AbstractObject):
             tokenizer: the Tokenizer object.
         """
 
-        # Set the `tokenizer` property
-        # Remove this line
-        #self.tokenizer = tokenizer
+        # Add the tokenizer to the pipeline
+        self.add_pipe(component = tokenizer,
+                      name = tokenizer.__class__.__name__.lower(),
+                      location = None, 
+                      access = {'*'} 
+        )
 
         # Get the tokenizer state 
         state = tokenizer.dump_state()
@@ -136,7 +100,7 @@ class Language(AbstractObject):
         """
 
         # Set the language model name to which this vocab object belongs.
-         vocab.model_name = self.model_name
+        vocab.model_name = self.model_name
 
         
         # Get the state of the vocab object
@@ -147,16 +111,18 @@ class Language(AbstractObject):
 
 
         
-    def _save_state(state: State):
+    def _save_state(state: State, name: str):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
 
         Args:
             state: The State object to save to the object store of the local
                 worker.
+            name: The name of the component associated with the state.
         """
+        
         # Add to the list of State objects known to this Language object
-        self.states.append(state)
+        self.states[name] = state
 
         # Register it in the object store
         self.owner.register_obj(state)
@@ -213,14 +179,15 @@ class Language(AbstractObject):
         self.pipeline = [dict() for i in range(subpipeline_count)]
 
     def add_pipe(
-        self,
-        component: callable,
-        remote: bool = False,
-        name: str = None,
-        before: str = None,
-        after: str = None,
-        first: bool = False,
-        last: bool = True,
+            self,
+            component: callable,
+            location: Union[None, str] = None,
+            access: Set[str] = None,
+            name: str = None,
+            before: str = None,
+            after: str = None,
+            first: bool = False,
+            last: bool = True,
     ):
 
         """Adds a pipe template to the pipeline template. 
@@ -261,10 +228,13 @@ class Language(AbstractObject):
             component (callable): This is a callable that takes a Doc object and modifies
                 it inplace.
             name (str): The name of the pipeline component to be added. Defaults to None.
-            remote (bool): If True, the pipe component will be sent to the remote worker
-                where the Doc object resides. If False, the pipe will operate locally,
-                either on a Doc object directly, or on a DocPointer returned by the previous
-                component in the pipeline. Defaults to False.
+            location: The worker id where the pipe component's state should be saved.
+                if None is chosen, then the pipe component can be saved on any worker.
+            access: The set of worker ids where this Component's state can be sent. 
+                if the string '*' is included in the set,  then all workers are allowed 
+                to receive a copy of the state. If None, then only `location` will be
+                allowed to receive the state if it is not None, otherwise, access is
+                granted only to the owner of this Language object, i.e., self.owner.
             before (str): The name of the pipeline component before which the new component
                 is to be added. Defaults to None.
             after (str): The name of the pipeline component after which the new component
@@ -304,12 +274,30 @@ class Language(AbstractObject):
             sum([bool(before), bool(after), bool(first), bool(last)]) < 2
         ), "Only one among arguments 'before', 'after', 'first' or 'last' should be set."
 
+        assert (
+            location is None or isinstance(location, str)
+        ), "Argument `location` should be of type `str` or None. Selected type is `{type(location)}`."
+
+        if access is None:
+
+            # If the `location` is specified, but `access` is None, then only
+            # the specified `location` will have access to the component's state.
+            if isinstance(location, str):
+                access = {location}
+
+            # If both `location` and `access` are None, then only the owner of this
+            # Language object is granted the right to keep a copy of the component's
+            # state.
+            else:
+                access = {self.owner.id}
+
+        
         # Add the new pipe component to the list of factories
-        self.factories[name] = component
+        self.factories[name] = component.__class__
 
         # Create the pipe template that will be added the pipeline
         # template
-        pipe_template = dict(remote=remote, name=name)
+        pipe_template = dict(remote=remote, name=name, class_name = component.__class__.__name__)
 
         # Add the pipe template at the right position
         if last or not any([before, after, first]):

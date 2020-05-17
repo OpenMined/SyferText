@@ -81,7 +81,7 @@ class SubPipeline(AbstractObject):
         self.pipe_names = template["names"]
 
         # Create the subpipeline property
-        self.subpipeline = [factories[name].factory() for name in template["names"]]
+        self.subpipeline = [factories[name](model_name = self.model_name) for name in template["names"]]
 
     def send(self, location: BaseWorker):
         """Sends this object to the worker specified by 'location'. 

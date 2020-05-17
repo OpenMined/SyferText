@@ -55,22 +55,18 @@ class TokenMeta(object):
 
 class Tokenizer(AbstractObject):
     def __init__(
-        self,
-        vocab: Union[Vocab, str],
-        exceptions=TOKENIZER_EXCEPTIONS,
-        prefix_search=prefix_re.search,
-        suffix_search=suffix_re.search,
-        infix_finditer=infix_re.finditer,
+            self,
+            model_name: str = None,
+            exceptions=TOKENIZER_EXCEPTIONS,
+            prefix_search=prefix_re.search,
+            suffix_search=suffix_re.search,
+            infix_finditer=infix_re.finditer,
     ):
         """Initializes the `Tokenizer` object
            
         Args:
-            vocab (str or Vocab object): If `str`, this should be the name of the
-                language model to build the `Vocab` object from, such as
-                'en_core_web_lg'. This is useful when the `Tokenizer` object
-                is sent to a remote worker. So it can rebuild
-                its `Vocab` object from scratch instead of sending the `Vocab`
-                object to the remote worker which might take too much network traffic.
+            model_name: The name of the language model to which this
+                tokenizer belongs.
             exceptions: Exception cases for the tokenizer.
                 Example: "e.g.", "Jr." 
             prefix_search: A function matching the signature of
@@ -93,18 +89,22 @@ class Tokenizer(AbstractObject):
         else:
             self.exceptions = {}
 
-        if isinstance(vocab, Vocab):
-            self.vocab = vocab
-        else:
-            self.vocab = Vocab(model_name=vocab)
+            
+        self.model_name = model_name
+        
+        # Create a vocab only if the model name is known
+        # The model name might not be know at initialization.
+        # This happens when the tokenizer is inialized by
+        # The user using `nlp.set_tokenizer(Tokenizer())` where the user
+        # is not required to explicitely pass the name of the
+        # language model to the Tokenizer constructor for
+        # convenience.
+        # The language model name will be add later to the
+        # tokenizer object when the pipeline is created in
+        # Subpipeline.load_template().
+        if model_name:
+            self.vocab = Vocab(model_name=model_name)
 
-    def factory(self):
-        """Creates a clone of this object.
-        This method is used by the SupPipeline class to create
-        objects using subpipeline templates.
-        """
-
-        return Tokenizer(vocab=self.vocab)
 
     def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
