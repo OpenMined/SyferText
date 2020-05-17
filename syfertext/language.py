@@ -11,7 +11,11 @@ from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
-from typing import List, Union, Tuple
+
+from typing import List
+from typing import Union
+from typing import Tuple
+from typing import Set
 
 import numpy
 
@@ -250,10 +254,6 @@ class Language(AbstractObject):
         # [TODO] An exception with a custom error message should be thrown
         assert hasattr(component, "__call__"), "Argument `component` is not a callable."
 
-        # Make sure the `component` argument is an object that has a `factory()` method
-        assert hasattr(
-            component, "factory"
-        ), "Argument `component` should be an object that has a `factory()` method"
         # [TODO] The following requirement should be relaxed and a name should be
         # automatically assigned in case `name` is None. This would be convenient
         # as done by spaCy

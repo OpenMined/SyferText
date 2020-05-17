@@ -88,8 +88,9 @@ class State(AbstractObject):
                 (StatePointer): A pointer to this object.
         """
 
-        assert '*' in self.access or location.id in self.access,
-               f"Worker `{location.id}` does not have the right to download State with ID {self.id} on worker {self.owner}"
+        assert (
+            '*' in self.access or location.id in self.access
+        ), f"Worker `{location.id}` does not have the right to download State with ID {self.id} on worker {self.owner}"
         
         state_pointer = self.owner.send(self, location)
 
