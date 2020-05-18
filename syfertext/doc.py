@@ -216,30 +216,17 @@ class Doc(AbstractObject):
         if excluded_tokens is None:
             return self.vector
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
-
         vectors = None
 
         # Count the tokens that have vectors
         vector_count = 0
 
-        for token in self:
+        valid_tokens_pos = self._get_valid_positions(excluded_tokens)
 
-            # Get the vector of the token if one exists and if token is not excluded
-            include_token = True
+        for pos in valid_tokens_pos:
 
-            include_token = all(
-                [
-                    getattr(token._, key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if hasattr(token._, key)
-                ]
-            )
-
-            if token.has_vector and include_token:
+            token = self[pos]
+            if token.has_vector:
                 # Increment the vector counter
                 vector_count += 1
 
@@ -268,31 +255,14 @@ class Doc(AbstractObject):
                 containing all the vectors.
         """
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        if excluded_tokens is not None:
-            excluded_tokens = {
-                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-            }
-
         # The list for holding all token vectors.
         token_vectors = []
 
-        for token in self:
+        valid_tokens_pos = self._get_valid_positions(excluded_tokens)
 
-            # Get the vector of the token if the token is not excluded
-            include_token = True
-
-            if excluded_tokens is not None:
-                include_token = all(
-                    [
-                        getattr(token._, key) not in excluded_tokens[key]
-                        for key in excluded_tokens.keys()
-                        if hasattr(token._, key)
-                    ]
-                )
-
-            if include_token:
-                token_vectors.append(token.vector)
+        for pos in valid_tokens_pos:
+            token = self[pos]
+            token_vectors.append(token.vector)
 
         # Convert to Numpy array.
         token_vectors = np.array(token_vectors)
@@ -343,45 +313,15 @@ class Doc(AbstractObject):
         Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
-                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
         """
 
-        if excluded_tokens is not None:
+        valid_tokens_pos = self._get_valid_positions(excluded_tokens)
 
-            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
-            excluded_tokens = {
-                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-            }
+        for pos in valid_tokens_pos:
 
-            for token in self:
+            token = self[pos]
 
-                # TODO: Fix this logic
-                # include_token = True and all(
-                #                             [
-                #                                 getattr(token._, key) not in excluded_tokens[key]
-                #                                 for key in excluded_tokens.keys()
-                #                                 if hasattr(token._, key)
-                #                             ]
-                #                         )
-
-                include_token = True
-
-                include_token = all(
-                    [
-                        getattr(token._, key) not in excluded_tokens[key]
-                        for key in excluded_tokens.keys()
-                        if hasattr(token._, key)
-                    ]
-                )
-
-                if include_token:
-                    # Add hash value of token to owner's vocab
-                    self.owner.vocab.add(token.hash)
-
-        # If the excluded_token dict in None all tokens are included
-        else:
-            for token in self:
-                self.owner.vocab.add(token.hash)
+            self.owner.vocab.add(token.hash)
 
     def get_encrypted_token_vectors(
         self,
@@ -503,23 +443,27 @@ class Doc(AbstractObject):
         return context_tensor, target_tensor
 
     def _get_valid_positions(self, excluded_tokens=None):
-        """Returns a list of indices corresponding to tokens in self. """
+        """Returns a list of indices corresponding to tokens in self.
+        # TODO: This function makes the overall code slightly slower, as you have to iterate
+         ones to find the valide tokens. And then iterate again over the valid tokens.
+         But it reduces the amount of code, significantly, thus making it more readable.
+        """
 
         length = len(self)
         valid_pos = list()
 
+        # Enforcing that the values of the excluded_tokens dict are sets, not lists.
         if excluded_tokens is not None:
-
-            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
             excluded_tokens = {
                 attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
             }
 
-            for pos in range(length):
+        for pos in range(length):
 
-                token = self[pos]
-                include_token = True
+            token = self[pos]
+            include_token = True
 
+            if excluded_tokens is not None:
                 include_token = all(
                     [
                         getattr(token._, key) not in excluded_tokens[key]
@@ -528,12 +472,8 @@ class Doc(AbstractObject):
                     ]
                 )
 
-                if include_token:
-                    valid_pos.append(pos)
-
-        # If the excluded_token dict in None all tokens are included
-        else:
-            valid_pos = [pos for pos in range(length)]
+            if include_token:
+                valid_pos.append(pos)
 
         return valid_pos
 
