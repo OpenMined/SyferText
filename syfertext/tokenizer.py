@@ -1,16 +1,25 @@
 from .doc import Doc
 from .vocab import Vocab
-
-from .punctuations import prefix_re, infix_re, suffix_re
-from .token_exception import TOKENIZER_EXCEPTIONS
 from .underscore import Underscore
+
+from . import local_worker
+
+from .token_exception import TOKENIZER_EXCEPTIONS
+from .punctuations import TOKENIZER_PREFIXES
+from .punctuations import TOKENIZER_SUFFIXES
+from .punctuations import TOKENIZER_INFIXES
 from .utils import hash_string
+from .utils import search_state
+from .utils import compile_suffix_regex
+from .utils import compile_infix_regex
+from .utils import compile_prefix_regex
 
 
 import re
 from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
+import syft.serde.msgpack.serde as serde
 
 import pickle
 from collections import defaultdict
@@ -55,12 +64,12 @@ class TokenMeta(object):
 
 class Tokenizer(AbstractObject):
     def __init__(
-            self,
-            model_name: str = None,
-            exceptions=TOKENIZER_EXCEPTIONS,
-            prefix_search=prefix_re.search,
-            suffix_search=suffix_re.search,
-            infix_finditer=infix_re.finditer,
+        self,
+        model_name: str = None,
+        exceptions: Set[str] = TOKENIZER_EXCEPTIONS,
+        prefixes: List[str] = TOKENIZER_PREFIXES,
+        suffixes: List[str] = TOKENIZER_SUFFIXES,
+        infixes: List[str] = TOKENIZER_INFIXES,
     ):
         """Initializes the `Tokenizer` object
            
@@ -69,42 +78,139 @@ class Tokenizer(AbstractObject):
                 tokenizer belongs.
             exceptions: Exception cases for the tokenizer.
                 Example: "e.g.", "Jr." 
-            prefix_search: A function matching the signature of
-                `re.compile(string).search` to match prefixes.
-                Example: "@username" : "@" is a prefix
-            suffix_search: A function matching the signature of
-                `re.compile(string).search` to match sufixes.
-                Example: "Oh!" : "!" is a suffix
-            infix_finditer: A function matching the signature of
-                `re.compile(string).finditer` to match infixes.
-                Example: "Hell-o" : "-" is an infix
+            prefixes: A list of strings to separate as prefixes during
+                tokenization.
+                Example: ["@"]. So in "@username", "@" will be separated as
+                a prefix.
+            suffixes: A list of strings to separate as suffixes during
+                tokenization.
+                Example: ["!"]. So in "Oh!", "!" will be separated as
+                a suffix.
+            infixes: A list of strings to separate as infixes during
+                tokenization.
+                Example: ["-"]. So in  "Hell-o", "-" will be separated as
+                an infix.
         """
 
-        self.prefix_search = prefix_search
-        self.suffix_search = suffix_search
-        self.infix_finditer = infix_finditer
+        # Set the tokenization rules
+        self.load_rules(
+            exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
+        )
+
+        # Set the name of the language model to which the tokenizer
+        # belongs.
+        self.model_name = model_name
+
+    def set_model_name(self, name: str) -> None:
+        """Set the language model name to which this object belongs.
+
+        Args:
+            name: The name of the language model.
+        """
+
+        self.model_name = model_name
+
+    def load_rules(
+        self,
+        exceptions: Set[str] = TOKENIZER_EXCEPTIONS,
+        prefixes: List[str] = TOKENIZER_PREFIXES,
+        suffixes: List[str] = TOKENIZER_SUFFIXES,
+        infixes: List[str] = TOKENIZER_INFIXES,
+    ):
+        """Sets/Resets the tokenization rules.
+           
+        Args:
+            exceptions: Exception cases for the tokenizer.
+                Example: "e.g.", "Jr." 
+            prefixes: A list of strings to separate as prefixes during
+                tokenization.
+                Example: ["@"]. So in "@username", "@" will be separated as
+                a prefix.
+            suffixes: A list of strings to separate as suffixes during
+                tokenization.
+                Example: ["!"]. So in "Oh!", "!" will be separated as
+                a suffix.
+            infixes: A list of strings to separate as infixes during
+                tokenization.
+                Example: ["-"]. So in  "Hell-o", "-" will be separated as
+                an infix.
+
+        Modifies:
+            properties `exceptions`, `prefix_search`, `suffix_search`, 
+               and `infix_finditer` are modified by this method.
+                     
+        """
+
+        self.prefix_search = compile_prefix_regex(prefixes)
+        self.suffix_search = compile_suffix_regex(suffixes)
+        self.infix_finditer = compile_infix_regex(infixes)
 
         if exceptions:
             self.exceptions = exceptions
         else:
             self.exceptions = {}
 
-            
-        self.model_name = model_name
-        
-        # Create a vocab only if the model name is known
-        # The model name might not be know at initialization.
-        # This happens when the tokenizer is inialized by
-        # The user using `nlp.set_tokenizer(Tokenizer())` where the user
-        # is not required to explicitely pass the name of the
-        # language model to the Tokenizer constructor for
-        # convenience.
-        # The language model name will be add later to the
-        # tokenizer object when the pipeline is created in
-        # Subpipeline.load_template().
-        if model_name:
-            self.vocab = Vocab(model_name=model_name)
+    def load_state(self) -> None:
+        """Search for the state of this object on PyGrid.
 
+        Modifies:
+            self.vocab: The `vocab` property is initialized with the model
+                 name. Its 'load_state()` method is also called.
+        """
+
+        # Start by creating the vocab and loading its state
+        self.vocab = Vocab(model_name=self.model_name)
+        self.vocab.load_state()
+
+        # Create the query. This is the ID according to which the
+        # State object is searched on PyGrid
+        state_id = f"{self.model_name}:{self.__class__.__name__}"
+
+        # Search for the state
+        state = search_state(query=state_id)
+
+        # If no state is found, return
+        if not state:
+            return
+
+        # Detail the simple object contained in the state
+        exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
+
+        exceptions = serde._detail(local_worker, exceptions_simple)
+        prefixes = serde._detail(local_worker, prefixes_simple)
+        suffixes = serde._detail(local_worker, suffixes_simple)
+        infixes = serde._detail(local_worker, infixes_simple)
+
+        # Load the state
+        self.load_rules(
+            exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
+        )
+
+    def dump_state(self) -> State:
+        """Returns a State object that holds the current state of this object.
+
+        Returns:
+            A State object that holds a simplified version of this object's state.
+        """
+
+        # Simply the state variables
+        exceptions_simple = serde._simplify(local_worker, self.exceptions)
+        prefixes_simple = serde._simplify(local_worker, self.prefixes)
+        suffixes_simple = serde._simplify(local_worker, self.suffixes)
+        infixes_simple = serde._simplify(local_worker, self.infixes)
+
+        # Create the query. This is the ID according to which the
+        # State object is searched for on across workers
+        state_id = f"{self.model_name}:{self.__class__.__name__}"
+
+        # Create the State object
+        state = State(
+            simple_obj=(exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple),
+            id=state_id,
+            access={"*"},
+        )
+
+        return state
 
     def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
@@ -661,8 +767,7 @@ class Tokenizer(AbstractObject):
         """
 
         # Simplify attributes
-
-        model_name = pickle.dumps(tokenizer.vocab.model_name)
+        model_name = serde._simplify(tokenizer.vocab.model_name)
 
         return model_name
 
@@ -683,9 +788,9 @@ class Tokenizer(AbstractObject):
         model_name = simple_obj
 
         # Unpickle
-        model_name = pickle.loads(model_name)
+        model_name = serde._detail(model_name)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(vocab=model_name)
+        tokenizer = Tokenizer(model_name=model_name)
 
         return tokenizer

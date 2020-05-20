@@ -43,7 +43,6 @@ class StatePointer(ObjectPointer):
             garbage_collect_data=garbage_collect_data,
         )
 
-        
     def get_copy(self) -> "State":
         """This method is used to download a copy of the remote 
         State object.

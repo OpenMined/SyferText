@@ -41,9 +41,7 @@ class Language(AbstractObject):
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = dict(Tokenizer = Tokenizer,
-                              SimpleTagger = SimpleTagger
-        )
+        self.factories = dict()
 
         # Initialize the subpipeline template
         self.pipeline_template = []
@@ -53,10 +51,8 @@ class Language(AbstractObject):
         # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
         self.states = {}
 
-        
         super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-        
     @property
     def pipe_names(self) -> List[str]:
         """Returns a list of component names in the pipeline in order of execution.
@@ -67,7 +63,6 @@ class Language(AbstractObject):
 
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
-
     def set_tokenizer(self, tokenizer: Tokenizer):
         """Set the tokenizer object. This modifies the `tokenizer` property.
 
@@ -75,21 +70,21 @@ class Language(AbstractObject):
             tokenizer: the Tokenizer object.
         """
 
-        # Add the tokenizer to the pipeline
-        self.add_pipe(component = tokenizer,
-                      name = tokenizer.__class__.__name__.lower(),
-                      location = None, 
-                      access = {'*'} 
-        )
+        # The name of the tokenizer component is set to the class name
+        # for the moment
+        name = tokenizer.__class__.__name__.lower()
 
-        # Get the tokenizer state 
+        # Set the language model name to which this tokenizer belongs.
+        tokenizer.set_model_name(self.model_name)
+
+        # Add the tokenizer to the pipeline
+        self.add_pipe(component=tokenizer, name=name, location=None, access={"*"})
+
+        # Get the tokenizer state
         state = tokenizer.dump_state()
 
-        
         # Save the tokenizer state
-        self._save_state(state)
-        
-
+        self._save_state(state=state)
 
     def set_vocab(self, vocab: Vocab):
         """Load a new vocab to the Language object. This methods modifies the
@@ -104,17 +99,14 @@ class Language(AbstractObject):
         """
 
         # Set the language model name to which this vocab object belongs.
-        vocab.model_name = self.model_name
+        vocab.set_model_name(name=self.model_name)
 
-        
         # Get the state of the vocab object
         state = vocab.dump_state()
 
         # Save the state in the object store
-        self._save_state(state)
+        self._save_state(state=state, name="vocab")
 
-
-        
     def _save_state(state: State, name: str):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
@@ -124,14 +116,13 @@ class Language(AbstractObject):
                 worker.
             name: The name of the component associated with the state.
         """
-        
+
         # Add to the list of State objects known to this Language object
         self.states[name] = state
 
         # Register it in the object store
         self.owner.register_obj(state)
 
-            
     def _parse_pipeline_template(self):
         """Parses the `pipeline_template` property to
         create the `subpipeline_templates` property.
@@ -183,15 +174,15 @@ class Language(AbstractObject):
         self.pipeline = [dict() for i in range(subpipeline_count)]
 
     def add_pipe(
-            self,
-            component: callable,
-            location: Union[None, str] = None,
-            access: Set[str] = None,
-            name: str = None,
-            before: str = None,
-            after: str = None,
-            first: bool = False,
-            last: bool = True,
+        self,
+        component: callable,
+        location: Union[None, str] = None,
+        access: Set[str] = None,
+        name: str = None,
+        before: str = None,
+        after: str = None,
+        first: bool = False,
+        last: bool = True,
     ):
 
         """Adds a pipe template to the pipeline template. 
@@ -274,8 +265,8 @@ class Language(AbstractObject):
             sum([bool(before), bool(after), bool(first), bool(last)]) < 2
         ), "Only one among arguments 'before', 'after', 'first' or 'last' should be set."
 
-        assert (
-            location is None or isinstance(location, str)
+        assert location is None or isinstance(
+            location, str
         ), "Argument `location` should be of type `str` or None. Selected type is `{type(location)}`."
 
         if access is None:
@@ -291,13 +282,12 @@ class Language(AbstractObject):
             else:
                 access = {self.owner.id}
 
-        
         # Add the new pipe component to the list of factories
-        self.factories[name] = component.__class__
+        self.factories[name] = globals()[component.__class__]
 
         # Create the pipe template that will be added the pipeline
         # template
-        pipe_template = dict(remote=remote, name=name, class_name = component.__class__.__name__)
+        pipe_template = dict(remote=remote, name=name, class_name=component.__class__.__name__)
 
         # Add the pipe template at the right position
         if last or not any([before, after, first]):

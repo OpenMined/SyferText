@@ -60,7 +60,7 @@ class SubPipeline(AbstractObject):
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_template(
-        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, callable],
+        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, type],
     ):
         """Loads the subpipeline template.
 
@@ -71,17 +71,17 @@ class SubPipeline(AbstractObject):
                 how a template looks like: 
                 {'remote': True, 'names': ['tokenizer', 'tagger']}
             factories (dict): This is a dictionary that contains 
-                a mapping between a pipe name and the object that
-                knows how to create such a pipe using a factory
-                method. Example to create a tokenizer:
-                factories['tokenizer'].factory()
+                a mapping between a pipe name and the class that
+                is used to create the object representing the pipe.
         """
 
         # set the pipe names property
         self.pipe_names = template["names"]
 
         # Create the subpipeline property
-        self.subpipeline = [factories[name](model_name = self.model_name) for name in template["names"]]
+        self.subpipeline = [
+            factories[name](model_name=self.model_name) for name in template["names"]
+        ]
 
     def send(self, location: BaseWorker):
         """Sends this object to the worker specified by 'location'. 

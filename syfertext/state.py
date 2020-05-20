@@ -8,17 +8,17 @@ from typing import Union
 from typing import Set
 from typing import Tuple
 
+
 class State(AbstractObject):
-
-
-    def __init__(self,
-                 simple_obj: Tuple(object),                 
-                 id: str,
-                 location: Union[None, str],
-                 access: Set[str],
-                 owner: BaseWorker = None,
-                 tags: set[str] = None,
-                 description: str = None
+    def __init__(
+        self,
+        simple_obj: Tuple(object),
+        id: str,
+        location: Union[None, str],
+        access: Set[str],
+        owner: BaseWorker = None,
+        tags: set[str] = None,
+        description: str = None,
     ):
         """Initializes the object.
 
@@ -48,10 +48,9 @@ class State(AbstractObject):
         self.simple_obj = simple_obj
 
         self.access = access
-        
-        super(State, self).__init__(id = id, owner = owner, tags = tags, description = description)
 
-        
+        super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
+
     def send_copy(self, location: BaseWorker) -> "State":
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
@@ -67,16 +66,16 @@ class State(AbstractObject):
         """
 
         # Create the copy
-        state = State(simple_obj = self.simple_obj,
-                      id = self.id,
-                      access = self.access,
-                      tags = self.tags,
-                      description = self.description
+        state = State(
+            simple_obj=self.simple_obj,
+            id=self.id,
+            access=self.access,
+            tags=self.tags,
+            description=self.description,
         )
 
         return state
 
-    
     def send(self, location: BaseWorker) -> StatePointer:
         """Sends this object to the worker specified by `location`. 
 
@@ -89,14 +88,13 @@ class State(AbstractObject):
         """
 
         assert (
-            '*' in self.access or location.id in self.access
+            "*" in self.access or location.id in self.access
         ), f"Worker `{location.id}` does not have the right to download State with ID {self.id} on worker {self.owner}"
-        
+
         state_pointer = self.owner.send(self, location)
 
         return state_pointer
 
-    
     @staticmethod
     def create_pointer(
         state: "State",
@@ -141,8 +139,7 @@ class State(AbstractObject):
         )
 
         return state_pointer
-    
-    
+
     @staticmethod
     def simplify(worker: BaseWorker, state: "State") -> Tuple[object]:
         """Simplifies a State object. This method is required by PySyft
@@ -163,13 +160,12 @@ class State(AbstractObject):
         id_simple = serde._simplify(worker, state.id)
         access_simple = serde._simplify(worker, state.access)
         tags_simple = serde._simplify(worker, state.tags)
-        description_simple = serde._simplify(worker, state.description)        
+        description_simple = serde._simplify(worker, state.description)
 
         # create the simple State object
         state_simple = (id_simple, access_simple, tags_simple, description_simple, state.simple_obj)
-        
-        return state_simple
 
+        return state_simple
 
     @staticmethod
     def detail(worker: Baseworker, state_simple: Tuple[object]) -> "State":
@@ -188,22 +184,21 @@ class State(AbstractObject):
 
         # Unpack the simple state
         id_simple, access_simple, tags_simple, description_simple, simple_obj = state_simple
-        
+
         # Detail the attributes
         id = serde._detail(worker, id_simple)
-        access = serde._detail(worker, access_simple)        
+        access = serde._detail(worker, access_simple)
         tags = serde._detail(worker, tags_simple)
         description = serde._detail(worker, description_simple)
 
         # Create a State object
-        state = State(simple_obj = simple_obj,
-                      id = id,
-                      access = access,
-                      owner  = worker,
-                      tags = tags,
-                      description = description
+        state = State(
+            simple_obj=simple_obj,
+            id=id,
+            access=access,
+            owner=worker,
+            tags=tags,
+            description=description,
         )
 
         return state
-        
-        
