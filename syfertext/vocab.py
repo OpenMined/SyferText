@@ -4,16 +4,15 @@ from pathlib import Path
 
 from .vectors import Vectors
 from .string_store import StringStore
-
-from . import State
-from . import local_worker
-
 from .utils import search_state
+from .state import State
+from . import LOCAL_WORKER
 
 import syft.serde.msgpack.serde as serde
 
 import numpy
 
+from typing import Dict
 
 class Vocab:
     def __init__(

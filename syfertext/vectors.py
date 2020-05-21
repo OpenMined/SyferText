@@ -6,6 +6,8 @@ import importlib
 
 from .utils import hash_string
 
+from typing import Dict
+
 
 class Vectors:
     def __init__(self, key2index: Dict[int, int], vectors: np.array):
@@ -21,6 +23,7 @@ class Vectors:
         self.key2index = key2index
         self.vectors = vectors
 
+
     def load_data(self, key2index: Dict[int, int], vectors: np.array):
         """Loads the vector data. This is needed when the Vocab object loads its
         state, which might contain vector data.
@@ -35,6 +38,7 @@ class Vectors:
         self.key2index = key2index
         self.vectors = vectors
 
+        
     def has_vector(self, word: str):
         """Checks whether 'word' has a vector or not in self.data
 
@@ -58,6 +62,7 @@ class Vectors:
         else:
             return False
 
+        
     def __getitem__(self, word):
         """takes a word as a string and returns the corresponding vector
 
@@ -70,13 +75,15 @@ class Vectors:
             if no vector is found, self.default_vector is returned.
         """
 
+
+
         # if the key does not exists return default vector
         if not self.has_vector(word):
             return self.default_vector
 
         # Create the word hash key
         key = hash_string(word)
-
+        
         # Get the vector row corresponding to the hash
         row = self.key2index[key]
 

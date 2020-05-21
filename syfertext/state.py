@@ -1,8 +1,8 @@
 from syft.generic.object import AbstractObject
-from syft.worker.base import BaseWorker
-from .pointers import StatePointer
-
+from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
+
+from .pointers import StatePointer
 
 from typing import Union
 from typing import Set
@@ -10,14 +10,14 @@ from typing import Tuple
 
 
 class State(AbstractObject):
+    
     def __init__(
         self,
-        simple_obj: Tuple(object),
+        simple_obj: Tuple[object],
         id: str,
-        location: Union[None, str],
         access: Set[str],
         owner: BaseWorker = None,
-        tags: set[str] = None,
+        tags: Set[str] = None,
         description: str = None,
     ):
         """Initializes the object.
@@ -168,7 +168,7 @@ class State(AbstractObject):
         return state_simple
 
     @staticmethod
-    def detail(worker: Baseworker, state_simple: Tuple[object]) -> "State":
+    def detail(worker: BaseWorker, state_simple: Tuple[object]) -> "State":
         """Takes a simplified State object, details it to create
         a new State object. This is usually done on a worker where
         the State object is sent.

@@ -1,5 +1,5 @@
-from . import local_worker
-from . import State
+from . import LOCAL_WORKER
+from .state import State
 
 import mmh3
 import os
@@ -131,7 +131,7 @@ def search_state(query: str) -> Union[State, None]:
     """
 
     # Start first by searching for the state on the local worker.
-    result = local_worker.search(query=query)
+    result = LOCAL_WORKER.search(query=query)
 
     # If a state is found, then return it.
     if result:
@@ -139,16 +139,16 @@ def search_state(query: str) -> Union[State, None]:
         # Make sure only on state is found
         assert (
             len(results) > 1
-        ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{local_worker}`."
+        ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{LOCAL_WORKER}`."
 
         return result[0]
 
     # If no state is found on the local worker, search on all
-    # workers connected to the local_worker
-    for location in local_worker._known_workers:
+    # workers connected to the LOCAL_WORKER
+    for location in LOCAL_WORKER._known_workers:
 
         # Search for the state on this worker. The result is a list
-        result = local_worker.request_search(query=state_id, location=location)
+        result = LOCAL_WORKER.request_search(query=state_id, location=location)
 
         # If a state is found, process the result.
         if result:

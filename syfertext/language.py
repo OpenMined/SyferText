@@ -32,7 +32,7 @@ class Language(AbstractObject):
 
     def __init__(
         self,
-        model_name,
+        model_name: str,
         id: int = None,
         owner: BaseWorker = None,
         tags: List[str] = None,
@@ -43,6 +43,9 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = dict()
 
+        # Set the model name
+        self.model_name = model_name
+        
         # Initialize the subpipeline template
         self.pipeline_template = []
 
@@ -78,13 +81,13 @@ class Language(AbstractObject):
         tokenizer.set_model_name(self.model_name)
 
         # Add the tokenizer to the pipeline
-        self.add_pipe(component=tokenizer, name=name, location=None, access={"*"})
+        self.add_pipe(component=tokenizer, name=name, access={"*"})
 
         # Get the tokenizer state
         state = tokenizer.dump_state()
 
         # Save the tokenizer state
-        self._save_state(state=state)
+        self._save_state(state=state, name=name)
 
     def set_vocab(self, vocab: Vocab):
         """Load a new vocab to the Language object. This methods modifies the
@@ -107,7 +110,7 @@ class Language(AbstractObject):
         # Save the state in the object store
         self._save_state(state=state, name="vocab")
 
-    def _save_state(state: State, name: str):
+    def _save_state(self, state: State, name: str):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
 
@@ -129,10 +132,11 @@ class Language(AbstractObject):
         """
 
         # Initialize a subpipeline template with the
-        # tokenizer. The tokenizer always has 'remote' set
-        # to True.
+        # tokenizer. The tokenizer's template always has 'access' set
+        # to "*" meaning that it can be sent to any worker without
+        # restrictions
         subpipeline_template = dict(
-            remote=self.pipeline_template[0]["remote"], names=[self.pipeline_template[0]["name"]]
+            access=self.pipeline_template[0]["access"], names=[self.pipeline_template[0]["name"]]
         )
 
         # Initialize the subpipeline templates list as a class property
@@ -176,7 +180,6 @@ class Language(AbstractObject):
     def add_pipe(
         self,
         component: callable,
-        location: Union[None, str] = None,
         access: Set[str] = None,
         name: str = None,
         before: str = None,
@@ -223,13 +226,10 @@ class Language(AbstractObject):
             component (callable): This is a callable that takes a Doc object and modifies
                 it inplace.
             name (str): The name of the pipeline component to be added. Defaults to None.
-            location: The worker id where the pipe component's state should be saved.
-                if None is chosen, then the pipe component can be saved on any worker.
-            access: The set of worker ids where this Component's state can be sent. 
+            access: The set of worker ids where this component's state can be sent. 
                 if the string '*' is included in the set,  then all workers are allowed 
-                to receive a copy of the state. If None, then only `location` will be
-                allowed to receive the state if it is not None, otherwise, access is
-                granted only to the owner of this Language object, i.e., self.owner.
+                to receive a copy of the state. If set to None, then only the worker where this
+                component is saved will be allowed to get a copy of the state.
             before (str): The name of the pipeline component before which the new component
                 is to be added. Defaults to None.
             after (str): The name of the pipeline component after which the new component
@@ -265,10 +265,7 @@ class Language(AbstractObject):
             sum([bool(before), bool(after), bool(first), bool(last)]) < 2
         ), "Only one among arguments 'before', 'after', 'first' or 'last' should be set."
 
-        assert location is None or isinstance(
-            location, str
-        ), "Argument `location` should be of type `str` or None. Selected type is `{type(location)}`."
-
+        
         if access is None:
 
             # If the `location` is specified, but `access` is None, then only
@@ -283,11 +280,14 @@ class Language(AbstractObject):
                 access = {self.owner.id}
 
         # Add the new pipe component to the list of factories
-        self.factories[name] = globals()[component.__class__]
+        self.factories[name] = globals()[component.__class__.__name__]
 
         # Create the pipe template that will be added the pipeline
         # template
-        pipe_template = dict(remote=remote, name=name, class_name=component.__class__.__name__)
+        pipe_template = dict(name=name,
+                             class_name=component.__class__.__name__,
+                             access = access,
+        )
 
         # Add the pipe template at the right position
         if last or not any([before, after, first]):
@@ -316,7 +316,7 @@ class Language(AbstractObject):
         # Reset the pipeline.
         # The instance variable that will be affected is:
         # self.pipeline
-        self._reset_pipeline()
+        #self._reset_pipeline()
 
     def remove_pipe(self, name: str) -> Tuple[str, callable]:
         """Removes the pipeline whose name is 'name'

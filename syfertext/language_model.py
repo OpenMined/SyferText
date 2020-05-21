@@ -1,5 +1,5 @@
 from syft.generic.object import AbstractObject
-from syft.worker.base import BaseWorker
+from syft.workers.base import BaseWorker
 
 from typing import Union
 from typing import Set
@@ -23,15 +23,14 @@ class LanguageModel(AbstractObject):
     to know more.
 
     """
-
-    def __init__(
-        self,
-        source: str,
-        name: str,
-        id: Union[str, int] = None,
-        owner: BaseWorker = None,
-        tags: set[str] = None,
-        description: str = None,
+    
+    def __init__(self,
+                 source: str,
+                 name: str,
+                 id: Union[str, int] = None,
+                 owner: BaseWorker = None,
+                 tags: set[str] = None,
+                 description: str = None,
     ):
         """Initializes the object.
 
@@ -81,7 +80,7 @@ class LanguageModel(AbstractObject):
             description: A text that describes the language model,
                  its contents, and any other features.
            
-        """
+        """ 
 
         self.name = name
 
@@ -90,13 +89,19 @@ class LanguageModel(AbstractObject):
         if tags is None:
             self.tags = set()
 
-        self.tags.add(f"#{name}")
+        self.tags.add(f'#{name}')
 
         # Initialize the pipeline template
         self.pipeline = []
 
+        
         # Initialize the parent class
-        super(LanguageModel, self).__init__(id=id, owner=owner, tags=tags, description=description)
+        super(LanguageModel, self).__init__(id = id,
+                                            owner = owner,
+                                            tags = tags,
+                                            description = description)
+
+
 
     @property
     def pipe_names(self):
@@ -105,10 +110,12 @@ class LanguageModel(AbstractObject):
         Returns:
             name (List[str]): A list of all pipe name in the pipeline.
         """
-
-        names = set([pipe_template["name"] for pipe_template in self.pipeline_template])
+        
+        names = set([pipe_template['name'] for pipe_template in self.pipeline_template])
 
         return names
+
+    
 
     def remove_pipe(self, name: str):
         """Remove a pipe template from the pipeline template.
@@ -117,22 +124,33 @@ class LanguageModel(AbstractObject):
             name: The name of the pipe to remove.
         """
 
-        self.pipeline_template = [pipe for pipe in self.pipeline_template if pipe["name"] != name]
+        self.pipeline_template = [pipe for pipe in self.pipeline_template if pipe['name'] != name]
+        
 
-    def add_pipe_template(self, name: str, owner: str, access: Union[None, Set[str]]):
+        
+    def add_pipe_template(self,
+                          name: str,
+                          owner: str,
+                          access: Union[None, Set[str]]
+    ):
         """Adds a pipe template to the pipeline template of 
         the language model.
         """
 
-        assert (
-            name not in self.pipe_names
-        ), f"A pipe with name '{name}' already exists in the pipeline"
+        assert name not in self.pipe_names, f"A pipe with name '{name}' already exists in the pipeline"
 
+        
         # Create the pipe template
-        pipe_template = dict(name=name, owner=owner, access=access)
-
+        pipe_template = dict(name = name,
+                             owner = owner,
+                             access = access
+        )
+        
         # Add the pipe template to the pipeline template
         self.pipeline_template.append(pipe_template)
+
+
+
 
         """
         1- To create a brand new language model, we always start by creating

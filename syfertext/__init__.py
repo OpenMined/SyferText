@@ -1,26 +1,28 @@
+import syft
+import syft.serde.msgpack.serde as serde
+from syft.workers.base import BaseWorker
+import torch
+
+# Get a torch hook
+HOOK = syft.TorchHook(torch)
+
+# Set the local worker
+LOCAL_WORKER = HOOK.local_worker
+
 from .language import Language
 from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
-from . import utils
 
+from typing import List
+from typing import Tuple
+from typing import Set
 
-import syft
-import syft.serde.msgpack.serde as serde
-from syft.workers.base import BaseWorker
-import torch
-
-from typing import List, Tuple, Set
 import logging
 import os
 
-# Get a torch hook
-hook = syft.TorchHook(torch)
-
-# Set the local worker
-local_worker = hook.local_worker
 
 
 def load(
@@ -41,11 +43,44 @@ def load(
     """
 
     # Instantiate a Language object
-    nlp = Language(model_name, id=id, owner=owner, tags=tags, description=description)
+    nlp = Language(model_name,
+                   id=id,
+                   owner=owner,
+                   tags=tags,
+                   description=description)
 
     return nlp
 
+def create(
+    model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
+):
+    """Creates a new Language object. This function is used when a new language model
+    is constructed from local files.
 
+    Args:
+        model_name (str): The name of the language model to create.
+        owner (BaseWorker): The worker that should own the Language object.
+        id (int): The Identifier of the Language object in the worker's object store.
+        tags (set): A set of str that help search for the Language model across workers.
+        description (str): A str that describes the Language object.
+
+
+    Returns:
+        a an object of the Language class, representing the created language model.
+    """
+
+    #TODO: The create method should first search over pygrid to make sure no other
+    #      model has the same name
+
+    # Instantiate a Language object
+    nlp = Language(model_name = model_name,
+                   id=id,
+                   owner=owner,
+                   tags=tags,
+                   description=description)
+
+    return nlp
+    
 def register_to_serde(class_type: type):
     """Adds a class `class_type` to the `serde` module of PySyft.
 
@@ -79,4 +114,4 @@ SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 State.proto_id = register_to_serde(State)
 
 # Set the default owners of some classes
-SubPipeline.owner = local_worker
+SubPipeline.owner = LOCAL_WORKER

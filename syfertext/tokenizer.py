@@ -1,8 +1,9 @@
 from .doc import Doc
 from .vocab import Vocab
+from .state import State
 from .underscore import Underscore
 
-from . import local_worker
+from . import LOCAL_WORKER
 
 from .token_exception import TOKENIZER_EXCEPTIONS
 from .punctuations import TOKENIZER_PREFIXES
@@ -23,7 +24,13 @@ import syft.serde.msgpack.serde as serde
 
 import pickle
 from collections import defaultdict
-from typing import List, Union, Tuple, Match, DefaultDict
+
+from typing import List
+from typing import Union
+from typing import Tuple
+from typing import Match
+from typing import DefaultDict
+from typing import Set
 
 
 class TokenMeta(object):
@@ -63,6 +70,7 @@ class TokenMeta(object):
 
 
 class Tokenizer(AbstractObject):
+    
     def __init__(
         self,
         model_name: str = None,
@@ -101,7 +109,7 @@ class Tokenizer(AbstractObject):
         # belongs.
         self.model_name = model_name
 
-    def set_model_name(self, name: str) -> None:
+    def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
         Args:
@@ -137,10 +145,16 @@ class Tokenizer(AbstractObject):
 
         Modifies:
             properties `exceptions`, `prefix_search`, `suffix_search`, 
-               and `infix_finditer` are modified by this method.
+               `infix_finditer`, `prefixes`, `suffixes`, and `infixes`
+               are created by this method.
+            
                      
         """
 
+        self.prefixes = prefixes
+        self.suffixes = suffixes
+        self.infixes = infixes
+        
         self.prefix_search = compile_prefix_regex(prefixes)
         self.suffix_search = compile_suffix_regex(suffixes)
         self.infix_finditer = compile_infix_regex(infixes)
@@ -176,10 +190,10 @@ class Tokenizer(AbstractObject):
         # Detail the simple object contained in the state
         exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
 
-        exceptions = serde._detail(local_worker, exceptions_simple)
-        prefixes = serde._detail(local_worker, prefixes_simple)
-        suffixes = serde._detail(local_worker, suffixes_simple)
-        infixes = serde._detail(local_worker, infixes_simple)
+        exceptions = serde._detail(LOCAL_WORKER, exceptions_simple)
+        prefixes = serde._detail(LOCAL_WORKER, prefixes_simple)
+        suffixes = serde._detail(LOCAL_WORKER, suffixes_simple)
+        infixes = serde._detail(LOCAL_WORKER, infixes_simple)
 
         # Load the state
         self.load_rules(
@@ -194,14 +208,15 @@ class Tokenizer(AbstractObject):
         """
 
         # Simply the state variables
-        exceptions_simple = serde._simplify(local_worker, self.exceptions)
-        prefixes_simple = serde._simplify(local_worker, self.prefixes)
-        suffixes_simple = serde._simplify(local_worker, self.suffixes)
-        infixes_simple = serde._simplify(local_worker, self.infixes)
+        exceptions_simple = serde._simplify(LOCAL_WORKER, self.exceptions)
+        prefixes_simple = serde._simplify(LOCAL_WORKER, self.prefixes)
+        suffixes_simple = serde._simplify(LOCAL_WORKER, self.suffixes)
+        infixes_simple = serde._simplify(LOCAL_WORKER, self.infixes)
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
-        state_id = f"{self.model_name}:{self.__class__.__name__}"
+        state_name = self.__class__.__name__.lower()
+        state_id = f"{self.model_name}:{state_name}"
 
         # Create the State object
         state = State(
