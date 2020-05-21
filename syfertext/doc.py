@@ -193,6 +193,41 @@ class Doc(AbstractObject):
 
         return doc_vector
 
+    @property
+    def is_sentenced(self):
+        """Check if the document has sentence boundaries assigned. This is
+        defined as having at least one token other than the first where sent_start is not None.
+        """
+
+        # check for empty doc
+        if len(self) == 0:
+            return False
+
+        if self.container[0].is_sent_start != None:
+            return True
+        return False
+
+    @property
+    def sents(self):
+        """Iterate over the sentences in the document. Yields sentence `Span`
+        objects.
+
+        Returns:
+            List of Spans: Sentences in the document.
+        """
+        assert (
+            self.is_sentenced
+        ), "Doc has not been sentencised yet, please use the sentenciser pipeline to divide doc into senetences"
+
+        start = 0
+        for i in range(1, len(self)):
+            if self.container[i].is_sent_start:
+                yield Span(self, start, i)
+                start = i
+
+        if start != len(self):
+            yield Span(self, start, len(self))
+
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.

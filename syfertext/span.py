@@ -129,6 +129,11 @@ class Span(AbstractObject):
 
             return span
 
+    @property
+    def text(self):
+        """Returns the text present in the span with whitespaces"""
+        return "".join(token.text_with_ws for token in self)
+
     def __len__(self):
         """Return the number of tokens in the Span."""
         return self.end - self.start

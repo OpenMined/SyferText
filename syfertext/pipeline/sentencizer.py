@@ -28,7 +28,7 @@ class Sentencizer:
         objects using subpipeline templates.
         """
 
-        return Sentencizer(punct_chars=self.punct_chars,)
+        return Sentencizer(punct_chars=self.punct_chars)
 
     def __call__(self, doc):
         """Apply the sentencizer to a Doc and set TokenMeta.is_sent_start.
@@ -88,14 +88,14 @@ class Sentencizer:
                 to simplify.
 
         Returns:
-            (tuple): The simplified Sentencizer object.
+            The simplified Sentencizer object.
         
         """
 
         # Simplify the object properties
         punct_chars = serde._simplify(worker, sentencizer.punct_chars)
 
-        return (punct_chars,)
+        return punct_chars
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -105,13 +105,13 @@ class Sentencizer:
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
-            simple_obj (tuple): the simplified Sentencizer object.
+            simple_obj : the simplified Sentencizer object.
         Returns:
             (Sentencizer): The Sentencizer object.
         """
 
         # Unpack the simplified object
-        (punct_chars,) = simple_obj
+        punct_chars = simple_obj
 
         # Detail each property
         punct_chars = serde._detail(worker, punct_chars)
