@@ -6,8 +6,9 @@ import os
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 setup(
-    name="syfertext",   
+    name="syfertext",
     author="Alan Aboudib",
     author_email="agabudeeb@gmail.com",
     description="A privacy preserving NLP framework",
