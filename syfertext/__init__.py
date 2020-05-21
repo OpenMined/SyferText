@@ -4,6 +4,7 @@ from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .pipeline import Sentencizer
+from . import utils
 
 import syft
 import syft.serde.msgpack.serde as serde
@@ -23,9 +24,6 @@ def load(
 ):
     """Loads the specified language model `model_name` and returns a Language object.
 
-    If it is the first time the language model `model_name` is loaded, it is downloaded
-    prior to loading.
-
     Args:
         model_name (str): The name of the language model.
         owner (BaseWorker): The worker that should own the Language object.
@@ -37,9 +35,6 @@ def load(
     Returns:
         a an object of the Language class, representing the requested language model.
     """
-
-    # If the language model does not exist, download it
-    utils.get_lang_model(model_name)
 
     # Instantiate a Language object
     nlp = Language(model_name, id=id, owner=owner, tags=tags, description=description)

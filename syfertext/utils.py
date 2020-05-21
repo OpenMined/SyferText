@@ -1,130 +1,116 @@
 import mmh3
 import os
-import logging
-import urllib.request as request
-from tqdm import tqdm
+import re
 from pathlib import Path
 
-# Files to download for each language model
-# TODO: Downloading language models should be handled
-#       differently in later version of the library.
-#       One good idea is to download language models as python packages
-#       as done in spaCy
+from typing import Pattern
+from typing import Match
+from typing import Tuple
 
-lang_model_files = dict()
-
-lang_model_files["en_core_web_lg"] = [
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/key2row?raw=true",
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/vectors?raw=true",
-    "https://github.com/AlanAboudib/syfertext_en_core_web_lg/blob/master/words?raw=true",
-]
+import tempfile
+import shutil
 
 
-def hash_string(string):
+def hash_string(string: str) -> int:
+    """Create a hash for a given string. 
+    Hashes created by this functions will be used everywhere by
+    SyferText to represent tokens.
+    """
 
     key = mmh3.hash64(string, signed=False, seed=1)[0]
 
     return key
 
 
-def get_lang_model(model_name: str):
-    """Downloads the specified language model `model_name` if not already done.
-
-     Checks if the language folder named `model_name` is present. If not, it
-     creates it and downloads the language model files  inside.
-
-     Todo:
-         This is an intial version to how language models are dealt
-         with. it should be revisited later.
-    """
-
-    # Path to this file
-    file_path = os.path.dirname(os.path.realpath(__file__))
-
-    # Path to the folder containing language models
-    data_path = os.path.join(str(Path.home()), "SyferText")
-
-    # Do not download the language model if it is already done
-    download_model = False
-
-    # If the data folder does not exist yet, create it
-    if not os.path.isdir(data_path):
-
-        os.mkdir(data_path)
-
-        # a flag signified that the model show be downloaded
-        download_model = True
-
-    # If the data folder does not contain the language model
-    # folder, download the language model
-    if model_name not in os.listdir(data_path):
-
-        download_model = True
-
-        # full path of the model folder to create
-        model_path = os.path.join(data_path, model_name)
-
-        # Create the model folder
-        os.mkdir(model_path)
-
-    if download_model:
-
-        # download model files into the specified path
-        _download_model(model_name, model_path)
-
-
-def _download_model(model_name: str, model_path: str):
-    """Download the language model files through HTTP.
+def normalize_slice(length: int, start: int, stop: int, step: int = None):
+    """This function is used to convert the negative slice boundaries to positive values.
+    eg. start = -4, stop = -1, length = 6 gets converted to start = 2, stop = 5
 
     Args:
-        model_name (str): The name of the language model.
-        model_path (str): The path to the folder in which model files are downloaded.
+        length (int): the length of the document to slice
+        start (int): the start index of the slice
+        stop (int): the stop index of the slice
+        step (int): the step value for the slice
+
+    Returns:
+        (start, stop) : pair of non-negative integer values signifying the
+            normalized values of the slice
+    """
+    assert step is None or step == 1, "Stepped slices with steps greater than one are not supported"
+
+    # if start is none, that means we need to start from 0 index
+    if start is None:
+        start = 0
+
+    # if start is negative, we add the length to get its actual index
+    elif start < 0:
+        start += length
+
+    # start should not exceed the length of the document
+    # also max(0,start) ensures the start is never negative
+    start = min(length, max(0, start))
+
+    # stop is None, that means we need stop to be the last index+1
+    if stop is None:
+        stop = length
+
+    # add the length to get the actual positive index for stop if
+    # is negative
+    elif stop < 0:
+        stop += length
+
+    # stop should be less than or equal to length. Also max(start,stop) ensures that start <= stop
+    stop = min(length, max(start, stop))
+
+    return start, stop
+
+
+# The following three functions for compiling prefix, suffix and infix regex are adapted
+# from Spacy  https://github.com/explosion/spaCy/blob/master/spacy/util.py.
+def compile_prefix_regex(entries: Tuple) -> Pattern:
+    """Compile a sequence of prefix rules into a regex object.
+
+    Args:
+        entries (tuple): The prefix rules, e.g. syfertext.punctuation.TOKENIZER_PREFIXES.
+
+    Returns:
+        The regex object. to be used for Tokenizer.prefix_search.
     """
 
-    # Intialize the totla size of the language model
-    model_size = 0
+    if "(" in entries:
+        # Handle deprecated data
+        expression = "|".join(["^" + re.escape(piece) for piece in entries if piece.strip()])
+        return re.compile(expression)
+    else:
+        expression = "|".join(["^" + piece for piece in entries if piece.strip()])
+        return re.compile(expression)
 
-    # chunk size during download (in bytes)
-    chunk_size = 1024
 
-    print(f"Preparing to download language model `{model_name}` ...")
+def compile_suffix_regex(entries: Tuple) -> Pattern:
+    """Compile a sequence of suffix rules into a regex object.
+    
+    Args:
+        entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
 
-    # Get the total size of all files combined
-    for file_url in lang_model_files[model_name]:
-        file_info = request.urlopen(file_url).info()
-        model_size += int(file_info["Content-Length"])
+    Returns:
+        The regex object. to be used for Tokenizer.suffix_search.
+    """
 
-    # Initialize the progress bar object of tqdm
-    prog_bar = tqdm(total=model_size, unit="B", unit_scale=True, desc=model_name)
+    expression = "|".join([piece + "$" for piece in entries if piece.strip()])
+    return re.compile(expression)
 
-    # start download
-    for file_url in lang_model_files[model_name]:
 
-        # Create the file path
-        file_name = os.path.basename(file_url).split("?")[0]
+def compile_infix_regex(entries: Tuple) -> Pattern:
+    """Compile a sequence of infix rules into a regex object.
 
-        file_path = os.path.join(model_path, file_name)
+    Args:
+        entries (tuple): The infix rules, e.g. syfertext.punctuation.TOKENIZER_INFIXES.
 
-        # Create the request object
-        req = request.urlopen(file_url)
+    Returns:
+        The regex object. to be used for Tokenizer.infix_finditer.
+    """
 
-        with (open(file_path, "wb")) as f:
-
-            while True:
-
-                # Read a chunk of the file
-                chunk = req.read(chunk_size)
-
-                # If the chunck is not empty, write it to the file
-                if chunk:
-                    f.write(chunk)
-
-                    # update tqdm's progress bar
-                    prog_bar.update(chunk_size)
-
-                else:
-
-                    # Downloading the file finished
-                    break
-
+    expression = "|".join([piece for piece in entries if piece.strip()])
+    return re.compile(expression)
     prog_bar.close()
+    return tmp_model_path
