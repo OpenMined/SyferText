@@ -110,7 +110,12 @@ class DocPointer(ObjectPointer):
 
     @property
     def sents(self):
-        """Yields span pointers"""
+        """Iterate over the sentences in the remote document. Yields sentence `SpanPointer`
+        objects.
+
+        Returns:
+            List of Spans Pointers
+        """
 
         # Get no. of sentences
         command = ("_num_sents", self.id_at_location, [], {})

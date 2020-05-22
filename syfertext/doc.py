@@ -46,7 +46,9 @@ class Doc(AbstractObject):
         # file
         self.container = list()
 
-        # Used to get sentence from a remote machine
+        # We use this to provide sentences
+        # to the client at remote location using
+        # `_get_a_sentence` method.
         self.sent_i = 0
 
         # Initialize the Underscore object (inspired by spaCy)
@@ -244,9 +246,17 @@ class Doc(AbstractObject):
         span = None
         for i in range(self.sent_i + 1, len(self)):
             if self.container[i].is_sent_start:
+
+                # create a span of the sentence
                 span = Span(self, self.sent_i, i, owner=self.owner)
                 span.client_id = self.client_id
+
+                # update sent_i to the current index
+                # as this is the start of a new sentence
+                # when we next time call `_get_a_sentence`
                 self.sent_i = i
+
+                # we only provide a single sentence, so we break out
                 break
 
         # We arrived at the end of the doc
@@ -254,7 +264,7 @@ class Doc(AbstractObject):
             span = Span(self, self.sent_i, len(self), owner=self.owner)
             span.client_id = self.client_id
 
-            # reset the sent_i
+            # reset the sent_i as we reached the end of the doc
             self.sent_i = 0
 
         if span.owner.id != span.client_id:
@@ -265,8 +275,8 @@ class Doc(AbstractObject):
 
         return span
 
-    def _num_sents(self):  # TODO: think of a faster way
-        """returns no. of sentences a doc has"""
+    def _num_sents(self):  # TODO: think of a faster way, maybe store len of sentences in doc itself
+        """returns no. of sentences a doc has, used by the DocPointer primarily"""
         return len([sent for sent in self.sents])
 
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
