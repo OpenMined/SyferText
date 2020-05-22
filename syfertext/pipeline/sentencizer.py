@@ -16,6 +16,7 @@ class Sentencizer:
             punct_chars (list): Punctuation characters to split on. Will be
                                 serialized with the nlp object.
         """
+        self.punct_chars = None
 
         if punct_chars is not None:
             self.punct_chars = punct_chars
@@ -95,7 +96,7 @@ class Sentencizer:
         # Simplify the object properties
         punct_chars = serde._simplify(worker, sentencizer.punct_chars)
 
-        return punct_chars
+        return (punct_chars,)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -111,7 +112,7 @@ class Sentencizer:
         """
 
         # Unpack the simplified object
-        punct_chars = simple_obj
+        punct_chars, = simple_obj
 
         # Detail each property
         punct_chars = serde._detail(worker, punct_chars)

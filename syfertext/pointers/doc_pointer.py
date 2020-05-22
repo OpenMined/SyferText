@@ -108,6 +108,25 @@ class DocPointer(ObjectPointer):
 
         return span
 
+    @property
+    def sents(self):
+        """Yields span pointers"""
+
+        # Get no. of sentences
+        command = ("_num_sents", self.id_at_location, [], {})
+        num_sents = self.owner.send_command(self.location, command)
+
+        for _ in range(num_sents):
+            # Create the command
+            command = ("_get_a_sentence", self.id_at_location, [], {})
+
+            # Send the command
+            obj_id = self.owner.send_command(self.location, command)
+
+            # we create a SpanPointer from the obj_id
+            yield SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
