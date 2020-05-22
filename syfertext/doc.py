@@ -223,16 +223,16 @@ class Doc(AbstractObject):
         start = 0
         for i in range(1, len(self)):
             if self.container[i].is_sent_start:
-                span = Span(self, start, i,owner=self.owner)
+                span = Span(self, start, i, owner=self.owner)
                 span.client_id = self.client_id
                 start = i
                 yield span
 
         if start != len(self):
-            span = Span(self, start, len(self),owner=self.owner)
+            span = Span(self, start, len(self), owner=self.owner)
             span.client_id = self.client_id
             yield span
-    
+
     def _get_a_sentence(self):
         """Get a single sentence span with the starting
         index being `self.sent_i`
@@ -242,34 +242,32 @@ class Doc(AbstractObject):
         ), "Doc has not been sentencised yet, please use the sentenciser pipeline to divide doc into senetences"
 
         span = None
-        for i in range(self.sent_i + 1,len(self)):
+        for i in range(self.sent_i + 1, len(self)):
             if self.container[i].is_sent_start:
-                span = Span(self, self.sent_i, i,owner=self.owner)
+                span = Span(self, self.sent_i, i, owner=self.owner)
                 span.client_id = self.client_id
                 self.sent_i = i
                 break
-        
+
         # We arrived at the end of the doc
         if span == None:
-            span = Span(self, self.sent_i, len(self),owner=self.owner)
-            span.client_id = self.client_id 
+            span = Span(self, self.sent_i, len(self), owner=self.owner)
+            span.client_id = self.client_id
 
             # reset the sent_i
             self.sent_i = 0
-        
+
         if span.owner.id != span.client_id:
-            
+
             self.owner.register_obj(span)
 
             return span.id
-        
+
         return span
 
-    
-    def _num_sents(self): # TODO: think of a faster way
+    def _num_sents(self):  # TODO: think of a faster way
         """returns no. of sentences a doc has"""
         return len([sent for sent in self.sents])
-
 
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,

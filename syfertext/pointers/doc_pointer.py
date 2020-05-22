@@ -126,7 +126,6 @@ class DocPointer(ObjectPointer):
             # we create a SpanPointer from the obj_id
             yield SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
 
-
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,

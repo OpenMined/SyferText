@@ -112,7 +112,7 @@ class Sentencizer:
         """
 
         # Unpack the simplified object
-        punct_chars, = simple_obj
+        (punct_chars,) = simple_obj
 
         # Detail each property
         punct_chars = serde._detail(worker, punct_chars)
