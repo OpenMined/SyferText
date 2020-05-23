@@ -78,7 +78,7 @@ class Language(AbstractObject):
         name = tokenizer.__class__.__name__.lower()
 
         # Set the language model name to which this tokenizer belongs.
-        tokenizer.set_model_name(self.model_name)
+        tokenizer.set_model_name(model_name = self.model_name)
 
         # Add the tokenizer to the pipeline
         self.add_pipe(component=tokenizer, name=name, access={"*"})
@@ -102,7 +102,7 @@ class Language(AbstractObject):
         """
 
         # Set the language model name to which this vocab object belongs.
-        vocab.set_model_name(name=self.model_name)
+        vocab.set_model_name(model_name=self.model_name)
 
         # Get the state of the vocab object
         state = vocab.dump_state()
@@ -477,6 +477,7 @@ class Language(AbstractObject):
         # return the doc
         return doc
 
+    
     def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
         """The text is tokenized and  pipeline components are called
         here, and the Doc object is returned.

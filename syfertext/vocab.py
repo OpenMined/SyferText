@@ -40,7 +40,7 @@ class Vocab:
         # Only strings that are encountered during tokenization will be stored here
         self.store = StringStore()
 
-    def set_model_name(self, name: str) -> None:
+    def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
         Args:
@@ -72,8 +72,8 @@ class Vocab:
         # Detail the simple object contained in the state
         key2index_simple, vectors_simple = state.simple_obj
 
-        key2index = serde._detail(local_worker, key2index_simple)
-        vectors = serde._detail(local_worker, vectors_simple)
+        key2index = serde._detail(LOCAL_WORKER, key2index_simple)
+        vectors = serde._detail(LOCAL_WORKER, vectors_simple)
 
         # Load the state
         self.vectors.load_data(vectors=vectors, key2index=key2index)
@@ -88,8 +88,8 @@ class Vocab:
         """
 
         # Simply the state variables
-        key2index_simple = serde._simplify(local_worker, self.vectors.key2index)
-        vectors_simple = serde._simplify(local_worker, self.vectors.vectors)
+        key2index_simple = serde._simplify(LOCAL_WORKER, self.vectors.key2index)
+        vectors_simple = serde._simplify(LOCAL_WORKER, self.vectors.vectors)
 
         # Create the query. This is the ID according to which the
         # State object is searched for on PyGrid
