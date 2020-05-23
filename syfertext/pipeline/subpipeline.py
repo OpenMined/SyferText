@@ -100,7 +100,7 @@ class SubPipeline(AbstractObject):
         return ptr
 
     def __call__(
-        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None,
+        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
