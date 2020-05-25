@@ -75,6 +75,8 @@ class Vectors:
             if no vector is found, self.default_vector is returned.
         """
 
+        # Make sure the Vocab has a `vector` property set.
+        assert self.vectors is not None, "No vector array is loaded in 'Vocab'."
 
 
         # if the key does not exists return default vector

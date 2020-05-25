@@ -9,6 +9,7 @@ from .state import State
 from . import LOCAL_WORKER
 
 import syft.serde.msgpack.serde as serde
+from syft.workers.base import BaseWorker
 
 import numpy
 
@@ -16,7 +17,11 @@ from typing import Dict
 
 class Vocab:
     def __init__(
-        self, key2index: Dict[int, int] = None, vectors: numpy.array = None, model_name: str = None
+            self,
+            key2index: Dict[int, int] = None,
+            vectors: numpy.array = None,
+            model_name: str = None,
+            owner: BaseWorker = None
     ):
         """Initializes the Vocab object.
 
@@ -26,13 +31,15 @@ class Vocab:
                 This index can also be used as an input a an embedding layer.
             vectors (optional): A 2D numpy array that contains the word embeddings of tokens.
             model_name (optional): The name of the language model the owns this vocab.
+            owner (optional): The worker on which the vocab object is located.
         """
 
         # Create the Vectors object
         self.vectors = Vectors(key2index, vectors)
 
         self.model_name = model_name
-
+        self.owner = owner
+        
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
         # their hashes. It can be used to retrieve a string given its hash
@@ -63,7 +70,7 @@ class Vocab:
         state_id = f"{self.model_name}:vocab"
 
         # Search for the state
-        state = search_state(query=state_id)
+        state = search_state(query=state_id, local_worker = self.owner)
 
         # If no state is found, just return
         if not state:
@@ -92,7 +99,7 @@ class Vocab:
         vectors_simple = serde._simplify(LOCAL_WORKER, self.vectors.vectors)
 
         # Create the query. This is the ID according to which the
-        # State object is searched for on PyGrid
+        # State object is searched for on PyGrid1
         state_id = f"{self.model_name}:vocab"
 
         # Create the State object

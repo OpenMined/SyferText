@@ -45,6 +45,24 @@ class SubPipelinePointer(ObjectPointer):
             garbage_collect_data=garbage_collect_data,
         )
 
+        
+    def load_states(self) -> None:
+        """Calls the `load_states()` method of the Subpipeline
+        object referenced by this pointer object.
+        """
+
+        # Create the command message to is used to forward the method
+        # call.
+        args = []
+        kwargs = {}
+
+        command = ("load_states", self.id_at_location, args, kwargs)
+
+        # Send the command
+        self.owner.send_command(self.location, command)
+
+
+    
     def __call__(self, pointer: Union[StringPointer, DocPointer]):
         """Forwards the call to the `__call__` method of the
         `SubPipeline` object it points to. 

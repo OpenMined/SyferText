@@ -1,4 +1,5 @@
-from . import LOCAL_WORKER
+from syft.workers.base import BaseWorker
+
 from .state import State
 
 import mmh3
@@ -98,6 +99,7 @@ def compile_suffix_regex(entries: Tuple) -> Pattern:
     """
 
     expression = "|".join([piece + "$" for piece in entries if piece.strip()])
+    
     return re.compile(expression)
 
 
@@ -116,7 +118,7 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
-def search_state(query: str) -> Union[State, None]:
+def search_state(query: str, local_worker: BaseWorker) -> Union[State, None]:
     """Searches for a State object on the grid of workers.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
@@ -124,31 +126,33 @@ def search_state(query: str) -> Union[State, None]:
 
     Args:
         query: The ID of the State object to be searched for.
-
+        local_worker: The local worker on which the state should
+            be first searched
     Returns:
         A State object whose ID is specified by `query`. If no state is 
             found, None is returned.
     """
 
     # Start first by searching for the state on the local worker.
-    result = LOCAL_WORKER.search(query=query)
+    result = local_worker.search(query=query)
 
     # If a state is found, then return it.
     if result:
 
         # Make sure only on state is found
         assert (
-            len(results) > 1
-        ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{LOCAL_WORKER}`."
+            len(result) == 1
+        ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{local_worker}`."
 
         return result[0]
 
+
     # If no state is found on the local worker, search on all
-    # workers connected to the LOCAL_WORKER
-    for location in LOCAL_WORKER._known_workers:
+    # workers connected to the local_worker
+    for _, location in local_worker._known_workers.items():
 
         # Search for the state on this worker. The result is a list
-        result = LOCAL_WORKER.request_search(query=state_id, location=location)
+        result = local_worker.request_search(query=query, location=location)
 
         # If a state is found, process the result.
         if result:

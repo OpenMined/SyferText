@@ -11,12 +11,14 @@ from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
+import torch.nn as nn
 
 from typing import List
 from typing import Union
 from typing import Tuple
 from typing import Set
 
+from collections import defaultdict
 import numpy
 
 
@@ -53,6 +55,13 @@ class Language(AbstractObject):
         # The keys of this dict are the names of the components
         # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
         self.states = {}
+
+        # Initialize the property that should hold the subpipeline templates
+        # list for each worker
+        self.subpipeline_templates = defaultdict(list)
+        
+        # Initialize the pipeline as an empty dictionary
+        self._reset_pipeline()
 
         super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
@@ -126,57 +135,91 @@ class Language(AbstractObject):
         # Register it in the object store
         self.owner.register_obj(state)
 
-    def _parse_pipeline_template(self):
+    def _parse_pipeline_template(self, location_id: str) -> None:
         """Parses the `pipeline_template` property to
-        create the `subpipeline_templates` property.
+        create the subpipeline templates for `worker`.
+
+        Args:
+            location_id: The ID of the worker according to 
+                which the subpipeline template should be parsed.
         """
 
-        # Initialize a subpipeline template with the
-        # tokenizer. The tokenizer's template always has 'access' set
-        # to "*" meaning that it can be sent to any worker without
-        # restrictions
-        subpipeline_template = dict(
-            access=self.pipeline_template[0]["access"], names=[self.pipeline_template[0]["name"]]
-        )
+        # If the pipeline template is already parsed for this
+        # location, return.
+        if location_id in self.pipeline:
+            return
 
-        # Initialize the subpipeline templates list as a class property
-        self.subpipeline_templates = [subpipeline_template]
+        # Create an entry of `location_id` in the pipeline
+        self.pipeline[location_id] = []
+        
+        # Initialize a subpipeline template
+        subpipeline_template = dict(names = [],
+                                    location_id = location_id)
 
+        # Create the subpipeline templates for that location
+        self.subpipeline_templates[location_id].append(subpipeline_template)
+        
         # Loop through the pipeline template elements
-        for pipe_template in self.pipeline_template[1:]:
+        for pipe_template in self.pipeline_template:
 
-            # compare `remote` properties between templates:
-            # If the pipe template has the same `remote` value,
-            # it is appended to the existing subpipeline template
-            if pipe_template["remote"] == subpipeline_template["remote"]:
+            # Check out whether the designated worker whose ID is
+            # `location_id` has access to the pipe component,
+            # If it does, append the pipe template to the currently
+            # processed subpipeline template
+            # Notice that PySyft models should never be sent to a
+            # remote worker even if their `access` property allows for this
+            if ({"*", location_id} &  pipe_template["access"] and
+                pipe_template["class_name"] != nn.Module.__name__ ):
+                
                 subpipeline_template["names"].append(pipe_template["name"])
 
             # Otherwise, create a new subpipeline template and add the
             # pipe template to it
             else:
-                subpipeline_template = dict(
-                    remote=pipe_template["remote"], names=[pipe_template["name"]]
-                )
+                subpipeline_template = dict(names=[pipe_template["name"]],
+                                            location_id = pipe_template["location_id"])
 
-                self.subpipeline_templates.append(subpipeline_template)
 
+                self.subpipeline_templates[location_id].append(subpipeline_template)
+
+
+        # Now create the subpipeline objects
+        for subpipeline_template in self.subpipeline_templates[location_id]:
+
+            # Instantiate a subpipeline and load the subpipeline template
+            subpipeline = SubPipeline(model_name = self.model_name)
+
+            subpipeline.load_template(template=subpipeline_template, factories=self.factories)
+
+
+            # Send the subpipeline to the worker where the input is located
+            # if the destination worker is different from the local one
+            if location_id != self.owner.id:
+                subpipeline = subpipeline.send(location_id)
+
+            # Add the subpipeline to the pipeline
+            self.pipeline[location_id].append(subpipeline)
+
+        # Now load the state of each pipe in the subpipelines.
+        # I could have done this step in the previous loop, but
+        # I do it here in order to separated parsing from loading
+        # states that might take significant longer time.
+        for subpipeline in self.pipeline[location_id]:
+
+            subpipeline.load_states()
+                
+        
     def _reset_pipeline(self):
         """Reset the `pipeline` class property.
         """
 
-        # Read the pipeline components from the template and aggregate them into
-        # a list of subpipline templates.
-        # This method will create the instance variable
-        # self.subpipeline_templates
-        self._parse_pipeline_template()
+        # Initialize a new empty pipeline with as an empty dict
+        self.pipeline = {}
 
-        # Get the number of subpipelines
-        subpipeline_count = len(self.subpipeline_templates)
+        # Initialize a new `subpipelins_template` property
+        self.subpipeline_templates = defaultdict(list)
 
-        # Initialize a new empty pipeline with as many
-        # empty dicts as there are subpipelines
-        self.pipeline = [dict() for i in range(subpipeline_count)]
-
+        
     def add_pipe(
         self,
         component: callable,
@@ -286,6 +329,7 @@ class Language(AbstractObject):
         # template
         pipe_template = dict(name=name,
                              class_name=component.__class__.__name__,
+                             location_id = self.owner.id,
                              access = access,
         )
 
@@ -314,9 +358,7 @@ class Language(AbstractObject):
                 please double check argument values of the `add_pipe` method call."
 
         # Reset the pipeline.
-        # The instance variable that will be affected is:
-        # self.pipeline
-        #self._reset_pipeline()
+        self._reset_pipeline()
 
     def remove_pipe(self, name: str) -> Tuple[str, callable]:
         """Removes the pipeline whose name is 'name'
@@ -346,8 +388,10 @@ class Language(AbstractObject):
 
         return pipe
 
-    def _run_subpipeline_from_template(
-        self, template_index: int, input=Union[str, String, StringPointer, Doc, DocPointer]
+    def _run_subpipeline_from_template(self,
+                                       template_index: int,
+                                       location_id: str,
+                                       input=Union[str, String, StringPointer, Doc, DocPointer]
     ) -> Union[Doc, DocPointer]:
         """Creates a `subpipeline` object and sends it to the appropriate
         worker if `input` is remote. Then runs the subpipeline at position
@@ -413,6 +457,7 @@ class Language(AbstractObject):
         Args:
             template_index (int): The index of the subpipeline template in
                 `self.subpipelines_templates`
+            location_id: The ID of the worker on which processing will take place.
             input (str, String, StringPointer, Doc, DocPointer):
                 The input on which the subpipeline operates. It can be either the text
                 to tokenize (or a pointer to it) for the subpipeline at index 0, or it
@@ -424,45 +469,10 @@ class Language(AbstractObject):
 
         """
 
-        # Get the location ID of the worker where the text to be tokenized,
-        # or the Doc to be processed is located
-        if isinstance(input, ObjectPointer):
-            location_id = input.location.id
-        else:
-            location_id = self.owner.id
-
-        # Create a new SubPipeline object if one doesn't already exist on the
-        # worker where the input is located
-        if location_id not in self.pipeline[template_index]:
-
-            # Get the subpipeline template
-            subpipeline_template = self.subpipeline_templates[template_index]
-
-            # Is the pipeline a remote one?
-            remote = subpipeline_template["remote"]
-
-            # Instantiate a subpipeline and load the subpipeline template
-            subpipeline = SubPipeline()
-
-            subpipeline.load_template(template=subpipeline_template, factories=self.factories)
-
-            # Add the subpipeline to the pipeline
-            self.pipeline[template_index][location_id] = subpipeline
-
-            # Send the subpipeline to the worker where the input is located
-            if (
-                isinstance(input, ObjectPointer)
-                and input.location != self.owner  # Is the input remote?
-                and remote  # Is the subpipeline sendable?
-            ):
-                self.pipeline[template_index][location_id] = self.pipeline[template_index][
-                    location_id
-                ].send(input.location)
-
         # Apply the subpipeline and get the doc or the Doc id.
         # If a Doc ID is obtained, this signifies the ID of the
         # Doc object on the remote worker.
-        doc_or_id = self.pipeline[template_index][location_id](input)
+        doc_or_id = self.pipeline[location_id][template_index](input)
 
         # If the doc is of type (str or int), this means that a
         # DocPointer should be created
@@ -491,14 +501,30 @@ class Language(AbstractObject):
         This object provides access to all token data.
         """
 
+        # Get the location ID of the worker where the text to be tokenized,
+        # or the Doc to be processed is located
+        if isinstance(text, ObjectPointer):
+            location_id = text.location.id
+        else:
+            location_id = self.owner.id
+
+        # Create a subpipeline templates list for the worker where `input` is located
+        # If it does not already exist
+        self._parse_pipeline_template(location_id = location_id)
+        
         # Runs the first subpipeline.
         # The first subpipeline is the one that has the tokenizer
-        doc = self._run_subpipeline_from_template(template_index=0, input=text)
+        doc = self._run_subpipeline_from_template(template_index=0,
+                                                  location_id = location_id,
+                                                  input = text)
 
         # Apply the the rest of subpipelines sequentially
         # Each subpipeline will modify the document `doc` inplace
-        for i, subpipeline in enumerate(self.pipeline[1:], start=1):
-            doc = self._run_subpipeline_from_template(template_index=i, input=doc)
+        for i in range(1, len(self.pipeline[location_id]) ):
+            doc = self._run_subpipeline_from_template(template_index=i,
+                                                      location_id = location_id,
+                                                      input=doc)
 
         # return the Doc object
         return doc
+    

@@ -74,7 +74,8 @@ class Tokenizer(AbstractObject):
     def __init__(
         self,
         model_name: str = None,
-        exceptions: Set[str] = TOKENIZER_EXCEPTIONS,
+        owner: BaseWorker = None,            
+        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
         prefixes: List[str] = TOKENIZER_PREFIXES,
         suffixes: List[str] = TOKENIZER_SUFFIXES,
         infixes: List[str] = TOKENIZER_INFIXES,
@@ -84,8 +85,16 @@ class Tokenizer(AbstractObject):
         Args:
             model_name: The name of the language model to which this
                 tokenizer belongs.
+            owner (optional): The worker on which the vocab object is located.
             exceptions: Exception cases for the tokenizer.
-                Example: "e.g.", "Jr." 
+                Example: "e.g.", "I'ma". The exception dict should 
+                specifiy how these exceptions are tokenized, e.g.,
+                exceptions = {"e.g." : [{"ORTH": "e.g."}], 
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"}, 
+                                        {"ORTH": "a"}]
+                             }
+                Other properties than "ORTH" can also be specified.
+                see `token_exception.py` for more examples.
             prefixes: A list of strings to separate as prefixes during
                 tokenization.
                 Example: ["@"]. So in "@username", "@" will be separated as
@@ -109,6 +118,9 @@ class Tokenizer(AbstractObject):
         # belongs.
         self.model_name = model_name
 
+        # Set the owner
+        self.owner = owner
+        
     def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
@@ -120,7 +132,7 @@ class Tokenizer(AbstractObject):
 
     def load_rules(
         self,
-        exceptions: Set[str] = TOKENIZER_EXCEPTIONS,
+        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
         prefixes: List[str] = TOKENIZER_PREFIXES,
         suffixes: List[str] = TOKENIZER_SUFFIXES,
         infixes: List[str] = TOKENIZER_INFIXES,
@@ -129,7 +141,14 @@ class Tokenizer(AbstractObject):
            
         Args:
             exceptions: Exception cases for the tokenizer.
-                Example: "e.g.", "Jr." 
+                Example: "e.g.", "I'ma". The exception dict should 
+                specifiy how these exceptions are tokenized, e.g.,
+                exceptions = {"e.g." : [{"ORTH": "e.g."}], 
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"}, 
+                                        {"ORTH": "a"}]
+                             }
+                Other properties than "ORTH" can also be specified.
+                see `token_exception.py` for more examples.
             prefixes: A list of strings to separate as prefixes during
                 tokenization.
                 Example: ["@"]. So in "@username", "@" will be separated as
@@ -154,15 +173,16 @@ class Tokenizer(AbstractObject):
         self.prefixes = prefixes
         self.suffixes = suffixes
         self.infixes = infixes
-        
-        self.prefix_search = compile_prefix_regex(prefixes)
-        self.suffix_search = compile_suffix_regex(suffixes)
-        self.infix_finditer = compile_infix_regex(infixes)
+
+        self.prefix_search = compile_prefix_regex(prefixes).search if prefixes else None
+        self.suffix_search = compile_suffix_regex(suffixes).search if suffixes else None
+        self.infix_finditer = compile_infix_regex(infixes).finditer if infixes else None
 
         if exceptions:
             self.exceptions = exceptions
         else:
             self.exceptions = {}
+
 
     def load_state(self) -> None:
         """Search for the state of this object on PyGrid.
@@ -173,15 +193,15 @@ class Tokenizer(AbstractObject):
         """
 
         # Start by creating the vocab and loading its state
-        self.vocab = Vocab(model_name=self.model_name)
+        self.vocab = Vocab(model_name=self.model_name, owner = self.owner)
         self.vocab.load_state()
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = f"{self.model_name}:{self.__class__.__name__}"
+        state_id = f"{self.model_name}:{self.__class__.__name__.lower()}"
 
         # Search for the state
-        state = search_state(query=state_id)
+        state = search_state(query=state_id, local_worker = self.owner)
 
         # If no state is found, return
         if not state:
@@ -412,8 +432,6 @@ class Tokenizer(AbstractObject):
             exception_tokens: The list of exception tokens TokenMeta objects.
         """
 
-        suffixes = []
-        prefixes = []
         infixes = []
         exception_tokens = []
         pos = start_pos
@@ -782,7 +800,7 @@ class Tokenizer(AbstractObject):
         """
 
         # Simplify attributes
-        model_name = serde._simplify(tokenizer.vocab.model_name)
+        model_name = serde._simplify(worker, tokenizer.model_name)
 
         return model_name
 
@@ -802,10 +820,10 @@ class Tokenizer(AbstractObject):
         # Get the tuple elements
         model_name = simple_obj
 
-        # Unpickle
-        model_name = serde._detail(model_name)
+        # Detail
+        model_name = serde._detail(worker, model_name)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(model_name=model_name)
+        tokenizer = Tokenizer(model_name=model_name, owner = worker)
 
         return tokenizer

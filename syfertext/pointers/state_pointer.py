@@ -61,4 +61,8 @@ class StatePointer(ObjectPointer):
         # Send the command
         state = self.owner.send_command(self.location, command)
 
+
+        # Register the state in the object store
+        self.owner.object_store.register_obj(obj = state, obj_id = self.id_at_location)
+
         return state

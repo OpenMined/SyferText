@@ -95,12 +95,13 @@ class State(AbstractObject):
 
         return state_pointer
 
-    @staticmethod
+
     def create_pointer(
         state: "State",
         owner: BaseWorker,
-        location: BaseWorker,
-        id_at_location: str,
+        location: BaseWorker = None,
+        id_at_location: str = None,
+        tags: Set[str] = None,
         register: bool = True,
         ptr_id: Union[str, int] = None,
         garbage_collect_data: bool = False,
@@ -110,6 +111,10 @@ class State(AbstractObject):
 
         Args:
             state (State): The State object to which the pointer refers.
+                Although this is an instance method (As opposed to statics),
+                this argument is called `state` instead of `self` due
+                to the fact that PySyft calls this method, sometimes of 
+                the class and sometimes on the object. 
             owner (BaseWorker): The worker that will own the pointer object.
             location (BaseWorker): The worker on which the State
                 object pointed to by this object is located.
@@ -128,6 +133,12 @@ class State(AbstractObject):
         Returns:
             A StatePointer object pointing to this state object.
         """
+
+        if location is None:
+            location = state.owner
+
+        if id_at_location is None:
+            id_at_location = state.id
 
         # Create the pointer object
         state_pointer = StatePointer(
