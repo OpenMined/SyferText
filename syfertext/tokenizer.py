@@ -31,6 +31,7 @@ from typing import Tuple
 from typing import Match
 from typing import DefaultDict
 from typing import Set
+from typing import Dict
 
 
 class TokenMeta(object):

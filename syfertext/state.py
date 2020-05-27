@@ -103,7 +103,6 @@ class State(AbstractObject):
         id_at_location: str = None,
         tags: Set[str] = None,
         register: bool = True,
-        ptr_id: Union[str, int] = None,
         garbage_collect_data: bool = False,
     ) -> StatePointer:
         """Creates a SupPipelinePointer object that points to a given
@@ -124,7 +123,6 @@ class State(AbstractObject):
                 in the object store or not. (it is required by the 
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
-            ptr_id (str, int): The ID of the pointer object.
             garbage_collect_data (bool): Activate garbage collection or not. 
                 default to False meaning that the State object shouldn't
                 be GCed once this pointer is removed.
@@ -145,8 +143,6 @@ class State(AbstractObject):
             location=location,
             id_at_location=id_at_location,
             owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
         )
 
         return state_pointer
@@ -188,6 +184,7 @@ class State(AbstractObject):
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
+            state_simple: The simplified State object.
 
         Returns:
             A State object.

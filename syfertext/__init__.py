@@ -15,6 +15,7 @@ from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
+from .pointers.state_pointer import StatePointer
 
 from typing import List
 from typing import Tuple
@@ -112,6 +113,7 @@ Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 State.proto_id = register_to_serde(State)
+StatePointer.proto_id = register_to_serde(StatePointer)
 
 # Set the default owners of some classes
 SubPipeline.owner = LOCAL_WORKER

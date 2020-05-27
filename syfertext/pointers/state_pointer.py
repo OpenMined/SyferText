@@ -1,7 +1,9 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
+import syft.serde.msgpack.serde as serde
 
 from typing import Union
+from typing import Tuple
 
 
 class StatePointer(ObjectPointer):
@@ -17,8 +19,6 @@ class StatePointer(ObjectPointer):
         location: BaseWorker,
         id_at_location: str,
         owner: BaseWorker,
-        id: Union[str, int],
-        garbage_collect_data: bool = False,
     ):
         """Initializes the State object.
 
@@ -29,9 +29,6 @@ class StatePointer(ObjectPointer):
                 referenced by this pointer.
             owner (BaseWorker): The worker that owns this pointer object.
             id (str, int): The ID of the pointer object.
-            garbage_collect_data (bool): Activate garbage collection or not. 
-                default to False meaning that the State object shouldn't
-                be GCed once this pointer is removed.
         """
 
         # Initialize the parent object
@@ -39,8 +36,8 @@ class StatePointer(ObjectPointer):
             location=location,
             id_at_location=id_at_location,
             owner=owner,
-            id=id,
-            garbage_collect_data=garbage_collect_data,
+            id=None,
+            garbage_collect_data=False,
         )
 
     def get_copy(self) -> "State":
@@ -66,3 +63,67 @@ class StatePointer(ObjectPointer):
         self.owner.object_store.register_obj(obj = state, obj_id = self.id_at_location)
 
         return state
+
+
+    @staticmethod
+    def simplify(worker: BaseWorker, state_pointer: "StatePointer") -> Tuple[object]:
+        """Simplifies a StatePointer object. This method is required by PySyft
+        when a StatePointer object is sent to another worker. 
+
+        Args:
+            worker: The worker on which the simplify operation 
+                is carried out.
+            state_pointer: the StatePointer object to simplify.
+
+        Returns:
+            The simplified StatePointer object as a tuple of serialized State
+            attributes.
+
+        """
+
+        # Simplify the StatePointer object attributes
+        location_simple = serde._simplify(worker, state_pointer.location)
+        id_at_location_simple = serde._simplify(worker, state_pointer.id_at_location)
+
+
+        # create the simple StatePointer object
+        state_pointer_simple = (location_simple, id_at_location_simple)
+
+        return state_pointer_simple
+
+
+
+    @staticmethod
+    def detail(worker: BaseWorker, state_pointer_simple: Tuple[object]) -> "StatePointer":
+        """Takes a simplified StatePointer object, details it to create
+        a new StatePointer object. This is usually done on a worker where
+        the StatePointer object is sent.
+
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                detail operation is carried out.
+            state_pointer_simple: The simplified StatePointer object.
+
+        Returns:
+            A StatePointer object.
+        """
+
+        # Unpack the simple state
+        location_simple, id_at_location_simple = state_pointer_simple
+
+        # Detail the attributes
+        location = serde._detail(worker, location_simple)
+        id_at_location = serde._detail(worker, id_at_location_simple)
+
+
+        # Create a State object
+        state_pointer = StatePointer(
+            location = location,
+            id_at_location = id_at_location,
+            owner = worker
+        )
+
+        return state_pointer
+    
+    
