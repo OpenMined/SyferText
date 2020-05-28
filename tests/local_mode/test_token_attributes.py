@@ -179,7 +179,7 @@ def test_token_like_email():
 
 def test_token_like_url():
     texts = {
-        "http://ninjaflex.com/": True,
+        "http://ninjaflex_meta.com/": True,
         "google.com": True,
         "www.google.com": True,
         "https://amazondating.co/": True,

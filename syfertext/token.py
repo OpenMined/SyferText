@@ -34,7 +34,7 @@ class Token(AbstractObject):
         self.orth = token_meta.orth
 
         # LexMeta object for the corresponding token string
-        self.lex = self.doc.vocab.get_lex_meta(self.orth)
+        self.lex_meta = self.doc.vocab.get_lex_meta(self.orth)
 
         # Whether the token is followed by a single white
         self.space_after = token_meta.space_after
@@ -129,7 +129,7 @@ class Token(AbstractObject):
         """The number of unicode characters in the token, i.e. `token.text`.
         The number of unicode characters in the token.
         """
-        return self.lex.length
+        return self.lex_meta.length
 
     @property
     def text_with_ws(self) -> str:
@@ -200,39 +200,39 @@ class Token(AbstractObject):
     @property
     def lex_id(self):
         """Sequential id of the token's lexical type. Used to index into words vector table"""
-        return self.lex.id
+        return self.lex_meta.id
 
     @property
     def rank(self):
         """The index to corresponding word vector in words vector table."""
-        return self.lex.id
+        return self.lex_meta.id
 
     @property
     def lower(self):
         """Orth id of the lowercase token text."""
-        return self.lex.lower
+        return self.lex_meta.lower
 
     @property
     def shape(self):
         """Orth id of the token's shape, a transform of the
             tokens's string, to show orthographic features (e.g. "Xxxx", "dd").
         """
-        return self.lex.shape
+        return self.lex_meta.shape
 
     @property
     def prefix(self):
         """Orth id of a length-1 substring from the start of the token."""
-        return self.lex.prefix
+        return self.lex_meta.prefix
 
     @property
     def suffix(self):
         """Orth id of a length-N substring from the end of the token."""
-        return self.lex.suffix
+        return self.lex_meta.suffix
 
     @property
     def lang(self):
         """Orth id of the language of the parent document's vocabulary."""
-        return self.lex.lang
+        return self.lex_meta.lang
 
     @property
     def whitespace_(self):
@@ -245,36 +245,36 @@ class Token(AbstractObject):
             Exists mostly for consistency with the other
             attributes.
         """
-        return self.vocab.store[self.lex.orth]
+        return self.vocab.store[self.lex_meta.orth]
 
     @property
     def lower_(self):
         """The lowercase token text."""
-        return self.vocab.store[self.lex.lower]
+        return self.vocab.store[self.lex_meta.lower]
 
     @property
     def shape_(self):
         """Transform of the tokens's string, to show
             orthographic features. For example, "Xxxx" or "dd".
         """
-        return self.vocab.store[self.lex.shape]
+        return self.vocab.store[self.lex_meta.shape]
 
     @property
     def prefix_(self):
         """A length-1 substring from the start of the token."""
-        return self.vocab.store[self.lex.prefix]
+        return self.vocab.store[self.lex_meta.prefix]
 
     @property
     def suffix_(self):
         """A length-3 substring from the end of the token."""
-        return self.vocab.store[self.lex.suffix]
+        return self.vocab.store[self.lex_meta.suffix]
 
     @property
     def lang_(self):
         """Language of the parent document's vocabulary,
             e.g. 'en_web_core_lm'.
         """
-        return self.vocab.store[self.lex.lang]
+        return self.vocab.store[self.lex_meta.lang]
 
     @property
     def is_oov(self):

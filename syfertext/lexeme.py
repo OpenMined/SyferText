@@ -42,53 +42,53 @@ class Lexeme:
 
         # Get the LexMeta stored in Vocab's lex_store
         # Note: This creates no entry in lex_store if the LexemeMeta is not already present
-        self.lex = vocab.get_lex_meta(orth)
+        self.lex_meta = vocab.get_lex_meta(orth)
 
     @staticmethod
-    def set_lex_attr(lex: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
+    def set_lex_attr(lex_meta: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
 
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
         # id>9 is only because ids less tahn 10 are reserved for other attributes.
         if attr_id > 9:
-            Lexeme.set_flag(lex, attr_id, value)
+            Lexeme.set_flag(lex_meta, attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.
         elif attr_id == Attributes.ID:
-            lex.id = value
+            lex_meta.id = value
 
         elif attr_id == Attributes.LOWER:
-            lex.lower = value
+            lex_meta.lower = value
 
         elif attr_id == Attributes.SHAPE:
-            lex.shape = value
+            lex_meta.shape = value
 
         elif attr_id == Attributes.PREFIX:
-            lex.prefix = value
+            lex_meta.prefix = value
 
         elif attr_id == Attributes.SUFFIX:
-            lex.suffix = value
+            lex_meta.suffix = value
 
         elif attr_id == Attributes.LANG:
-            lex.lang = value
+            lex_meta.lang = value
 
     # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
     @staticmethod
-    def check_flag(lex: LexemeMeta, flag_id: int) -> bool:
+    def check_flag(lex_meta: LexemeMeta, flag_id: int) -> bool:
         one = 1
 
         # Check if bit at index corresponding to flag_id is 1 or 0
         # if one return True otherwise if 0  return False
-        if lex.flags & (one << flag_id):
+        if lex_meta.flags & (one << flag_id):
             return True
 
         else:
             return False
 
     @staticmethod
-    def set_flag(lex: LexemeMeta, flag_id: int, value: bool):
+    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool):
         one = 1
 
         # lex flag is an integer whose bits are manipulated
@@ -101,10 +101,10 @@ class Lexeme:
         # or else it's changed to 0. (by default all bits of flag are 0 as
         # it's intialised with flags = 0)
         if value:
-            lex.flags |= one << flag_id
+            lex_meta.flags |= one << flag_id
 
         else:
-            lex.flags &= ~(one << flag_id)
+            lex_meta.flags &= ~(one << flag_id)
 
     @property
     def has_vector(self):
@@ -123,20 +123,20 @@ class Lexeme:
     def vector(self):
         """ Returns the  vector of a given word in the vocabulary."""
 
-        return self.vocab.get_vector(self.lex.orth)
+        return self.vocab.get_vector(self.lex_meta.orth)
 
     @property
     def rank(self):
         """ The key to index in the vectors array."""
 
-        return self.lex.id
+        return self.lex_meta.id
 
     @property
     def orth_(self):
         """The original text of the lexeme (identical to `Lexeme.text`). 
         This method is defined for consistency with the other attributes.
         """
-        return self.vocab.store[self.lex.orth]
+        return self.vocab.store[self.lex_meta.orth]
 
     @property
     def text(self):
@@ -148,7 +148,7 @@ class Lexeme:
     def lower(self):
         """Orth id of lowercase form of the lexeme."""
 
-        return self.lex.lower
+        return self.lex_meta.lower
 
     @property
     def flags(self):
@@ -157,30 +157,30 @@ class Lexeme:
         looking at the bit corresponding to flag_id index of flags.
         """
 
-        return self.lex.flags
+        return self.lex_meta.flags
 
     @property
     def shape(self):
         """Orth id of the transform of the word's text, to show orthographic features."""
-        return self.lex.shape
+        return self.lex_meta.shape
 
     @property
     def prefix(self):
         """Orth id of length-1 substring from the start of the word. """
 
-        return self.lex.prefix
+        return self.lex_meta.prefix
 
     @property
     def suffix(self):
         """Orth id of length-3 substring from the end of the word."""
 
-        return self.lex.suffix
+        return self.lex_meta.suffix
 
     @property
     def lang(self):
         """Orth id of language of the parent vocabulary."""
 
-        return self.lex.lang
+        return self.lex_meta.lang
 
     @property
     def lower_(self):
@@ -192,25 +192,25 @@ class Lexeme:
     def shape_(self):
         """Transform of the word's string, to show orthographic features."""
 
-        return self.vocab.store[self.lex.shape]
+        return self.vocab.store[self.lex_meta.shape]
 
     @property
     def prefix_(self):
         """Length-1 substring from the start of the word."""
 
-        return self.vocab.store[self.lex.prefix]
+        return self.vocab.store[self.lex_meta.prefix]
 
     @property
     def suffix_(self):
         """Length-3 substring from the end of the word."""
 
-        return self.vocab.store[self.lex.suffix]
+        return self.vocab.store[self.lex_meta.suffix]
 
     @property
     def lang_(self):
         """Language of the parent vocabulary."""
 
-        return self.vocab.store[self.lex.lang]
+        return self.vocab.store[self.lex_meta.lang]
 
     @property
     def is_oov(self):

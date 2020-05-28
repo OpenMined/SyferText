@@ -173,7 +173,7 @@ class Vocab:
         lex_meta.length = len(string)
 
         # The language model name of parent vocabulary
-        lex.lang = self.store.add(self.model_name)
+        lex_meta.lang = self.store.add(self.model_name)
 
         # id is the index of the corresponding vector
         # in self.vectors
