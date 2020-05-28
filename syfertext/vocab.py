@@ -139,11 +139,11 @@ class Vocab:
             return None
 
         # get the LexemeMeta object from lex store if exist.
-        lex = self.lex_store.get(orth)
+        lex_meta = self.lex_store.get(orth)
 
         # If the LexemeMeta object already exist it returned.
-        if lex:
-            return lex
+        if lex_meta:
+            return lex_meta
 
         # LexemeMeta instance doesn't exist for the given orth
         else:
