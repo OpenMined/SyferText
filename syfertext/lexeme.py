@@ -6,12 +6,13 @@ from typing import Union
 
 class LexemeMeta(object):
     """This class holds some meta data about a Lexeme from the text held by a Doc object.
-       This allows to create aLexeme object when needed.
+    This allows to create a Lexeme object when needed.
     """
 
     def __init__(self):
         """Initializes a LexemeMeta object
         """
+        
         self.flags = 0
         self.lang = 0
         self.id = 0
@@ -24,27 +25,27 @@ class LexemeMeta(object):
 
 
 class Lexeme:
-    """Inspired from Spacy Lexeme class. It is an entry in the vocabulary.
+    """Inspired by Spacy's Lexeme class. It is an entry in the vocabulary.
     It holds various non-contextual attributes related to the corresponding string.  
     """
 
-    def __init__(self, vocab: "Vocab", orth: int):
-        """Initiate a Lexeme object.
+    def __init__(self, vocab: "Vocab", orth: int) -> None:
+        """Initializes a Lexeme object.
 
         Args:
-            vocab (Vocab): The parent vocabulary
-            orth (int): The orth id of the lexeme.
+            vocab (Vocab): The parent vocabulary.
+            orth (int): The orth id of the lexeme, i.e, the token's hash.
         """
 
         self.vocab = vocab
         self.orth = orth
 
-        # Get the LexMeta stored in Vocab lex_store
-        # Note: It created ne entry in lex_store if the LexemeMeta is not already present
+        # Get the LexMeta stored in Vocab's lex_store
+        # Note: This creates no entry in lex_store if the LexemeMeta is not already present
         self.lex = vocab.get_by_orth(orth)
 
     @staticmethod
-    def set_lex_attr(lex: LexemeMeta, attr_id: int, value: Union[int, bool]):
+    def set_lex_attr(lex: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
 
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
@@ -107,41 +108,46 @@ class Lexeme:
 
     @property
     def has_vector(self):
-        """Whether the word have a vector in vocabulary."""
+        """Whether the word has a vector in vocabulary or not."""
         return self.vocab.has_vector(self.orth_)
 
     @property
-    def vector_norm(self):
+    def vector_norm(self) -> float:
         """The L2 norm of the vector."""
+        
         vector = self.vector
 
         return np.sqrt((vector ** 2).sum())
 
     @property
     def vector(self):
-        """ A vector for given theword in Voacnulary"""
+        """ Returns the  vector of a given word in the vocabulary."""
+        
         return self.vocab.get_vector(self.lex.orth)
 
     @property
     def rank(self):
-        """ The key to index in the vectors table"""
+        """ The key to index in the vectors array."""
+        
         return self.lex.id
 
     @property
     def orth_(self):
-        """The original text of the lexeme(identical to `Lexeme.text`). 
-            Exists mostly for consistency with the other attributes.
+        """The original text of the lexeme (identical to `Lexeme.text`). 
+        This method is defined for consistency with the other attributes.
         """
         return self.vocab.store[self.lex.orth]
 
     @property
     def text(self):
         """ The original text of the lexeme."""
+        
         return self.orth_
 
     @property
     def lower(self):
         """Orth id of lowercase form of the lexeme."""
+        
         return self.lex.lower
 
     @property
@@ -150,11 +156,12 @@ class Lexeme:
         One can get the value assigned to a specific flag_id by 
         looking at the bit corresponding to flag_id index of flags.
         """
+        
         return self.lex.flags
 
     @property
     def shape(self):
-        """Orth id of transform of the word's string, to show orthographic features."""
+        """Orth id of the transform of the word's text, to show orthographic features."""
         return self.lex.shape
 
     @property
