@@ -12,7 +12,7 @@ class LexemeMeta(object):
     def __init__(self):
         """Initializes a LexemeMeta object
         """
-        
+
         self.flags = 0
         self.lang = 0
         self.id = 0
@@ -42,7 +42,7 @@ class Lexeme:
 
         # Get the LexMeta stored in Vocab's lex_store
         # Note: This creates no entry in lex_store if the LexemeMeta is not already present
-        self.lex = vocab.get_by_orth(orth)
+        self.lex = vocab.get_lex_meta(orth)
 
     @staticmethod
     def set_lex_attr(lex: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
@@ -114,7 +114,7 @@ class Lexeme:
     @property
     def vector_norm(self) -> float:
         """The L2 norm of the vector."""
-        
+
         vector = self.vector
 
         return np.sqrt((vector ** 2).sum())
@@ -122,13 +122,13 @@ class Lexeme:
     @property
     def vector(self):
         """ Returns the  vector of a given word in the vocabulary."""
-        
+
         return self.vocab.get_vector(self.lex.orth)
 
     @property
     def rank(self):
         """ The key to index in the vectors array."""
-        
+
         return self.lex.id
 
     @property
@@ -141,13 +141,13 @@ class Lexeme:
     @property
     def text(self):
         """ The original text of the lexeme."""
-        
+
         return self.orth_
 
     @property
     def lower(self):
         """Orth id of lowercase form of the lexeme."""
-        
+
         return self.lex.lower
 
     @property
@@ -156,7 +156,7 @@ class Lexeme:
         One can get the value assigned to a specific flag_id by 
         looking at the bit corresponding to flag_id index of flags.
         """
-        
+
         return self.lex.flags
 
     @property
@@ -167,55 +167,55 @@ class Lexeme:
     @property
     def prefix(self):
         """Orth id of length-1 substring from the start of the word. """
-        
+
         return self.lex.prefix
 
     @property
     def suffix(self):
         """Orth id of length-3 substring from the end of the word."""
-        
+
         return self.lex.suffix
 
     @property
     def lang(self):
         """Orth id of language of the parent vocabulary."""
-        
+
         return self.lex.lang
 
     @property
     def lower_(self):
         """Lowercase form of the word."""
-        
+
         return self.vocab.store[self.lower]
 
     @property
     def shape_(self):
         """Transform of the word's string, to show orthographic features."""
-        
+
         return self.vocab.store[self.lex.shape]
 
     @property
     def prefix_(self):
         """Length-1 substring from the start of the word."""
-        
+
         return self.vocab.store[self.lex.prefix]
 
     @property
     def suffix_(self):
         """Length-3 substring from the end of the word."""
-        
+
         return self.vocab.store[self.lex.suffix]
 
     @property
     def lang_(self):
         """Language of the parent vocabulary."""
-        
+
         return self.vocab.store[self.lex.lang]
 
     @property
     def is_oov(self):
         """Whether the lexeme is out-of-vocabulary."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_OOV)
 
     @property
@@ -227,96 +227,96 @@ class Lexeme:
     @property
     def is_alpha(self):
         """Whether the lexeme consists of alphabetical characters only."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
         """Whether the lexeme consists of ASCII characters."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_ASCII)
 
     @property
     def is_digit(self) -> bool:
         """Whether the lexeme consists of digits."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_DIGIT)
 
     @property
     def is_lower(self) -> bool:
         """Whether the lexeme is in lowercase."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_LOWER)
 
     @property
     def is_upper(self) -> bool:
         """Whether the lexeme is in uppercase."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_UPPER)
 
     @property
     def is_title(self) -> bool:
         """Whether the lexeme is in titlecase."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_TITLE)
 
     @property
     def is_punct(self) -> bool:
         """Whether the lexeme is punctuation."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_PUNCT)
 
     @property
-    def is_space(self) ->  bool:
+    def is_space(self) -> bool:
         """Whether the lexeme consists of only whitespace characters."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_SPACE)
 
     @property
     def is_bracket(self) -> bool:
         """Whether the lexeme is a bracket."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_BRACKET)
 
     @property
     def is_quote(self) -> bool:
         """Whether the lexeme is a quotation mark."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self) -> bool:
         """Whether the lexeme is a left punctuation mark."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self) -> bool:
         """Whether the lexeme is a right punctuation mark."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self) -> bool:
         """Whether the lexeme is a currency symbol."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.IS_CURRENCY)
 
     @property
     def like_url(self) -> bool:
         """Whether the lexeme resembles a URL."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.LIKE_URL)
 
     @property
     def like_num(self) -> bool:
         """Whether the lexeme resembles a number, e.g. "10.9", "10", etc.
         """
-        
+
         return Lexeme.check_flag(self.lex, Attributes.LIKE_NUM)
 
     @property
     def like_email(self) -> bool:
         """Whether the lexeme resembles an email address."""
-        
+
         return Lexeme.check_flag(self.lex, Attributes.LIKE_EMAIL)

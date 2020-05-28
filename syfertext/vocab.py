@@ -76,7 +76,7 @@ class Vocab:
         """
 
         for orth in self.lex_store:
-        
+
             # Create the Lexeme object for the given orth
             lexeme = Lexeme(self, orth)
 
@@ -124,10 +124,10 @@ class Vocab:
             string: The word for which the existence of a vector is to be checked out.
         
         """
-        
+
         return self.vectors.has_vector(string)
 
-    def get_by_orth(self, orth: int) -> LexemeMeta:
+    def get_lex_meta(self, orth: int) -> LexemeMeta:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
         
@@ -148,7 +148,7 @@ class Vocab:
         # LexemeMeta instance doesn't exist for the given orth
         else:
             # Create the new LexemeMeta object.
-            return self._create_lex(self.store[orth])
+            return self._create_lex_meta(self.store[orth])
 
     def _create_lex_meta(self, string: str) -> LexemeMeta:
         """Creates a LexemeMeta object corresponding to `string`.
