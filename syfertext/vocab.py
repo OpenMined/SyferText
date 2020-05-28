@@ -150,7 +150,15 @@ class Vocab:
             # Create the new LexemeMeta object.
             return self._create_lex(self.store[orth])
 
-    def _create_lex(self, string: str) -> LexemeMeta:
+    def _create_lex_meta(self, string: str) -> LexemeMeta:
+        """Creates a LexemeMeta object corresponding to `string`.
+        
+        Args:
+            string: The plaintext string for which a LexemeMeta object is to be created.
+            
+        Returns:
+            A LexemeMeta object corresponding to `string`.
+        """
 
         # Initialize vectors for the provided model_name
         # If data is not yet loaded, then load it
