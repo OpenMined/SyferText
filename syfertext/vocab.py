@@ -72,32 +72,33 @@ class Vocab:
         """Iterate over the lexemes in the vocabulary.
 
         Yields:
-            Lexeme: An entry in the vocabulary.
+            lexeme (Lexeme): An entry in the vocabulary.
         """
 
-        for orth, lex in self.lex_store.items():
+        for orth in self.lex_store:
+        
             # Create the Lexeme object for the given orth
             lexeme = Lexeme(self, orth)
 
             yield lexeme
 
-    def __getitem__(self, id_or_string: Union[str, int]) -> Lexeme:
-        """Retrieve a string, given an int ID or a string. If a
+    def __getitem__(self, key: Union[str, int]) -> Lexeme:
+        """Retrieve a Lexeme object corresponding to a string, given its hash or its plaintext. If a
         previously unseen string is given, a new lexeme is created and
         stored.
 
         Args:
-            id_or_string (int or unicode): The integer ID of a word, or its string. 
+            key: The word hash, or its plaintext. 
 
         Returns:
-            Lexeme: The lexeme indicated by the given ID.
+            Lexeme: The lexeme specified by the given key.
         """
 
-        if isinstance(id_or_string, str):
-            orth = self.store.add(id_or_string)
+        if isinstance(key, str):
+            orth = self.store.add(key)
 
         else:
-            orth = id_or_string
+            orth = key
 
         return Lexeme(self, orth)
 
@@ -111,13 +112,19 @@ class Vocab:
             orth = key
 
         # Get the LexemeMeta object
-        # Note: if it is not present in the lex_store than new one is created
-        lex = self.lex_store.get(orth)
+        # Note: if it is not present in the lex_store then a new one is created
+        lex_meta = self.lex_store.get(orth)
 
-        return lex is not None
+        return lex_meta is not None
 
     def has_vector(self, string: str) -> bool:
-        """If for the given string there is an entry in word vectors table"""
+        """Check whether the given string has an entry in word vectors table
+        
+        Args:
+            string: The word for which the existence of a vector is to be checked out.
+        
+        """
+        
         return self.vectors.has_vector(string)
 
     def get_by_orth(self, orth: int) -> LexemeMeta:
