@@ -56,14 +56,17 @@ class Vocab:
 
         return strings
 
-    def get_vector(self, string_or_id: Union[str, int]):
+    def get_vector(self, key: Union[str, int]):
         """Retrieve a vector for a word in the vocabulary. Words can be looked
         up by string or int ID. 
-        """
-        if isinstance(string_or_id, int):
-            string_or_id = self.store[string_or_id]
 
-        return self.vectors[string_or_id]
+        Args:
+            key: The word hash, or its plaintext.
+        """
+        if isinstance(key, int):
+            key = self.store[key]
+
+        return self.vectors[key]
 
     def __iter__(self):
         """Iterate over the lexemes in the vocabulary.
