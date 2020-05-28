@@ -130,6 +130,9 @@ class Vocab:
     def get_by_orth(self, orth: int) -> LexemeMeta:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
+        
+        Args:
+            orth: The word hash for which the LexemeMeta object is requested.
         """
 
         if orth == 0:
