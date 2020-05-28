@@ -160,24 +160,24 @@ class Vocab:
             A LexemeMeta object corresponding to `string`.
         """
 
-        # Initialize vectors for the provided model_name
+        # Initialize vectors for the provided language model.
         # If data is not yet loaded, then load it
         if not self.vectors.loaded:
             self.vectors._load_data()
 
         # create the new LexemeMeta object
-        lex = LexemeMeta()
+        lex_meta = LexemeMeta()
 
         # Assign the lex attributes
-        lex.orth = self.store.add(string)
-        lex.length = len(string)
+        lex_meta.orth = self.store.add(string)
+        lex_meta.length = len(string)
 
         # The language model name of parent vocabulary
         lex.lang = self.store.add(self.model_name)
 
-        # id is the index of row the corresponding vector
-        # is stored in word vectors table
-        lex.id = self.vectors.key2row.get(lex.orth)
+        # id is the index of the corresponding vector
+        # in self.vectors
+        lex_meta.id = self.vectors.key2row.get(lex_meta.orth)
 
         # Traverse all the lexical attributes getters in the dict.
         for attr, func in self.lex_attr_getters.items():
@@ -187,16 +187,16 @@ class Vocab:
             if attr == Attributes.IS_OOV:
                 value = not self.has_vector(string)
 
-            # for attributes with string values add them to string store
+            # For attributes with string values add them to string store
             # and assign the orth id of that to LexemeMeta object
             if isinstance(value, str):
                 value = self.store.add(value)
 
             # Assign rest of the attributes to the LexemeMeta object
             if value:
-                Lexeme.set_lex_attr(lex, attr, value)
+                Lexeme.set_lex_attr(lex_meta, attr, value)
 
         # Store the LexemeMeta object in the lex store.
-        self.lex_store[lex.orth] = lex
+        self.lex_store[lex_meta.orth] = lex_meta
 
-        return lex
+        return lex_meta
