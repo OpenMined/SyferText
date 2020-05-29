@@ -156,17 +156,19 @@ class Doc(AbstractObject):
         return doc_vector
 
     @property
-    def vector_norm(self):
-        """
-        Get L2 norm of document vector
+    def vector_norm(self) -> torch.FloatTensor:
+        """Get the L2 norm of the document vector
 
         Returns:
-            Tensor(float): L2 norm of the document vector
+            A torch tensor representing the L2 norm of the document vector
         """
+        
         vector = torch.tensor(self.vector)
-        total = (vector ** 2).sum()
+        
+        norm = (vector ** 2).sum()
+        norm = torch.sqrt(norm)
 
-        return torch.sqrt(total)
+        return norm
 
     def similarity(self, other):
         """Make a cosine similarity between two docs' vectors.
