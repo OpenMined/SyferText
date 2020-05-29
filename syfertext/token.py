@@ -70,7 +70,7 @@ class Token:
 
         return norm
     def similarity(self, other):
-        """Make a cosine similarity between tokens' vectors.
+        """Compute the cosine similarity between tokens' vectors.
         
         Args:
             other (Token): The Token to compare with.
@@ -78,14 +78,17 @@ class Token:
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """
-
+        
+        # Make sure both vectors have non-zero norms
         assert (
             self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
-        ), "one of the token is invalid"
+        ), "One of the provided tokens has a zero norm."
 
-        return torch.dot(torch.tensor(self.vector), torch.tensor(other.vector)) / (
-            self.vector_norm * other.vector_norm
-        )
+        # Compute similarity
+        sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
+        sim /= self.vector_norm * other.vector_norm
+
+        return  sim
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """Get the mean of the vectors of each Token in this documents.
