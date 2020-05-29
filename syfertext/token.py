@@ -54,18 +54,21 @@ class Token:
         return self.doc.vocab.vectors[self.text]
 
     @property
-    def vector_norm(self):
+    def vector_norm(self) -> torch.Tensor:
         """The L2 norm of the token's vector representation.
 
         Returns: 
             Tensor: The L2 norm of the vector representation.
         """
-
+        
+        # Convert the vector from a numpy array to a Tensor
         vector = torch.tensor(self.vector)
-        total = (vector ** 2).sum()
+        
+        # Compute the norm
+        norm = (vector ** 2).sum()
+        norm = torch.sqrt(norm)
 
-        return torch.sqrt(total)
-
+        return norm
     def similarity(self, other):
         """Make a cosine similarity between tokens' vectors.
         
