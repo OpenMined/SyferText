@@ -170,8 +170,8 @@ class Doc(AbstractObject):
 
         return norm
 
-    def similarity(self, other):
-        """Make a cosine similarity between two docs' vectors.
+    def similarity(self, other: "Doc") -> torch.Tensor:
+        """Compute the cosine similarity between two Doc vectors.
         
         Args:
             other (Doc): The Doc to compare with.
@@ -180,14 +180,16 @@ class Doc(AbstractObject):
             Tensor: A cosine similarity score. Higher is more similar.
         """
 
+        # Make sure both vectors have non-zero norms
         assert (
             self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
-        ), "one or both of the tokens is invalid"
+        ), "One of the provided vectors has a zero norm!"
 
-        return torch.dot(torch.tensor(self.vector), torch.tensor(other.vector)) / (
-            self.vector_norm * other.vector_norm
-        )
+        # Compute similarity
+        sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
+        sim /= self.vector_norm * other.vector_norm
 
+        return  sim
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
