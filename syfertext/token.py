@@ -60,15 +60,16 @@ class Token:
         Returns: 
             Tensor: The L2 norm of the vector representation.
         """
-        
+
         # Convert the vector from a numpy array to a Tensor
         vector = torch.tensor(self.vector)
-        
+
         # Compute the norm
         norm = (vector ** 2).sum()
         norm = torch.sqrt(norm)
 
         return norm
+
     def similarity(self, other):
         """Compute the cosine similarity between tokens' vectors.
         
@@ -78,7 +79,7 @@ class Token:
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """
-        
+
         # Make sure both vectors have non-zero norms
         assert (
             self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
@@ -88,7 +89,7 @@ class Token:
         sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
         sim /= self.vector_norm * other.vector_norm
 
-        return  sim
+        return sim
 
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
         """Get the mean of the vectors of each Token in this documents.

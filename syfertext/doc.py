@@ -162,9 +162,9 @@ class Doc(AbstractObject):
         Returns:
             A torch tensor representing the L2 norm of the document vector
         """
-        
+
         vector = torch.tensor(self.vector)
-        
+
         norm = (vector ** 2).sum()
         norm = torch.sqrt(norm)
 
@@ -189,7 +189,8 @@ class Doc(AbstractObject):
         sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
         sim /= self.vector_norm * other.vector_norm
 
-        return  sim
+        return sim
+
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
