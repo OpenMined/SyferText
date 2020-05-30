@@ -205,6 +205,42 @@ class Doc(AbstractObject):
 
         return doc_vector
 
+    @property
+    def vector_norm(self) -> torch.FloatTensor:
+        """Get the L2 norm of the document vector
+
+        Returns:
+            A torch tensor representing the L2 norm of the document vector
+        """
+
+        vector = torch.tensor(self.vector)
+
+        norm = (vector ** 2).sum()
+        norm = torch.sqrt(norm)
+
+        return norm
+
+    def similarity(self, other: "Doc") -> torch.Tensor:
+        """Compute the cosine similarity between two Doc vectors.
+        
+        Args:
+            other (Doc): The Doc to compare with.
+        
+        Returns:
+            Tensor: A cosine similarity score. Higher is more similar.
+        """
+
+        # Make sure both vectors have non-zero norms
+        assert (
+            self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
+        ), "One of the provided vectors has a zero norm!"
+
+        # Compute similarity
+        sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
+        sim /= self.vector_norm * other.vector_norm
+
+        return sim
+
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.

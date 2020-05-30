@@ -171,6 +171,17 @@ def test_update_custom_attr_doc():
     assert token.get_attribute("token_tag") == "new_token_value"
 
 
+def test_doc_similarity():
+    """Test similarity between two Doc objects"""
+
+    doc1 = nlp("Joey doesnt share food")
+    doc2 = nlp("we were on a break")
+
+    assert doc1.similarity(doc2) == doc2.similarity(doc1)
+
+    assert -1 <= doc1.similarity(doc2).item() <= 1
+
+
 def test_exclude_tokens_on_attr_values_doc():
     """Test that the get_vector method ignores tokens based on the excluded_tokens dict"""
 
