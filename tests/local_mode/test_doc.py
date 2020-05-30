@@ -220,7 +220,7 @@ def test_ownership_doc_remote():
     assert doc.owner == me
 
     # check owner of doc object pointed by the `doc` DocPointer
-    assert bob._objects[doc.id_at_location].owner == bob
+    assert bob._objects[doc.id_at_location].owner.id == bob.id
 
 
 def test_nbor():
