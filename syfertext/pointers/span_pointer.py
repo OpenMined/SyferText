@@ -37,11 +37,10 @@ class SpanPointer(ObjectPointer):
 
     def __len__(self):
 
-        # Create the command
-        command = ("__len__", self.id_at_location, [], {})
-
         # Send the command
-        length = self.owner.send_command(self.location, command)
+        length = self.owner.send_command(
+            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
+        )
 
         return length
 
@@ -52,11 +51,10 @@ class SpanPointer(ObjectPointer):
             item, slice
         ), "You are not authorised to access a `Token` from a `SpanPointer`"
 
-        # Create the command
-        command = ("__getitem__", self.id_at_location, [item], {})
-
         # Send the command
-        obj_id = self.owner.send_command(self.location, command)
+        obj_id = self.owner.send_command(
+            recipient=self.location, cmd_name="__getitem__", target=self, args_=(item,), kwargs_={}
+        )
 
         # we create a SpanPointer from the obj_id
         span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
@@ -72,11 +70,10 @@ class SpanPointer(ObjectPointer):
         # Avoid circular imports
         from .doc_pointer import DocPointer
 
-        # Create the command
-        command = ("as_doc", self.id_at_location, [], {})
-
         # Send the command
-        doc_id = self.owner.send_command(self.location, command)
+        doc_id = self.owner.send_command(
+            recipient=self.location, cmd_name="as_doc", target=self, args_=tuple(), kwargs_={}
+        )
 
         # Create a DocPointer from doc_id
         doc = DocPointer(location=self.location, id_at_location=doc_id, owner=sy.local_worker)

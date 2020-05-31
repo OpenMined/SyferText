@@ -17,9 +17,14 @@ from .pipeline import SimpleTagger
 from .state import State
 from .pointers.state_pointer import StatePointer
 
-from typing import List
-from typing import Tuple
+
 from typing import Set
+=======
+import syft
+from syft.serde.msgpack.serde import msgpack_global_state
+from syft.workers.base import BaseWorker
+import torch
+>>>>>>> 1fab4fb07aab6a7700d638f83ba49fc57a0fa9cf
 
 import logging
 import os
@@ -97,20 +102,20 @@ def register_to_serde(class_type: type):
 
     # Get the maximum integer index of detailers and add 1 to it
     # to create a new index that does not exist yet
-    proto_id = max(list(serde.detailers.keys())) + 1
+    proto_id = max(list(msgpack_global_state.detailers.keys())) + 1
 
     # Add the simplifier
-    serde.detailers[proto_id] = class_type.detail
+    msgpack_global_state.detailers[proto_id] = class_type.detail
 
     # Add the simplifier
-    serde.simplifiers[class_type] = (proto_id, class_type.simplify)
+    msgpack_global_state.simplifiers[class_type] = (proto_id, class_type.simplify)
 
     return proto_id
 
 
 # Register some types to serde
-Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
+Tokenizer.proto_id = register_to_serde(Tokenizer)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 State.proto_id = register_to_serde(State)
 StatePointer.proto_id = register_to_serde(StatePointer)

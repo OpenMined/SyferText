@@ -85,12 +85,12 @@ class SubPipelinePointer(ObjectPointer):
 
         # Create the command message to is used to forward the method
         # call.
-        args = []
+        args = tuple()
         kwargs = {"input_id": input_id_at_location}
 
-        command = ("__call__", self.id_at_location, args, kwargs)
-
         # Send the command
-        response = self.owner.send_command(self.location, command)
+        response = self.owner.send_command(
+            recipient=self.location, cmd_name="__call__", target=self, args_=args, kwargs_=kwargs
+        )
 
         return response

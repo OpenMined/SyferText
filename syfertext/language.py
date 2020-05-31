@@ -6,7 +6,7 @@ from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
 
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer

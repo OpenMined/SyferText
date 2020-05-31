@@ -17,7 +17,7 @@ from .utils import compile_prefix_regex
 
 
 import re
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 import syft.serde.msgpack.serde as serde
