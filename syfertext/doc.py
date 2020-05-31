@@ -6,7 +6,7 @@ import numpy as np
 hook = syft.TorchHook(torch)
 
 
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 from typing import List

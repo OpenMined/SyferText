@@ -3,12 +3,13 @@ from ..pointers.doc_pointer import DocPointer
 from .pointers import SubPipelinePointer
 
 import syft as sy
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 import syft.serde.msgpack.serde as serde
+from syft.serde.msgpack.serde import msgpack_global_state
 
 import pickle
 from typing import Union, Dict, List, Tuple
@@ -273,7 +274,7 @@ class SubPipeline(AbstractObject):
             proto_id, simple_pipe = simple_pipe
 
             # Detail the simple_pipe to retriev the pipe object
-            pipe = serde.detailers[proto_id](worker, simple_pipe)
+            pipe = msgpack_global_state.detailers[proto_id](worker, simple_pipe)
 
             pipes.append(pipe)
 
