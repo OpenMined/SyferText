@@ -13,6 +13,8 @@ import shutil
 from quickumls_simstring import simstring
 import unicodedata
 
+import math
+
 
 def hash_string(string: str) -> int:
     """Create a hash for a given string. 
@@ -136,3 +138,51 @@ class SimstringDBReader(object):
     def get(self, term):
         term = safe_unicode(term)
         return self.db.retrieve(term)
+
+def make_ngrams(s, n):
+    # s = u'{t}{s}{t}'.format(s=safe_unicode(s), t=('$' * (n - 1)))
+    n = len(s) if len(s) < n else n
+    return (s[i:i + n] for i in xrange(len(s) - n + 1))
+
+
+def get_similarity(x, y, n, similarity_name):
+    if len(x) == 0 or len(y) == 0:
+        # we define similarity between two strings
+        # to be 0 if any of the two is empty.
+        return 0.
+
+    X, Y = set(make_ngrams(x, n)), set(make_ngrams(y, n))
+    intersec = len(X.intersection(Y))
+
+    if similarity_name == 'dice':
+        return 2 * intersec / (len(X) + len(Y))
+    elif similarity_name == 'jaccard':
+        return intersec / (len(X) + len(Y) - intersec)
+    elif similarity_name == 'cosine':
+        return intersec / math.sqrt(len(X) * len(Y))
+    elif similarity_name == 'overlap':
+        return intersec
+    else:
+        msg = 'Similarity {} not recognized'.format(similarity_name)
+        raise TypeError(msg)
+
+class Intervals(object):
+    def __init__(self):
+        self.intervals = []
+
+    def _is_overlapping_intervals(self, a, b):
+        if b[0] < a[1] and b[1] > a[0]:
+            return True
+        elif a[0] < b[1] and a[1] > b[0]:
+            return True
+        else:
+            return False
+
+    def __contains__(self, interval):
+        return any(
+            self._is_overlapping_intervals(interval, other)
+            for other in self.intervals
+        )
+
+    def append(self, interval):
+        self.intervals.append(interval)

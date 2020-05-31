@@ -2,6 +2,8 @@ from syfertext.doc import Doc
 from syfertext.token import Token
 from typing import Union
 
+from syfertext.utils import Intervals, get_similarity
+
 class QuickUMLS:
     """ Extracts medical entities using
     approximation matching. Also does UMLS linking by
@@ -50,4 +52,137 @@ class QuickUMLS:
 
 
     def __call__(self, doc: Doc):
-        pass
+        # find all the matches
+
+        matches = self._match(doc)
+
+        # Now update the doc
+        # where to put the matches in doc ??
+        # make spans  ??
+        # maybe in doc.ents ?? or in doc.medical_ents ??
+        # definitely put in doc.cuis
+
+        return doc
+
+    def _get_all_matches(self, ngrams):
+        """Returns all matches in the form of list
+        of dictionary of 
+            match = {
+                'start',
+                'end',
+                'ngram',
+                'matched_text',
+                'cui',
+                'similarity'
+            }
+        """
+
+        all_matches = []
+
+        for start, end, ngram in ngrams:
+
+            # Convert to lowercase if possible
+            if not self.keep_uppercase:
+                ngram = ngram.lower()
+            
+            # find all the candidates
+            matches = list(searcher.get(ngram))
+
+            for match in matches:
+
+                ngram_matches = []
+                
+                # get all CUIs with this matched text
+                # in database. Yes, one text can have more than
+                # one CUI. for eg. 40 year old has CUI of age, adult etc. 
+                cuis = self.string_to_cui[match]
+
+                similarity = get_similarity(ngram, match, self.similarity_name)
+
+                for cui in cuis:
+                    if match_similarity == 0:
+                        continue
+                    
+                    # TODO : Only include those which the user wants, eg, T053, T0151
+                    # if not self._is_ok_semtype(semtypes):
+                    #     continue
+
+                    if prev_cui is not None and prev_cui == cui:
+                        if match_similarity > ngram_matches[-1]['similarity']:
+                            ngram_matches.pop(-1)
+                        else:
+                            continue
+
+                    prev_cui = cui
+
+                    ngram_matches.append(
+                        {
+                            'start': start,
+                            'end': end,
+                            'ngram': ngram,
+                            'matched_text': match,
+                            'cui': cui,
+                            'similarity': match_similarity,
+                            # 'semtypes': semtypes,
+                            # 'preferred': preferred
+                        }
+                    )
+
+            if len(ngram_matches) > 0:
+                matches.append(
+                    sorted(
+                        ngram_matches,
+                        key=lambda m: m['similarity'], # + m['preferred'],
+                        reverse=True
+                    )
+                )
+        
+        return all_matches
+    
+    @staticmethod
+    def _select_score(match):
+        return (match[0]['similarity'], (match[0]['end'] - match[0]['start']))
+
+    @staticmethod
+    def _select_longest(match):
+        return ((match[0]['end'] - match[0]['start']), match[0]['similarity'])
+
+    def _select_terms(self, matches):
+        sort_func = (
+            self._select_longest if self.overlapping_criteria == 'length'
+            else self._select_score
+        )
+
+        matches = sorted(matches, key=sort_func, reverse=True)
+
+        intervals = Intervals()
+        final_matches_subset = []
+
+        for match in matches:
+            match_interval = (match[0]['start'], match[0]['end'])
+            if match_interval not in intervals:
+                final_matches_subset.append(match)
+                intervals.append(match_interval)
+
+        return final_matches_subset 
+
+    # NOTE : we are not currently using the heuristcs introduced in the paper (Soldaini and Goharian, 2016).
+    # Also make better doc strings
+    def _match(self, doc : Doc, best_match=True):
+        """Perform UMLS concept resolution for the given string.
+        Args:
+            text (str): Text on which to run the algorithm
+            best_match (bool, optional): Whether to return only the top match or all overlapping candidates. Defaults to True.
+
+        Returns:
+            List: List of all matches in the text
+        """
+
+        ngrams = self._make_ngrams(doc)
+
+        matches = self._get_all_matches(ngrams)
+
+        if best_match:
+            matches = self._select_terms(matches)
+
+        return matches
