@@ -2,8 +2,6 @@ from syfertext.doc import Doc
 from syfertext.token import Token
 from typing import Union
 
-from quickumls_simstring import simstring
-
 class QuickUMLS:
     """ Extracts medical entities using
     approximation matching. Also does UMLS linking by

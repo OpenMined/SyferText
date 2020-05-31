@@ -10,6 +10,9 @@ from typing import Tuple
 import tempfile
 import shutil
 
+from quickumls_simstring import simstring
+import unicodedata
+
 
 def hash_string(string: str) -> int:
     """Create a hash for a given string. 
@@ -114,3 +117,22 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
     prog_bar.close()
     return tmp_model_path
+
+def safe_unicode(s):
+    return u'{}'.format(unicodedata.normalize('NFKD', s))
+
+class SimstringDBReader(object):
+    """Used to get candidates for medical extraction. Uses CPMerge
+    Alogorithm to find approximate matches.
+
+    Inspired from : https://github.com/Georgetown-IR-Lab/QuickUMLS/blob/master/quickumls/toolbox.py
+    For more info refer to paper : <CPmerge paper>
+    """
+    def __init__(self, database_umls : str, similarity_name : str, threshold : float):
+        self.db = simstring.reader(database_umls)
+        self.db.measure = getattr(simstring, similarity_name)
+        self.db.threshold = threshold
+
+    def get(self, term):
+        term = safe_unicode(term)
+        return self.db.retrieve(term)
