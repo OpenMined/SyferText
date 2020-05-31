@@ -68,8 +68,8 @@ def register_to_serde(class_type: type):
 
 
 # Register some types to serde
-Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
+Tokenizer.proto_id = register_to_serde(Tokenizer)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
 
 # Set the default owners of some classes
