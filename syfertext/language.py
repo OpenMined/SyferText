@@ -4,7 +4,7 @@ from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer

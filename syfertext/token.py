@@ -4,7 +4,7 @@ import syft as sy
 import torch
 from syft.generic.string import String
 
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 

@@ -3,7 +3,7 @@ import torch
 
 hook = syft.TorchHook(torch)
 
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syfertext.token import Token
 

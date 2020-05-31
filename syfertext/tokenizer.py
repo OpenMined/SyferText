@@ -8,7 +8,7 @@ from .utils import hash_string
 
 
 import re
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 
