@@ -51,6 +51,11 @@ class Doc(AbstractObject):
         # using the `self.set_attribute` method
         self._ = Underscore()
 
+        # Empty list to store named entities
+        # This list will contain Spans of named entities
+        # To access type of entity use Span._.type ?? TODO
+        self.ents = list()
+
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`

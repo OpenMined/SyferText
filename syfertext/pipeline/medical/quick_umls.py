@@ -1,4 +1,5 @@
 from syfertext.doc import Doc
+from syfertext.span import Span
 from syfertext.token import Token
 from typing import Union
 
@@ -45,7 +46,7 @@ class QuickUMLS:
                     functionality, which makes QuickUMLS useful for
                     distinguishing acronyms from normal words. 
                     
-                    For this the database to be used must be `./umls_data`
+                    For this, the database to be used must be `./umls_data`
                     Defaults to False.
         """
         pass
@@ -61,6 +62,23 @@ class QuickUMLS:
         # make spans  ??
         # maybe in doc.ents ?? or in doc.medical_ents ??
         # definitely put in doc.cuis
+
+        for match in matches:
+            
+            # TODO : maybe first add cuis in StringStore
+            cuis = []
+            for each_match in match:
+                cuis.append(each_match['cui'])
+            
+            entity = Span(doc, match[0]['start'], match[0]['end'])
+
+            # Set cuis in custom attr
+            entity.set_attribute('cuis', cuis)
+            entity.set_attribute('ent_type','medical term')
+
+            doc.ents.append(entity)
+
+            # to access definition use, quickUMLS.kb[cui] to extract definitions    
 
         return doc
 
