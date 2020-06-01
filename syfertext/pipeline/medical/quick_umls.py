@@ -3,7 +3,8 @@ from syfertext.span import Span
 from syfertext.token import Token
 from typing import Union
 
-from syfertext.utils import Intervals, get_similarity
+from syfertext.utils import Intervals, get_similarity, SimstringDBReader
+import pickle
 
 class QuickUMLS:
     """ Extracts medical entities using
@@ -17,12 +18,13 @@ class QuickUMLS:
     # TODO : add accepted sem types option as well
     def __init__(
         self, 
-        quick_umls_database = './umls_data_lower',
+        quick_umls_database = '/home/jatinprakash/Desktop/notebooks/database_umls/umls-terms.simstring', # Change later
+        knowledge_base = '/home/jatinprakash/Desktop/notebooks/kb_umls.pt', # Change later
         threshold = 0.85, 
         overlapping_criteria = 'score',
         window = 5,
         similarity_name = 'jaccard', 
-        keep_uppercase = False
+        keep_uppercase = True
     ):
         """ 
         Instantiate QuickUMLS object. This is the main interface through 
@@ -66,20 +68,49 @@ class QuickUMLS:
         assert not(valid_similarities in valid_similarities), err_msg
         self.similarity_name = similarity_name
 
-        simstring_fp = quick_umls_database
+       
         # CUI Types.
 
         self.window = window
         self.ngram_length = 3
         self.threshold = threshold
-        self.min_match_length = 3
-        self.keep_uppercase = keep_uppercase
-        self.string_to_cui = {}
+        self.keep_uppercase = keep_uppercase # TODO Change this later, also make database of lowercase tokens
 
+        self.quick_umls_database = quick_umls_database
+        self.knowledge_base = knowledge_base
 
+        # Initialize Simstring reader
+        self.searcher = None
+        self.string_to_cui = None
+    
+    def factory(self):
+        """Creates a clone of this object.
+        This method is used by the SupPipeline class to create
+        objects using subpipeline templates.
+        """
+
+        return QuickUMLS(
+            quick_umls_database = self.quick_umls_database, # Change later
+            knowledge_base = self.knowledge_base, # Change later
+            threshold = self.threshold, 
+            overlapping_criteria = self.overlapping_criteria,
+            window = self.window,
+            similarity_name = self.similarity_name, 
+            keep_uppercase = True
+        )
 
     def __call__(self, doc: Doc):
         # find all the matches
+        
+        if self.searcher is None:
+            logging.log(level=0,msg = 'Loading SimString Database...')
+            self.searcher = SimstringDBReader(self.quick_umls_database, self.similarity_name, self.threshold)
+        
+        if self.string_to_cui is None:
+            logging.log(level=0,msg = 'Loading UMLS Database...')
+            f = open(self.knowledge_base,'rb')
+            self.string_to_cui = pickle.load(f)
+            f.close()
 
         matches = self._match(doc)
 
@@ -88,6 +119,8 @@ class QuickUMLS:
         # make spans  ??
         # maybe in doc.ents ?? or in doc.medical_ents ??
         # definitely put in doc.cuis
+
+        # print(matches)
 
         for match in matches:
             
@@ -130,18 +163,19 @@ class QuickUMLS:
                 ngram = ngram.lower()
             
             # find all the candidates
-            matches = list(searcher.get(ngram))
+            matches = list(self.searcher.get(ngram))
 
+            ngram_matches = []
+            prev_cui = None
+            
             for match in matches:
-
-                ngram_matches = []
                 
                 # get all CUIs with this matched text
                 # in database. Yes, one text can have more than
                 # one CUI. for eg. 40 year old has CUI of age, adult etc. 
                 cuis = self.string_to_cui[match]
 
-                similarity = get_similarity(ngram, match, self.similarity_name)
+                match_similarity = get_similarity(ngram, match, self.ngram_length, self.similarity_name)
 
                 for cui in cuis:
                     if match_similarity == 0:
@@ -173,7 +207,7 @@ class QuickUMLS:
                     )
 
             if len(ngram_matches) > 0:
-                matches.append(
+                all_matches.append(
                     sorted(
                         ngram_matches,
                         key=lambda m: m['similarity'], # + m['preferred'],
@@ -210,20 +244,12 @@ class QuickUMLS:
 
         return final_matches_subset 
     
-    def _make_ngrams(self, text):
-    # make window sized token grams
-    tokens = text.split(' ')
-    doc_window_list = []
-    for i in range(len(tokens)):
-        curr = tokens[i]
-        for j in range(i+1,min(i + self.window + 1, len(tokens))):
-            doc_window_list.append((i,j,curr))
-            curr += " "
-            curr += tokens[j]
-        doc_window_list.append((i,min(i + self.window + 1, len(tokens)),curr))
-    return doc_window_list
-
-
+    def _make_ngrams(self, doc : Doc, window : int):
+        """Make token ngrams of size `window`"""
+        for i in range(len(doc)):
+            for j in range(i + 1, min(i + self.window, len(doc)) + 1):
+                span = doc[i : j]
+                yield (span.start, span.end, span.text)
 
     # NOTE : we are not currently using the heuristcs introduced in the paper (Soldaini and Goharian, 2016).
     # Also make better doc strings
@@ -237,7 +263,7 @@ class QuickUMLS:
             List: List of all matches in the text
         """
 
-        ngrams = self._make_ngrams(doc)
+        ngrams = list(self._make_ngrams(doc, self.window))
 
         matches = self._get_all_matches(ngrams)
 

@@ -130,8 +130,8 @@ class SimstringDBReader(object):
     Inspired from : https://github.com/Georgetown-IR-Lab/QuickUMLS/blob/master/quickumls/toolbox.py
     For more info refer to paper : <CPmerge paper>
     """
-    def __init__(self, database_umls : str, similarity_name : str, threshold : float):
-        self.db = simstring.reader(database_umls)
+    def __init__(self, database : str, similarity_name : str, threshold : float):
+        self.db = simstring.reader(database)
         self.db.measure = getattr(simstring, similarity_name)
         self.db.threshold = threshold
 
@@ -142,7 +142,7 @@ class SimstringDBReader(object):
 def make_ngrams(s, n):
     # s = u'{t}{s}{t}'.format(s=safe_unicode(s), t=('$' * (n - 1)))
     n = len(s) if len(s) < n else n
-    return (s[i:i + n] for i in xrange(len(s) - n + 1))
+    return (s[i:i + n] for i in range(len(s) - n + 1))
 
 
 def get_similarity(x, y, n, similarity_name):

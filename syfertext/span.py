@@ -129,6 +129,21 @@ class Span(AbstractObject):
 
             return span
 
+    @property
+    def text_with_ws(self):
+        """The text content of the span with a trailing whitespace character if
+        the last token has one.
+        """
+        return "".join([token.text_with_ws for token in self])
+    
+    @property
+    def text(self):
+        """returns The original verbatim text of the span."""
+        text = self.text_with_ws
+        if self[-1].is_space:
+            text = text[:-1]
+        return text
+
     def __len__(self):
         """Return the number of tokens in the Span."""
         return self.end - self.start
