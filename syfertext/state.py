@@ -1,4 +1,4 @@
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 

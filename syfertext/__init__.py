@@ -1,5 +1,5 @@
 import syft
-import syft.serde.msgpack.serde as serde
+from syft.serde.msgpack.serde import msgpack_global_state
 from syft.workers.base import BaseWorker
 import torch
 
@@ -17,14 +17,7 @@ from .pipeline import SimpleTagger
 from .state import State
 from .pointers.state_pointer import StatePointer
 
-
 from typing import Set
-=======
-import syft
-from syft.serde.msgpack.serde import msgpack_global_state
-from syft.workers.base import BaseWorker
-import torch
->>>>>>> 1fab4fb07aab6a7700d638f83ba49fc57a0fa9cf
 
 import logging
 import os
