@@ -3,6 +3,7 @@ from .tokenizer import Tokenizer
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
+from .pipeline.medical import QuickUMLS
 from . import utils
 
 import syft
@@ -71,6 +72,7 @@ def register_to_serde(class_type: type):
 Tokenizer.proto_id = register_to_serde(Tokenizer)
 SubPipeline.proto_id = register_to_serde(SubPipeline)
 SimpleTagger.proto_id = register_to_serde(SimpleTagger)
+QuickUMLS.proto_id = register_to_serde(QuickUMLS)
 
 # Set the default owners of some classes
 SubPipeline.owner = hook.local_worker

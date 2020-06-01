@@ -6,6 +6,9 @@ from typing import Union
 from syfertext.utils import Intervals, get_similarity, SimstringDBReader
 import pickle
 
+from syft.workers.base import BaseWorker
+import syft.serde.msgpack.serde as serde
+
 class QuickUMLS:
     """ Extracts medical entities using
     approximation matching. Also does UMLS linking by
@@ -96,24 +99,25 @@ class QuickUMLS:
             overlapping_criteria = self.overlapping_criteria,
             window = self.window,
             similarity_name = self.similarity_name, 
-            keep_uppercase = True
+            keep_uppercase = self.keep_uppercase
         )
 
     def __call__(self, doc: Doc):
         # find all the matches
         
         if self.searcher is None:
-            logging.log(level=0,msg = 'Loading SimString Database...')
+            print('Loading SimString Database...')
             self.searcher = SimstringDBReader(self.quick_umls_database, self.similarity_name, self.threshold)
         
         if self.string_to_cui is None:
-            logging.log(level=0,msg = 'Loading UMLS Database...')
+            print('Loading SimString Database...')
             f = open(self.knowledge_base,'rb')
             self.string_to_cui = pickle.load(f)
             f.close()
 
         matches = self._match(doc)
 
+        # TODO : 
         # Now update the doc
         # where to put the matches in doc ??
         # make spans  ??
@@ -271,3 +275,72 @@ class QuickUMLS:
             matches = self._select_terms(matches)
 
         return matches
+
+    @staticmethod
+    def simplify(worker: BaseWorker, quick_umls: "QuickUMLS"):
+        """Simplifies a QuickUMLS object. 
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                simplify operation is carried out.
+            quick_umls (QuickUMLS): the QuickUMLS object
+                to simplify.
+
+        Returns:
+            (tuple): The simplified QuickUMLS object.
+        """
+
+        quick_umls_database = serde._simplify(worker, quick_umls.quick_umls_database), # Change later
+        knowledge_base = serde._simplify(worker, quick_umls.knowledge_base) # Change later
+        threshold = serde._simplify(worker, quick_umls.threshold)
+        overlapping_criteria = serde._simplify(worker, quick_umls.overlapping_criteria)
+        window = serde._simplify(worker, quick_umls.window)
+        similarity_name = serde._simplify(worker, quick_umls.similarity_name)
+        keep_uppercase = serde._simplify(worker, quick_umls.keep_uppercase)
+
+        return (quick_umls_database, 
+                knowledge_base, 
+                threshold, 
+                overlapping_criteria, 
+                window,
+                similarity_name,
+                keep_uppercase
+                )
+
+    @staticmethod
+    def detail(worker: BaseWorker, simple_obj: tuple):
+        """Takes a simplified QuickUMLS object, details it 
+           and returns a QuickUMLS object.
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                detail operation is carried out.
+            simple_obj (tuple): the simplified SubPipeline object.
+        Returns:
+            (QuickUMLS): The QuickUMLS object.
+        """
+
+        # Unpack the simplified object
+        quick_umls_database, knowledge_base, threshold, overlapping_criteria, window, similarity_name, keep_uppercase = simple_obj
+
+        # Detail each property
+        quick_umls_database = serde._detail(worker, quick_umls_database)
+        knowledge_base = serde._detail(worker, knowledge_base)
+        threshold = serde._detail(worker, threshold)
+        overlapping_criteria = serde._detail(worker, overlapping_criteria)
+        window = serde._detail(worker, window)
+        similarity_name = serde._detail(worker, similarity_name)
+        keep_uppercase = serde._detail(worker, keep_uppercase)
+
+        # Instantiate a QuickUMLS object
+        quick_umls = QuickUMLS(
+            quick_umls_database = self.quick_umls_database, # Change later
+            knowledge_base = self.knowledge_base, # Change later
+            threshold = self.threshold, 
+            overlapping_criteria = self.overlapping_criteria,
+            window = self.window,
+            similarity_name = self.similarity_name, 
+            keep_uppercase = self.keep_uppercase
+        )
+
+        return quick_umls
