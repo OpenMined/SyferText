@@ -49,7 +49,33 @@ class QuickUMLS:
                     For this, the database to be used must be `./umls_data`
                     Defaults to False.
         """
-        pass
+
+        valid_criteria = {'length', 'score'}
+        err_msg = (
+            '"{}" is not a valid overlapping_criteria. Choose '
+            'between {}'.format(
+                overlapping_criteria, ', '.join(valid_criteria)
+            )
+        )
+        assert overlapping_criteria in valid_criteria, err_msg
+        self.overlapping_criteria = overlapping_criteria
+
+        valid_similarities = {'dice', 'jaccard', 'cosine', 'overlap'}
+        err_msg = ('"{}" is not a valid similarity name. Choose between '
+                   '{}'.format(similarity_name, ', '.join(valid_similarities)))
+        assert not(valid_similarities in valid_similarities), err_msg
+        self.similarity_name = similarity_name
+
+        simstring_fp = quick_umls_database
+        # CUI Types.
+
+        self.window = window
+        self.ngram_length = 3
+        self.threshold = threshold
+        self.min_match_length = 3
+        self.keep_uppercase = keep_uppercase
+        self.string_to_cui = {}
+
 
 
     def __call__(self, doc: Doc):
@@ -183,6 +209,21 @@ class QuickUMLS:
                 intervals.append(match_interval)
 
         return final_matches_subset 
+    
+    def _make_ngrams(self, text):
+    # make window sized token grams
+    tokens = text.split(' ')
+    doc_window_list = []
+    for i in range(len(tokens)):
+        curr = tokens[i]
+        for j in range(i+1,min(i + self.window + 1, len(tokens))):
+            doc_window_list.append((i,j,curr))
+            curr += " "
+            curr += tokens[j]
+        doc_window_list.append((i,min(i + self.window + 1, len(tokens)),curr))
+    return doc_window_list
+
+
 
     # NOTE : we are not currently using the heuristcs introduced in the paper (Soldaini and Goharian, 2016).
     # Also make better doc strings
