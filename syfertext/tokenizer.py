@@ -120,8 +120,7 @@ class Tokenizer(AbstractObject):
 
         # Create a document that will hold meta data of tokens
         # By meta data I mean the hash value of the string stored by the Token object
-        # in the original text, if the token is followed by a white space,
-        # if the token itself is composed of white spaces or not, etc ...
+        # in the original text, and if the token is followed by a white space.
 
         # I do not assign the Doc here any owner, this will
         # be done by the SupPipeline object that operates

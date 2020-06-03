@@ -24,8 +24,8 @@ def test_lex_rank():
     rank1 = lexeme1.rank
     rank2 = lexeme2.rank
 
-    # test rank is an integer for an
-    # string which exist in vocabularu
+    # test rank is a positive integer for a
+    # string which exist in vocabulary
     assert rank1 >= 0
 
     # Test for out of vocabulary strings

@@ -36,7 +36,7 @@ class Token(AbstractObject):
         # LexMeta object for the corresponding token string
         self.lex_meta = self.doc.vocab.get_lex_meta(self.orth)
 
-        # Whether the token is followed by a single white
+        # Whether the token is followed by a single white space
         self.space_after = token_meta.space_after
         self.position = position
 
@@ -184,6 +184,7 @@ class Token(AbstractObject):
     @property
     def vector_norm(self):
         """The L2 norm of the token's vector"""
+        
         vector = self.vector
         return np.sqrt((vector ** 2).sum())
 
@@ -255,7 +256,7 @@ class Token(AbstractObject):
     @property
     def shape_(self):
         """Transform of the tokens's string, to show
-            orthographic features. For example, "Xxxx" or "dd".
+        orthographic features. For example, "Xxxx" or "dd".
         """
         return self.vocab.store[self.lex_meta.shape]
 
@@ -361,7 +362,7 @@ class Token(AbstractObject):
     @property
     def like_num(self):
         """Whether the token resembles a number, e.g. "10.9",
-            "10" etc.
+        "10" etc.
         """
         return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_NUM)
 

@@ -127,7 +127,7 @@ class Vocab:
 
         return self.vectors.has_vector(string)
 
-    def get_lex_meta(self, orth: int) -> LexemeMeta:
+    def get_lex_meta(self, orth: int) -> Union[LexemeMeta, None]:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
         
