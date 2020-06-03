@@ -2,8 +2,11 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
+from ..utils import msgpack_code_generator
+
 from typing import Union
 from typing import Tuple
+from typing import Dict
 
 
 class StatePointer(ObjectPointer):
@@ -49,14 +52,13 @@ class StatePointer(ObjectPointer):
                 object referenced by this pointer.
         """
 
-        # Create the command message that is used to forward the method call.
-        args = []
-        kwargs = {"location": location}
-
-        command = ("send_copy", self.id_at_location, args, kwargs)
-
         # Send the command
-        state = self.owner.send_command(self.location, command)
+        state = self.owner.send_command(recipient = self.location,
+                                        cmd_name = "send_copy",
+                                        target = self,
+                                        args_ = tuple(),
+                                        kwargs_ = kwargs
+        )
 
 
         # Register the state in the object store
@@ -126,4 +128,30 @@ class StatePointer(ObjectPointer):
 
         return state_pointer
     
+    
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(StatePointer, "proto_id"):
+            StatePointer.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=StatePointer.proto_id)
+
+        return code_dict
     

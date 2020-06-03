@@ -1,15 +1,17 @@
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
 from .pointers import StatePointer
+from .utils import msgpack_code_generator
 
 from typing import Union
 from typing import Set
 from typing import Tuple
+from typing import Dict
 
 
-class State(AbstractObject):
+class State(AbstractSendable):
     
     def __init__(
         self,
@@ -210,3 +212,31 @@ class State(AbstractObject):
         )
 
         return state
+
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(State, "proto_id"):
+            State.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=State.proto_id)
+
+        return code_dict
+    

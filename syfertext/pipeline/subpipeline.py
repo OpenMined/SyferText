@@ -249,7 +249,7 @@ class SubPipeline(AbstractSendable):
             # Get the msgpack code of the pipe
             proto_id = pipe.get_msgpack_code()["code"]
 
-            simple_pipes.append((proto_id, pipe.simplify(worker, pipe)))
+            pipes_simple.append((proto_id, pipe.simplify(worker, pipe)))
 
         return (id_simple, client_id_simple, model_name_simple, pipe_names_simple, pipes_simple)
 
@@ -286,7 +286,7 @@ class SubPipeline(AbstractSendable):
 
             # Detail the simple_pipe to retriev the pipe object
 
-            pipe = msgpack_global_state.detailers[proto_id](worker, simple_pipe)
+            pipe = msgpack_global_state.detailers[proto_id](worker, pipe_simple)
 
 
             pipes.append(pipe)

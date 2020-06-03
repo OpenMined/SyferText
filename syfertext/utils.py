@@ -1,7 +1,5 @@
 from syft.workers.base import BaseWorker
 
-from .state import State
-
 import mmh3
 import os
 import re
@@ -118,7 +116,7 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
-def search_state(query: str, local_worker: BaseWorker) -> Union[State, None]:
+def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
     """Searches for a State object on the grid of workers.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
