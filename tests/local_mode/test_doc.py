@@ -113,7 +113,7 @@ def test_check_custom_attr():
 
 
 def test_remove_custom_attr():
-    """Test the deletion of a custom Doc attribute"""
+    """Test the deletion of a custom Doc and Token attribute"""
 
     doc = nlp("Joey doesnt share food")
     token = doc[0]
@@ -127,25 +127,59 @@ def test_remove_custom_attr():
     token.remove_attribute(name="token_tag")
 
     # Verify they do were removed
-    assert (not doc.has_attribute("doc_tag")) and (not token.has_attribute("token_tag"))
+    assert not doc.has_attribute("doc_tag")
+    assert not token.has_attribute("token_tag")
+
+
+def test_get_custom_attr():
+    """Test getting the value of custom attribute from Doc and Token."""
+
+    doc = nlp("Joey doesnt share food")
+    token = doc[0]
+
+    token_value, doc_value = "token_value", "doc_value"
+
+    # add custom attributes
+    doc.set_attribute(name="doc_tag", value=doc_value)
+    token.set_attribute(name="token_tag", value=token_value)
+
+    # Assert values are the values we set
+    assert doc.get_attribute("doc_tag") == doc_value
+    assert token.get_attribute("token_tag") == token_value
 
 
 def test_update_custom_attr_doc():
-    """Test updating custom attribute of Doc objects"""
+    """Test updating custom attribute of Doc and Token object"""
 
     doc = nlp("Joey doesnt share food")
+    token = doc[0]
 
-    # add new custom attribute
-    doc.set_attribute(name="my_custom_tag", value="tag")
+    # add new custom attributes
+    doc.set_attribute(name="doc_tag", value="doc_value")
+    token.set_attribute(name="token_tag", value="token_value")
 
-    # check custom attribute has been added
-    assert hasattr(doc._, "my_custom_tag") and doc._.my_custom_tag == "tag"
+    # check custom attributes values are set
+    assert doc.get_attribute("doc_tag") == "doc_value"
+    assert token.get_attribute("token_tag") == "token_value"
 
-    # now update the attribute
-    doc.set_attribute(name="my_custom_tag", value="new_tag")
+    # now update the attributes
+    doc.set_attribute(name="doc_tag", value="new_doc_value")
+    token.set_attribute(name="token_tag", value="new_token_value")
 
     # now check the updated attribute
-    assert hasattr(doc._, "my_custom_tag") and doc._.my_custom_tag == "new_tag"
+    assert doc.get_attribute("doc_tag") == "new_doc_value"
+    assert token.get_attribute("token_tag") == "new_token_value"
+
+
+def test_doc_similarity():
+    """Test similarity between two Doc objects"""
+
+    doc1 = nlp("Joey doesnt share food")
+    doc2 = nlp("we were on a break")
+
+    assert doc1.similarity(doc2) == doc2.similarity(doc1)
+
+    assert -1 <= doc1.similarity(doc2).item() <= 1
 
 
 def test_exclude_tokens_on_attr_values_doc():

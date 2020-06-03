@@ -2,6 +2,7 @@ from .language import Language
 from .pipeline import SubPipeline
 
 import syft
+
 from syft.workers.base import BaseWorker
 import torch
 
@@ -33,6 +34,7 @@ def load(
     nlp = Language(model_name, id=id, owner=owner, tags=tags, description=description)
 
     return nlp
+
 
 
 # Set the default owners of some classes

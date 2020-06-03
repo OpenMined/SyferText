@@ -8,6 +8,7 @@ from .utils import msgpack_code_generator
 
 
 import re
+
 from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 from syft.generic.string import String

@@ -23,14 +23,14 @@ class DocPointer(ObjectPointer):
         description: str = None,
     ):
         """Create a Doc Pointer from `location` where the `Doc` object resides and
-        `id_at_location`, the id of the `Doc` object at that location. 
+        `id_at_location`, the id of the `Doc` object at that location.
 
         Args:
             location (BaseWorker): the worker where the `Doc` object resides that this
                 DocPointer will point to.
-            
+
             id_at_location (int or str): the id of the `Doc` object at the `location` worker.
-            
+
             owner (BaseWorker): the owner of the this object ie. `DocPointer`
 
         Returns:
@@ -58,11 +58,11 @@ class DocPointer(ObjectPointer):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
             (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
@@ -124,16 +124,16 @@ class DocPointer(ObjectPointer):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
             (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document 
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document
                 this pointer points to.
         """
 
