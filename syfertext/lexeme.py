@@ -43,7 +43,7 @@ class LexemeMeta(object):
         # All flags have id >9. check `Attributes` for reference ids.
         # id>9 is only because ids less than 10 are reserved for other attributes.
         if attr_id > 9:
-            LexemeMeta.set_flag(lex_meta, attr_id, value)
+            self.set_flag(lex_meta, attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.

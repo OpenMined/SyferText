@@ -49,7 +49,7 @@ class Vocab:
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
-    def load_strings(self)-> List[str]:
+    def load_strings(self) -> List[str]:
         """load the pickled list of words that the Vocab object knows and has vectors for"""
 
         words_path = os.path.join(self.model_path, "words")
@@ -128,7 +128,7 @@ class Vocab:
 
         return self.vectors.has_vector(key)
 
-    def add_flag(self, flag_getter: Callable, flag_id = -1)-> int:
+    def add_flag(self, flag_getter: Callable, flag_id=-1) -> int:
         """Sets a boolean flag to all the entries in the vocabulary. 
         Also adds for the future entries. This Method is inspired from Spacy.
         You'll then be able to access the flag value using token.check_flag(flag_id) or 
@@ -145,23 +145,27 @@ class Vocab:
         Returns:
             flag_id(int): returns the flag_id through which user can access the flag value.
         """
-        
-        if flag_id==-1:
-            # set the next availabel flag_id 
-            flag_id = len(self.lex_attr_getters)+1
 
-            if flag_id>68:
+        if flag_id == -1:
+            # set the next availabel flag_id
+            flag_id = len(self.lex_attr_getters) + 1
+
+            if flag_id > 68:
                 raise Exception(
-            'The maximum number of custom flags is reached, you can replace a current flag by passing its id b/w 28 and 68.'
-            )
-        
-        if flag_id in range(28):
-            raise Exception('Custom flag_id should be greater than 27 as flags for these ids are reserved')
-        
-        if flag_id >68:
-            raise Exception('Custom flag_id should be less than 68, maximum numbers of custom flags are capped')
+                    "The maximum number of custom flags is reached, you can replace a current flag by passing its id b/w 28 and 68."
+                )
 
-        # Iterate over all the current entries in vocabulary and set the flag attribute.   
+        if flag_id in range(28):
+            raise Exception(
+                "Custom flag_id should be greater than 27 as flags for these ids are reserved"
+            )
+
+        if flag_id > 68:
+            raise Exception(
+                "Custom flag_id should be less than 68, maximum numbers of custom flags are capped"
+            )
+
+        # Iterate over all the current entries in vocabulary and set the flag attribute.
         for lex in self:
             lex.set_flag(flag_id, flag_getter(lex.orth_))
 
@@ -243,6 +247,4 @@ class Vocab:
         # Store the LexemeMeta object in the lex store.
         self.lex_store[lex_meta.orth] = lex_meta
 
-        return lex_meta 
-
-
+        return lex_meta

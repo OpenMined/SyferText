@@ -39,7 +39,7 @@ class Vectors:
         # Set the `loaded` property to True since data is now loaded
         self.loaded = True
 
-    def has_vector(self, key: Union[str, int])->bool:
+    def has_vector(self, key: Union[str, int]) -> bool:
         """Checks whether 'word' has a vector or not in self.data
 
         Args:
@@ -48,8 +48,6 @@ class Vectors:
         Returns:
             True if a vector for 'word' already exists.
         """
-
-     
 
         # If data is not yet loaded, then load it
         if not self.loaded:

@@ -118,8 +118,8 @@ class Token(AbstractObject):
         neighbor = self.doc[self.position + offset]
 
         return neighbor
-    
-    def check_flag(self, flag_id:int)->bool:
+
+    def check_flag(self, flag_id: int) -> bool:
         """Checks the attribute corresponding to given `flag_id` flag value.
         
         Args:
@@ -131,7 +131,7 @@ class Token(AbstractObject):
 
         return LexemeMeta.check_flag(self.lex_meta, flag_id)
 
-    def set_flag(self, flag_id: int, value: bool)->None:
+    def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag corresponding flag_id.
 
         Args:
@@ -197,7 +197,7 @@ class Token(AbstractObject):
     @property
     def vector_norm(self):
         """The L2 norm of the token's vector"""
-        
+
         vector = self.vector
         return np.sqrt((vector ** 2).sum())
 

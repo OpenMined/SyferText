@@ -74,5 +74,4 @@ class Attributes:
         Flag66,
         Flag67,
         Flag68,
-
     ) = range(69)
