@@ -6,6 +6,7 @@ from .underscore import Underscore
 from . import LOCAL_WORKER
 
 from .token_exception import TOKENIZER_EXCEPTIONS
+
 from .punctuations import TOKENIZER_PREFIXES
 from .punctuations import TOKENIZER_SUFFIXES
 from .punctuations import TOKENIZER_INFIXES
@@ -15,9 +16,11 @@ from .utils import compile_suffix_regex
 from .utils import compile_infix_regex
 from .utils import compile_prefix_regex
 
+from .utils import msgpack_code_generator
 
 import re
-from syft.generic.abstract.object import AbstractObject
+
+from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 import syft.serde.msgpack.serde as serde
@@ -30,7 +33,6 @@ from typing import Union
 from typing import Tuple
 from typing import Match
 from typing import DefaultDict
-from typing import Set
 from typing import Dict
 
 
@@ -70,8 +72,8 @@ class TokenMeta(object):
         self._ = Underscore()
 
 
-class Tokenizer(AbstractObject):
-    
+class Tokenizer(AbstractSendable):
+
     def __init__(
         self,
         model_name: str = None,
@@ -828,3 +830,29 @@ class Tokenizer(AbstractObject):
         tokenizer = Tokenizer(model_name=model_name, owner = worker)
 
         return tokenizer
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(Tokenizer, "proto_id"):
+            Tokenizer.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=Tokenizer.proto_id)
+
+        return code_dict

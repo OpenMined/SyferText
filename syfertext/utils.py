@@ -99,7 +99,7 @@ def compile_suffix_regex(entries: Tuple) -> Pattern:
     """
 
     expression = "|".join([piece + "$" for piece in entries if piece.strip()])
-    
+
     return re.compile(expression)
 
 
@@ -169,3 +169,23 @@ def search_state(query: str, local_worker: BaseWorker) -> Union[State, None]:
             state = state_ptr.get()
 
             return state
+
+class MsgpackCodeGenerator:
+    def __init__(self):
+
+        self.code = 1999
+
+    def __call__(self) -> int:
+        """Generates and returns a unique msgpack code
+
+        Returns:
+            An integer to serve as a msgpack serialization code.
+        """
+
+        self.code += 1
+
+        return self.code
+
+
+msgpack_code_generator = MsgpackCodeGenerator()
+
