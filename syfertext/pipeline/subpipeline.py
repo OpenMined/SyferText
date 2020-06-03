@@ -1,9 +1,10 @@
 from ..doc import Doc
 from ..pointers.doc_pointer import DocPointer
 from .pointers import SubPipelinePointer
+from ..utils import msgpack_code_generator
 
 import syft as sy
-from syft.generic.abstract.object import AbstractObject
+from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
@@ -12,10 +13,14 @@ import syft.serde.msgpack.serde as serde
 from syft.serde.msgpack.serde import msgpack_global_state
 
 import pickle
-from typing import Union, Dict, List, Tuple
+
+from typing import Union
+from typing import Dict
+from typing import List
+from typing import Tuple
 
 
-class SubPipeline(AbstractObject):
+class SubPipeline(AbstractSendable):
     """This class defines a subpipeline. A subpipeline
     is an PySyft object that encapsulate one or more
     pipe components that operate on the same worker.
@@ -79,22 +84,6 @@ class SubPipeline(AbstractObject):
 
         # Create the subpipeline property
         self.subpipeline = [factories[name].factory() for name in template["names"]]
-
-    def send(self, location: BaseWorker):
-        """Sends this object to the worker specified by 'location'. 
-
-        Args:
-            location (BaseWorker): The BaseWorker object to which the object is 
-                to be sent. Note that this is never actually the BaseWorker but instead
-                a class which inherits the BaseWorker abstraction.
-
-            Returns:
-                (SubPipelinePointer): A pointer to this object.
-        """
-
-        ptr = self.owner.send(self, location)
-
-        return ptr
 
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
@@ -239,7 +228,11 @@ class SubPipeline(AbstractObject):
 
         # Simplify each pipe
         for pipe in subpipeline.subpipeline:
-            simple_pipes.append((pipe.proto_id, pipe.simplify(worker, pipe)))
+
+            # Get the msgpack code of the pipe
+            proto_id = pipe.get_msgpack_code()["code"]
+
+            simple_pipes.append((proto_id, pipe.simplify(worker, pipe)))
 
         return (id, client_id, pipe_names, simple_pipes)
 
@@ -287,6 +280,46 @@ class SubPipeline(AbstractObject):
         subpipeline.pipe_names = pipe_names
 
         return subpipeline
+
+    def send(self, location: BaseWorker):
+        """Sends this object to the worker specified by 'location'. 
+        Args:
+            location (BaseWorker): The BaseWorker object to which the object is 
+                to be sent. Note that this is never actually the BaseWorker but instead
+                a class which inherits the BaseWorker abstraction.
+            Returns:
+                (SubPipelinePointer): A pointer to this object.
+        """
+
+        ptr = self.owner.send(self, location)
+
+        return ptr
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(SubPipeline, "proto_id"):
+            SubPipeline.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=SubPipeline.proto_id)
+
+        return code_dict
 
     def __repr__(self):
 
