@@ -23,35 +23,27 @@ class LexemeMeta(object):
         self.prefix = 0
         self.suffix = 0
 
-
-class Lexeme:
-    """Inspired by Spacy's Lexeme class. It is an entry in the vocabulary.
-    It holds various non-contextual attributes related to the corresponding string.  
-    """
-
-    def __init__(self, vocab: "Vocab", orth: int) -> None:
-        """Initializes a Lexeme object.
+    @staticmethod
+    def set_lexmeta_attr(lex_meta: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
+        """ Sets all the attributes for given attribute id for LexemeMeta object 
+        according to the provided `value`.
 
         Args:
-            vocab (Vocab): The parent vocabulary.
-            orth (int): The orth id of the lexeme, i.e, the token's hash.
+            lex_meta: The `LexemeMeta` object in which attribute is being setted.
+            attr_id: The integer id for the corresponding attribute.
+            value: Value of attribute to set.
         """
-
-        self.vocab = vocab
-        self.orth = orth
-
-        # Get the LexMeta stored in Vocab's lex_store
-        # Note: This creates no entry in lex_store if the LexemeMeta is not already present
-        self.lex_meta = vocab.get_lex_meta(orth)
-
-    @staticmethod
-    def set_lex_attr(lex_meta: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
+        
+        # checks if value is of correct format
+        assert (
+            isinstance(value,Union[int,bool]
+            ),"The value of attribute should be an integer or boolean"
 
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
-        # id>9 is only because ids less tahn 10 are reserved for other attributes.
+        # id>9 is only because ids less than 10 are reserved for other attributes.
         if attr_id > 9:
-            Lexeme.set_flag(lex_meta, attr_id, value)
+            LexemeMeta.set_flag(lex_meta, attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.
@@ -77,6 +69,20 @@ class Lexeme:
     # boolean attributes for Lexeme class are taken from Spacy.
     @staticmethod
     def check_flag(lex_meta: LexemeMeta, flag_id: int) -> bool:
+        """This method checks the value of flag corresponding to given flag_id. 
+        It check if bit at index corresponding to flag_id is 1 or 0. This method 
+        is inspired from Spacy.
+        
+        Args:
+            lex_meta(LexemeMeta): The `LexemeMeta` object containing flags for 
+                different attributes.
+            flag_id(int): The flag_id for corresponding attribute to check.
+
+        Returns:
+            bool: Returns True if the value of `lex_meta.flags` bit at index flag_id is 1 else 0.
+
+        """
+
         one = 1
 
         # Check if bit at index corresponding to flag_id is 1 or 0
@@ -86,9 +92,22 @@ class Lexeme:
 
         else:
             return False
-
+    
     @staticmethod
-    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool):
+    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool)->None:
+        """Set the sets the value of flag to 1 or zero according to provided attribute value.
+        It's inspired from Spacy.
+
+        Args:
+            lex_meta(LexemeMeta): The `LexemeMeta` object containing flags for 
+                different attributes.
+            flag_id(int): The flag_id for corresponding attribute to set.
+        """
+
+         # Make sure that value is of correct format
+        assert(
+            isinstance(value,bool
+            ),"The value of attribute from flag_getter for given string should be a boolean"
         one = 1
 
         # lex flag is an integer whose bits are manipulated
@@ -99,12 +118,62 @@ class Lexeme:
         # The result of above operation is that the bit at the index
         # corresponding to flag_id is changed to 1 if `value` is True
         # or else it's changed to 0. (by default all bits of flag are 0 as
-        # it's intialised with flags = 0)
+        # it's initialzed with flags = 0)
         if value:
             lex_meta.flags |= one << flag_id
 
         else:
             lex_meta.flags &= ~(one << flag_id)
+
+            
+class Lexeme:
+    """Inspired by Spacy's Lexeme class. It is an entry in the vocabulary.
+    It holds various non-contextual attributes related to the corresponding string.  
+    """
+
+    def __init__(self, vocab: "Vocab", orth: int) -> None:
+        """Initializes a Lexeme object.
+
+        Args:
+            vocab (Vocab): The parent vocabulary.
+            orth (int): The orth id of the lexeme, i.e, the token's hash.
+        """
+
+        self.vocab = vocab
+        self.orth = orth
+
+        # Get the LexMeta stored in Vocab's lex_store
+        # Note: This creates no entry in lex_store if the LexemeMeta is not already present
+        self.lex_meta = vocab.get_lex_meta(orth)
+
+    
+    def check_flag(self,flag_id: int) -> bool:
+        """Checks the value of a boolean flag. This method is inspired from Spacy.
+        Args:
+            flag_id(int): The attribute ID of the flag to check.
+
+        Returns:
+            bool: Returns True if the value of flag corresponding to flag_id is 1 else False.
+        """
+
+        # Check the flag value for given flag_id
+        # the flags are contained in LexemeMeta object.
+        return LexemeMeta.check_flag(self.lex_meta, flag_id)
+
+
+    def set_flag(self, flag_id: int, value: bool)->None:
+        """Set the sets the value of flag corresponding to flag_id to 1 or zero 
+        according to provided attribute value. This method is inspired from Spacy.
+
+        Args:
+            flag_id(int): The flag_id for corresponding attribute to set.
+            value(bool): boolean value used to set flag.
+        """
+
+        # Sets the value of flag which is inside lexememeta object
+        LexemeMeta.set_flag(self.lex_meta, flag_id, value)
+
+        
 
     @property
     def has_vector(self):

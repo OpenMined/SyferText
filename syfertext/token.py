@@ -27,7 +27,6 @@ class Token(AbstractObject):
     ):
         super(Token, self).__init__(id=id, owner=owner)
 
-        self.vocab = doc.vocab
         self.doc = doc
 
         # corresponding hash value of this token
@@ -119,6 +118,29 @@ class Token(AbstractObject):
         neighbor = self.doc[self.position + offset]
 
         return neighbor
+    
+    def check_flag(self, flag_id:int)->bool:
+        """Checks the attribute corresponding to given `flag_id` flag value.
+        
+        Args:
+            flag_id(int): The attribute ID of the flag to check.
+
+        Returns:
+            bool: Returns True if the value of flag corresponding to flag_id is 1 else False.
+        """
+
+        return LexemeMeta.check_flag(self.lex_meta, flag_id)
+
+    def set_flag(self, flag_id: int, value: bool)->None:
+        """Set the sets the value of flag corresponding flag_id.
+
+        Args:
+            flag_id(int): The flag_id for corresponding attribute to set.
+            value(bool): boolean value used to set flag.
+        """
+
+        # Sets the value of flag which is inside lexememeta object
+        LexemeMeta.set_flag(self.lex_meta, flag_id, value)
 
     @property
     def text(self):
@@ -130,15 +152,6 @@ class Token(AbstractObject):
         The number of unicode characters in the token.
         """
         return self.lex_meta.length
-
-    @property
-    def text_with_ws(self) -> str:
-        """Get the text with trailing whitespace if it exists"""
-
-        if self.space_after:
-            return self.orth_ + " "
-        else:
-            return self.orth_
 
     def __repr__(self):
         return "Token[{}]".format(self.orth_)
@@ -246,127 +259,127 @@ class Token(AbstractObject):
             Exists mostly for consistency with the other
             attributes.
         """
-        return self.vocab.store[self.lex_meta.orth]
+        return self.doc.vocab.store[self.lex_meta.orth]
 
     @property
     def lower_(self):
         """The lowercase token text."""
-        return self.vocab.store[self.lex_meta.lower]
+        return self.doc.vocab.store[self.lex_meta.lower]
 
     @property
     def shape_(self):
         """Transform of the tokens's string, to show
         orthographic features. For example, "Xxxx" or "dd".
         """
-        return self.vocab.store[self.lex_meta.shape]
+        return self.doc.vocab.store[self.lex_meta.shape]
 
     @property
     def prefix_(self):
         """A length-1 substring from the start of the token."""
-        return self.vocab.store[self.lex_meta.prefix]
+        return self.doc.vocab.store[self.lex_meta.prefix]
 
     @property
     def suffix_(self):
         """A length-3 substring from the end of the token."""
-        return self.vocab.store[self.lex_meta.suffix]
+        return self.doc.vocab.store[self.lex_meta.suffix]
 
     @property
     def lang_(self):
         """Language of the parent document's vocabulary,
             e.g. 'en_web_core_lm'.
         """
-        return self.vocab.store[self.lex_meta.lang]
+        return self.doc.vocab.store[self.lex_meta.lang]
 
     @property
     def is_oov(self):
         """Whether the token is out-of-vocabulary."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_OOV)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_OOV)
 
     @property
     def is_stop(self):
         """Whether the token is a stop word, i.e. part of a
             stop list defined by the language data.
         """
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_STOP)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_STOP)
 
     @property
     def is_alpha(self):
         """Whether the token consists of alphabets characters."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_ALPHA)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
         """Whether the token consists of ASCII characters."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_ASCII)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_ASCII)
 
     @property
     def is_digit(self):
         """Whether the token consists of digits."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_DIGIT)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_DIGIT)
 
     @property
     def is_lower(self):
         """Whether the token is in lowercase."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_LOWER)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_LOWER)
 
     @property
     def is_upper(self):
         """Whether the token is in uppercase."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_UPPER)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_UPPER)
 
     @property
     def is_title(self):
         """Whether the token is in titlecase."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_TITLE)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_TITLE)
 
     @property
     def is_punct(self):
         """Whether the token is punctuation."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_PUNCT)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_PUNCT)
 
     @property
     def is_space(self):
         """Whether the token consists of whitespace characters."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_SPACE)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_SPACE)
 
     @property
     def is_bracket(self):
         """Whether the token is a bracket."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_BRACKET)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_BRACKET)
 
     @property
     def is_quote(self):
         """Whether the token is a quotation mark."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_QUOTE)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self):
         """Whether the token is a left punctuation mark."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_LEFT_PUNCT)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self):
         """Whether the token is a right punctuation mark."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_RIGHT_PUNCT)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self):
         """Whether the token is a currency symbol."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_CURRENCY)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_CURRENCY)
 
     @property
     def like_url(self):
         """Whether the token resembles a URL."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_URL)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_URL)
 
     @property
     def like_num(self):
         """Whether the token resembles a number, e.g. "10.9",
         "10" etc.
         """
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_NUM)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_NUM)
 
     @property
     def like_email(self):
         """Whether the token resembles an email address."""
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_EMAIL)
+        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_EMAIL)

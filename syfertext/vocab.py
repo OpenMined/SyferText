@@ -2,7 +2,10 @@ import pickle
 import os
 from pathlib import Path
 from typing import Union
+from typing import List
+from typing import Callable
 import functools
+import warnings
 
 from .vectors import Vectors
 from .string_store import StringStore
@@ -46,7 +49,7 @@ class Vocab:
         # Create the Vectors object
         self.vectors = Vectors(model_name)
 
-    def load_strings(self):
+    def load_strings(self)-> List[str]:
         """load the pickled list of words that the Vocab object knows and has vectors for"""
 
         words_path = os.path.join(self.model_path, "words")
@@ -111,28 +114,71 @@ class Vocab:
         else:
             orth = key
 
-        # Get the LexemeMeta object
-        # Note: if it is not present in the lex_store then a new one is created
-        lex_meta = self.lex_store.get(orth)
+        return orth in self.lex_store
 
-        return lex_meta is not None
-
-    def has_vector(self, string: str) -> bool:
+    def has_vector(self, key: Union[str, int]) -> bool:
         """Check whether the given string has an entry in word vectors table
         
         Args:
-            string: The word for which the existence of a vector is to be checked out.
+            key: The word or its hash for which the existence of a vector is to be checked out.
         
+        Returns :
+            bool: True if a vector for 'word' already exists.
         """
 
-        return self.vectors.has_vector(string)
+        return self.vectors.has_vector(key)
 
-    def get_lex_meta(self, orth: int) -> Union[LexemeMeta, None]:
+    def add_flag(self, flag_getter: Callable, flag_id = -1)-> int:
+        """Sets a boolean flag to all the entries in the vocabulary. 
+        Also adds for the future entries. This Method is inspired from Spacy.
+        You'll then be able to access the flag value using token.check_flag(flag_id) or 
+        you can also call on a Lexeme object also like lexemeobj.check_flag(flag_id).
+        The maximum value of flag_id is capped at 68 and the flag_id below 28 are reserved 
+        for pre-defined SyferText attributes.
+
+        Args:
+            flag_getter: The function which takes a string as an argument and 
+                returns the boolean flag for the given string.
+            flag_id: The flag_id on which the attribute value will be assigned, 
+                if -1 the next available flag id will be assigned, it should be in range [28,68].
+          
+        Returns:
+            flag_id(int): returns the flag_id through which user can access the flag value.
+        """
+        
+        if flag_id==-1:
+            # set the next availabel flag_id 
+            flag_id = len(self.lex_attr_getters)+1
+
+            if flag_id>68:
+                raise Exception(
+            'The maximum number of custom flags is reached, you can replace a current flag by passing its id b/w 28 and 68.'
+            )
+        
+        if flag_id in range(28):
+            raise Exception('Custom flag_id should be greater than 27 as flags for these ids are reserved')
+        
+        if flag_id >68:
+            raise Exception('Custom flag_id should be less than 68, maximum numbers of custom flags are capped')
+
+        # Iterate over all the current entries in vocabulary and set the flag attribute.   
+        for lex in self:
+            lex.set_flag(flag_id, flag_getter(lex.orth_))
+
+        # store the flag attribute getter with the flag_id as key
+        self.lex_attr_getters[flag_id] = flag_getter
+
+        return flag_id
+
+    def get_lex_meta(self, orth: int) -> Union[LexemeMeta]:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
         
         Args:
             orth: The word hash for which the LexemeMeta object is requested.
+
+        Returns:
+            lex_meta: The `LexemeMeta` object for given orth.
         """
 
         if orth == 0:
@@ -160,11 +206,6 @@ class Vocab:
             A LexemeMeta object corresponding to `string`.
         """
 
-        # Initialize vectors for the provided language model.
-        # If data is not yet loaded, then load it
-        if not self.vectors.loaded:
-            self.vectors._load_data()
-
         # create the new LexemeMeta object
         lex_meta = LexemeMeta()
 
@@ -176,8 +217,11 @@ class Vocab:
         lex_meta.lang = self.store.add(self.model_name)
 
         # id is the index of the corresponding vector
-        # in self.vectors
-        lex_meta.id = self.vectors.key2row.get(lex_meta.orth)
+        # in self.vectors if we vectors are loaded.
+        if not self.vectors.loaded:
+            lex_meta.id = None
+        else:
+            lex_meta.id = self.vectors.key2row.get(lex_meta.orth)
 
         # Traverse all the lexical attributes getters in the dict.
         for attr, func in self.lex_attr_getters.items():
@@ -194,9 +238,11 @@ class Vocab:
 
             # Assign rest of the attributes to the LexemeMeta object
             if value:
-                Lexeme.set_lex_attr(lex_meta, attr, value)
+                LexemeMeta.set_lexmeta_attr(lex_meta, attr, value)
 
         # Store the LexemeMeta object in the lex store.
         self.lex_store[lex_meta.orth] = lex_meta
 
-        return lex_meta
+        return lex_meta 
+
+

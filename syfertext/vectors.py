@@ -39,25 +39,31 @@ class Vectors:
         # Set the `loaded` property to True since data is now loaded
         self.loaded = True
 
-    def has_vector(self, word):
+    def has_vector(self, key: Union[str, int])->bool:
         """Checks whether 'word' has a vector or not in self.data
 
         Args:
-            word (str): the word to which we wish to test whether a vector exists or not.
+            key: the word or its hash to which we wish to test whether a vector exists or not.
 
         Returns:
-            True if a vector for 'word' already exists in self.data.
+            True if a vector for 'word' already exists.
         """
+
+     
 
         # If data is not yet loaded, then load it
         if not self.loaded:
             self._load_data()
 
-        # Create the word hash key
-        key = hash_string(word)
+        if isinstance(key, str):
+            # Create the word hash key
+            orth = hash_string(key)
+
+        else:
+            orth = key
 
         # if the key exists return True
-        if key in self.key2row:
+        if orth in self.key2row:
             return True
 
         else:
