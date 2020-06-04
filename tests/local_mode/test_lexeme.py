@@ -1,6 +1,7 @@
 import syft as sy
 import torch
 import syfertext
+from syfertext.attrs import Attributes
 import numpy as np
 
 hook = sy.TorchHook(torch)
@@ -23,14 +24,14 @@ def test_check_flag():
 
     # check same attribute value is returned using check_flag method
     # and lexeme attribute
-    assert lexeme1.is_digit == lexeme.check_flag(Attributes.IS_DIGIT)
-    assert lexeme2.is_bracket == lexeme.check_flag(Attributes.IS_BRACKET)
+    assert lexeme1.is_digit == lexeme1.check_flag(Attributes.IS_DIGIT)
+    assert lexeme2.is_bracket == lexeme2.check_flag(Attributes.IS_BRACKET)
 
 
 def test_add_flag():
     """ Test adding custom flags in vocab"""
 
-    doc = "Momento Imdb rattings = 8.4"
+    doc = nlp("Momento Imdb rattings is 8.4")
     token1 = doc[0]
     token2 = doc[1]
 
@@ -58,27 +59,6 @@ def test_set_flag():
 
     # the actual token is not digit but you can override the flag to set it True
     assert lexeme.is_digit
-
-
-def test_lex_rank():
-    text1 = "Apple"
-    text2 = "outofvocabulary"
-
-    # Get the Lexeme object of text from Vocab
-    lexeme1 = vocab[text1]
-    lexeme2 = vocab[text2]
-
-    # get the rank of lexeme
-    rank1 = lexeme1.rank
-    rank2 = lexeme2.rank
-
-    # test rank is a positive integer for a
-    # string which exist in vocabulary
-    assert rank1 >= 0
-
-    # Test for out of vocabulary strings
-    #  rank doesn't exist
-    assert rank2 is None
 
 
 def test_lex_text():
