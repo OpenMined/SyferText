@@ -33,11 +33,27 @@ That's it, you are good to go!
 
 ## Getting Started
 
-SyferText can be used to work with strings residing on a local machine (or a local worker as we call it in [PySyft](https://github.com/OpenMined/PySyft)), as well as with strings on remote workers.
+SyferText can be used to work with datasets residing on a local machine (or a local worker as we call it in [PySyft](https://github.com/OpenMined/PySyft)), as well as with private datasets on remote workers. Here is a list of tutorials that you can follow to get more familiar with SyferText:
 
-To learn how to use SyferText for local string tokenization, you can refer to [this tutorial](https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%200%20-%20(Getting%20Started)%20Local%20Tokenization.ipynb).
+<table>
+<tbody>
+<tr>
+<td align = 'center'>Code Examples</td>
+<td align = 'center'>Use Cases</td>
+</tr>
+<tr>
+<td>1. <a href= "https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%200%20-%20(Getting%20Started)%20Local%20Tokenization.ipynb">Tokenizing local strings</a></td>
+<td>1. <a href= "https://github.com/OpenMined/SyferText/blob/master/tutorials/usecases/UC01%20-%20Sentiment%20Classifier%20-%20Private%20Datasets%20-%20(Secure%20Training).ipynb">Training a sentiment classifier on multiple private datasets</a></td>
+</tr>
+<tr>
+<td>2. <a href= "https://bit.ly/37VEJ28">Tokenizing remote strings</a></td>
+</tr>
+<tr>
+<td>3. <a href= "https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%202%20-%20(Getting%20Started)%20Using%20SimpleTagger.ipynb">Using the SimpleTagger</a></td>
+</tr>
+</tbody>
+</table>
 
-For remote string tokenization, check out [this tutorial](https://bit.ly/37VEJ28).
 
 More tutorials are coming soon. Stay tuned!
 

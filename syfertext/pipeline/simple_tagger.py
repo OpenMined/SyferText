@@ -1,12 +1,16 @@
 from syfertext.doc import Doc
 from syfertext.token import Token
-from typing import Union
+from ..utils import msgpack_code_generator
 
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
+from syft.generic.abstract.sendable import AbstractSendable
+
+from typing import Union
+from typing import Dict
 
 
-class SimpleTagger:
+class SimpleTagger(AbstractSendable):
     """This is a very simple token-level tagger. It enables to tag specified
        tokens in a `Doc` object. By tagging a token, we mean setting a new
        attribute to that token which holds the desired tag as its value.
@@ -194,3 +198,29 @@ class SimpleTagger:
         )
 
         return simple_tagger
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(SimpleTagger, "proto_id"):
+            SimpleTagger.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=SimpleTagger.proto_id)
+
+        return code_dict
