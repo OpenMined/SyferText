@@ -53,16 +53,16 @@ class StatePointer(ObjectPointer):
         """
 
         # Send the command
-        state = self.owner.send_command(recipient = self.location,
-                                        cmd_name = "send_copy",
-                                        target = self,
-                                        args_ = tuple(),
-                                        kwargs_ = kwargs
+        self.owner.send_command(recipient = self.location,
+                                cmd_name = "send_copy",
+                                target = self,
+                                args_ = tuple(),
+                                kwargs_ = {"destination": self.owner}
         )
 
 
-        # Register the state in the object store
-        self.owner.object_store.register_obj(obj = state, obj_id = self.id_at_location)
+        # Get the state from the local object store
+        state = self.owner.get_obj(self.id_at_location)
 
         return state
 
@@ -111,6 +111,7 @@ class StatePointer(ObjectPointer):
             A StatePointer object.
         """
 
+        
         # Unpack the simple state
         location_simple, id_at_location_simple = state_pointer_simple
 
@@ -119,6 +120,14 @@ class StatePointer(ObjectPointer):
         id_at_location = serde._detail(worker, id_at_location_simple)
 
 
+        # If the detailing is happening on the worker pointed
+        # to by this pointer, there is no point in keeping a
+        # pointer. We extract the object pointed to instead.
+        # This is actually crucial to the correct functioning
+        # of CommandMessages in PySyft.
+        if worker.id == location.id:
+            return worker.get_obj(id_at_location)
+        
         # Create a State object
         state_pointer = StatePointer(
             location = location,

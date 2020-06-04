@@ -157,14 +157,14 @@ def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
 
             # Make sure only on state is found
             assert (
-                len(results) > 1
+                len(result) == 1
             ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{location}`."
 
             # Get the StatePointer object returned
             state_ptr = result[0]
 
             # Get the state using its pointer
-            state = state_ptr.get()
+            state = state_ptr.get_copy()
 
             return state
 

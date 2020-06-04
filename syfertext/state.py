@@ -53,10 +53,10 @@ class State(AbstractSendable):
 
         super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-    def send_copy(self, location: BaseWorker) -> "State":
+    def send_copy(self, destination: BaseWorker) -> "State":
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
-        object and send it to the pointer on `location`
+        object and send it to the pointer on `destination`
         which requested the copy.
 
         Args:
@@ -76,7 +76,9 @@ class State(AbstractSendable):
             description=self.description,
         )
 
-        return state
+        # Send the object
+        self.owner.send_obj(state, destination)
+
 
     def send(self, location: BaseWorker) -> StatePointer:
         """Sends this object to the worker specified by `location`. 
@@ -99,8 +101,8 @@ class State(AbstractSendable):
 
 
     def create_pointer(
-        state: "State",
-        owner: BaseWorker,
+        state: "State" = None,
+        owner: BaseWorker = None,
         location: BaseWorker = None,
         id_at_location: str = None,
         tags: Set[str] = None,
@@ -133,7 +135,7 @@ class State(AbstractSendable):
         Returns:
             A StatePointer object pointing to this state object.
         """
-
+        
         if location is None:
             location = state.owner
 
@@ -148,6 +150,7 @@ class State(AbstractSendable):
         )
 
         return state_pointer
+
 
     @staticmethod
     def simplify(worker: BaseWorker, state: "State") -> Tuple[object]:
