@@ -152,7 +152,7 @@ class Token(AbstractObject):
         """
 
         # Sets the value of flag which is inside lexememeta object
-        LexemeMeta.set_flag(self.lex_meta, flag_id, value)
+        self.lex_meta.set_flag(flag_id=flag_id, value=value)
 
     @property
     def text(self):

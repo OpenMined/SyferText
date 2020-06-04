@@ -163,7 +163,7 @@ class Lexeme:
         """
 
         # Sets the value of flag which is inside lexememeta object
-        self.lex_meta.set_flag(flag_id, value)
+        self.lex_meta.set_flag(flag_id=flag_id, value=value)
 
     @property
     def has_vector(self):

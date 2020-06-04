@@ -133,7 +133,7 @@ class Vocab:
         Also adds for the future entries. This Method is inspired from Spacy.
         You'll then be able to access the flag value using token.check_flag(flag_id) or 
         you can also call on a Lexeme object also like lexemeobj.check_flag(flag_id).
-        The maximum value of flag_id is capped at 68 and the flag_id below 28 are reserved 
+        The maximum value of flag_id is capped at 68 and the flag_id below 24 are reserved 
         for pre-defined SyferText attributes.
 
         Args:
@@ -150,9 +150,9 @@ class Vocab:
             # set the next availabel flag_id
             flag_id = len(self.lex_attr_getters) + 1
 
-        if flag_id in range(28):
+        if flag_id in range(24):
             raise Exception(
-                "Custom flag_id should be greater than 27 as flags for these ids are reserved"
+                "Custom flag_id should be greater than 23 as flags for these ids are reserved"
             )
 
         # Iterate over all the current entries in vocabulary and set the flag attribute.

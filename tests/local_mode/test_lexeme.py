@@ -11,6 +11,52 @@ nlp = syfertext.load(lang, owner=me)
 # Get the vocab instance
 vocab = nlp.vocab
 
+def test_check_flag():
+    """ Test the check flag method for tokens"""
+    
+    text1 = "Apple"
+    text2 = "Hello"
+
+    lexeme1 = vocab[text1]
+    lexeme2 = vocab[text2]
+
+    # check same attribute value is returned using check_flag method 
+    # and lexeme attribute
+    assert lexeme1.is_digit == lexeme.check_flag(Attributes.IS_DIGIT)
+    assert lexeme2.is_bracket == lexeme.check_flag(Attributes.IS_BRACKET)
+
+def test_add_flag():
+    """ Test adding custom flags in vocab"""
+  
+
+    doc = "Momento Imdb rattings = 8.4"
+    token1 = doc[0]
+    token2 = doc[1]
+
+    # Sets a new flag on all the current entries in Vocab, 
+    # will be added on future entries also
+    IS_MOMENTO = vocab.add_flag(lambda text: text=="Momento")
+
+    assert token1.check_flag(flag_id = IS_MOMENTO)==True
+    assert token2.check_flag(flag_id = IS_MOMENTO)==False
+
+    # lets add another entry in vocab to see if the new flag is added
+    lex = vocab["Inception"]
+
+    assert lex.check_flag(flag_id = IS_MOMENTO) is not None
+    
+
+def test_set_flag():
+    """ Test if you can set/update the existing token attribute"""
+
+    text = "Apple"
+    lexeme = vocab[text]
+    
+    # override an attribute value for a token
+    lexeme.set_flag(flag_id = Attributes.IS_DIGIT, value=True)
+    
+    # the actual token is not digit but you can override the flag to set it True
+    assert lexeme.is_digit
 
 def test_lex_rank():
     text1 = "Apple"
