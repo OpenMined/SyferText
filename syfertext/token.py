@@ -121,7 +121,6 @@ class Token(AbstractObject):
 
         return neighbor
 
-    
     def check_flag(self, flag_id: int) -> bool:
         """Checks the attribute corresponding to given `flag_id` flag value.
         
@@ -138,7 +137,6 @@ class Token(AbstractObject):
     def text(self):
         """Get the token text in str type"""
         return self.orth_
-
 
     def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag corresponding flag_id.

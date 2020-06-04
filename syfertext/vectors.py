@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import numpy as np
 import importlib
+from typing import Union
 
 from .utils import hash_string
 
