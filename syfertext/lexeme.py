@@ -29,7 +29,6 @@ class LexemeMeta(object):
         according to the provided `value`.
 
         Args:
-            lex_meta(LexemeMeta): The `LexemeMeta` object in which attribute is being setted.
             attr_id: The integer id for the corresponding attribute.
             value: Value of attribute to set.
         """
@@ -43,7 +42,7 @@ class LexemeMeta(object):
         # All flags have id >9. check `Attributes` for reference ids.
         # id>9 is only because ids less than 10 are reserved for other attributes.
         if attr_id > 9:
-            self.set_flag(lex_meta, attr_id, value)
+            self.set_flag(self, attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.
@@ -154,7 +153,7 @@ class Lexeme:
 
         # Check the flag value for given flag_id
         # the flags are contained in LexemeMeta object.
-        return LexemeMeta.check_flag(self.lex_meta, flag_id)
+        return self.lex_meta.check_flag(flag_id)
 
     def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag corresponding to flag_id to 1 or zero 
@@ -166,7 +165,7 @@ class Lexeme:
         """
 
         # Sets the value of flag which is inside lexememeta object
-        LexemeMeta.set_flag(self.lex_meta, flag_id, value)
+        self.lex_meta.set_flag(flag_id, value)
 
     @property
     def has_vector(self):
