@@ -88,7 +88,6 @@ class LexemeMeta(object):
         else:
             return False
 
-    @staticmethod
     def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag to 1 or zero according to provided attribute value.
         It's inspired from Spacy.
