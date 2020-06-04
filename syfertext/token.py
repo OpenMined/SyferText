@@ -133,6 +133,11 @@ class Token(AbstractObject):
 
         return self.lex_meta.check_flag(flag_id)
 
+    def __str__(self):
+        # The call to `str()` in the following is to account for the case
+        # when text is of type String or StringPointer (which are Syft string types)
+        return self.orth_
+
     @property
     def text(self):
         """Get the token text in str type"""
