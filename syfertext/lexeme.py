@@ -24,7 +24,7 @@ class LexemeMeta(object):
         self.suffix = 0
 
     @staticmethod
-    def set_lexmeta_attr(lex_meta: self, attr_id: int, value: Union[int, bool]) -> None:
+    def set_lexmeta_attr( self, attr_id: int, value: Union[int, bool]) -> None:
         """ Sets all the attributes for given attribute id for LexemeMeta object 
         according to the provided `value`.
 
@@ -33,7 +33,7 @@ class LexemeMeta(object):
             attr_id: The integer id for the corresponding attribute.
             value: Value of attribute to set.
         """
-
+        lex_meta = self
         # checks if value is of correct format
         assert isinstance(
             value, Union[int, bool]
@@ -68,7 +68,7 @@ class LexemeMeta(object):
     # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
     @staticmethod
-    def check_flag(lex_meta: LexemeMeta, flag_id: int) -> bool:
+    def check_flag(self, flag_id: int) -> bool:
         """This method checks the value of flag corresponding to given flag_id. 
         It check if bit at index corresponding to flag_id is 1 or 0. This method 
         is inspired from Spacy.
@@ -87,14 +87,14 @@ class LexemeMeta(object):
 
         # Check if bit at index corresponding to flag_id is 1 or 0
         # if one return True otherwise if 0  return False
-        if lex_meta.flags & (one << flag_id):
+        if self.flags & (one << flag_id):
             return True
 
         else:
             return False
 
     @staticmethod
-    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool) -> None:
+    def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag to 1 or zero according to provided attribute value.
         It's inspired from Spacy.
 
@@ -120,10 +120,10 @@ class LexemeMeta(object):
         # or else it's changed to 0. (by default all bits of flag are 0 as
         # it's initialzed with flags = 0)
         if value:
-            lex_meta.flags |= one << flag_id
+            self.flags |= one << flag_id
 
         else:
-            lex_meta.flags &= ~(one << flag_id)
+            self.flags &= ~(one << flag_id)
 
 
 class Lexeme:
