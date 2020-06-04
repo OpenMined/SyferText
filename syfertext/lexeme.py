@@ -23,7 +23,6 @@ class LexemeMeta(object):
         self.prefix = 0
         self.suffix = 0
 
-    @staticmethod
     def set_lexmeta_attr(self, attr_id: int, value: Union[int, bool]) -> None:
         """ Sets all the attributes for given attribute id for LexemeMeta object 
         according to the provided `value`.
@@ -66,7 +65,6 @@ class LexemeMeta(object):
 
     # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
-    @staticmethod
     def check_flag(self, flag_id: int) -> bool:
         """This method checks the value of flag corresponding to given flag_id. 
         It check if bit at index corresponding to flag_id is 1 or 0. This method 
@@ -277,107 +275,107 @@ class Lexeme:
     def is_oov(self):
         """Whether the lexeme is out-of-vocabulary."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_OOV)
+        return self.lex_meta.check_flag(Attributes.IS_OOV)
 
     @property
     def is_stop(self):
         """Whether the lexeme is a stop word.
         """
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_STOP)
+        return self.lex_meta.check_flag(Attributes.IS_STOP)
 
     @property
     def is_alpha(self):
         """Whether the lexeme consists of alphabetical characters only."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_ALPHA)
+        return self.lex_meta.check_flag(Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
         """Whether the lexeme consists of ASCII characters."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_ASCII)
+        return self.lex_meta.check_flag(Attributes.IS_ASCII)
 
     @property
     def is_digit(self) -> bool:
         """Whether the lexeme consists of digits."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_DIGIT)
+        return self.lex_meta.check_flag(Attributes.IS_DIGIT)
 
     @property
     def is_lower(self) -> bool:
         """Whether the lexeme is in lowercase."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_LOWER)
+        return self.lex_meta.check_flag(Attributes.IS_LOWER)
 
     @property
     def is_upper(self) -> bool:
         """Whether the lexeme is in uppercase."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_UPPER)
+        return self.lex_meta.check_flag(Attributes.IS_UPPER)
 
     @property
     def is_title(self) -> bool:
         """Whether the lexeme is in titlecase."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_TITLE)
+        return self.lex_meta.check_flag(Attributes.IS_TITLE)
 
     @property
     def is_punct(self) -> bool:
         """Whether the lexeme is punctuation."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_PUNCT)
 
     @property
     def is_space(self) -> bool:
         """Whether the lexeme consists of only whitespace characters."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_SPACE)
+        return self.lex_meta.check_flag(Attributes.IS_SPACE)
 
     @property
     def is_bracket(self) -> bool:
         """Whether the lexeme is a bracket."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_BRACKET)
+        return self.lex_meta.check_flag(Attributes.IS_BRACKET)
 
     @property
     def is_quote(self) -> bool:
         """Whether the lexeme is a quotation mark."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_QUOTE)
+        return self.lex_meta.check_flag(Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self) -> bool:
         """Whether the lexeme is a left punctuation mark."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_LEFT_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self) -> bool:
         """Whether the lexeme is a right punctuation mark."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_RIGHT_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self) -> bool:
         """Whether the lexeme is a currency symbol."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.IS_CURRENCY)
+        return self.lex_meta.check_flag(Attributes.IS_CURRENCY)
 
     @property
     def like_url(self) -> bool:
         """Whether the lexeme resembles a URL."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_URL)
+        return self.lex_meta.check_flag(Attributes.LIKE_URL)
 
     @property
     def like_num(self) -> bool:
         """Whether the lexeme resembles a number, e.g. "10.9", "10", etc.
         """
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_NUM)
+        return self.lex_meta.check_flag(Attributes.LIKE_NUM)
 
     @property
     def like_email(self) -> bool:
         """Whether the lexeme resembles an email address."""
 
-        return Lexeme.check_flag(self.lex_meta, Attributes.LIKE_EMAIL)
+        return self.lex_meta.check_flag(Attributes.LIKE_EMAIL)

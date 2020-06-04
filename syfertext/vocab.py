@@ -242,7 +242,7 @@ class Vocab:
 
             # Assign rest of the attributes to the LexemeMeta object
             if value:
-                lex_meta.set_lexmeta_attr(attr, value)
+                lex_meta.set_lexmeta_attr(attr_id=attr, value=value)
 
         # Store the LexemeMeta object in the lex store.
         self.lex_store[lex_meta.orth] = lex_meta

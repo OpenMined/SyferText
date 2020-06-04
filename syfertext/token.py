@@ -131,7 +131,7 @@ class Token(AbstractObject):
             bool: Returns True if the value of flag corresponding to flag_id is 1 else False.
         """
 
-        return LexemeMeta.check_flag(self.lex_meta, flag_id)
+        return self.lex_meta.check_flag(flag_id)
 
     @property
     def text(self):
@@ -338,93 +338,93 @@ class Token(AbstractObject):
     @property
     def is_oov(self):
         """Whether the token is out-of-vocabulary."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_OOV)
+        return self.lex_meta.check_flag(Attributes.IS_OOV)
 
     @property
     def is_stop(self):
         """Whether the token is a stop word, i.e. part of a
             stop list defined by the language data.
         """
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_STOP)
+        return self.lex_meta.check_flag(Attributes.IS_STOP)
 
     @property
     def is_alpha(self):
         """Whether the token consists of alphabets characters."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_ALPHA)
+        return self.lex_meta.check_flag(Attributes.IS_ALPHA)
 
     @property
     def is_ascii(self):
         """Whether the token consists of ASCII characters."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_ASCII)
+        return self.lex_meta.check_flag(Attributes.IS_ASCII)
 
     @property
     def is_digit(self):
         """Whether the token consists of digits."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_DIGIT)
+        return self.lex_meta.check_flag(Attributes.IS_DIGIT)
 
     @property
     def is_lower(self):
         """Whether the token is in lowercase."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_LOWER)
+        return self.lex_meta.check_flag(Attributes.IS_LOWER)
 
     @property
     def is_upper(self):
         """Whether the token is in uppercase."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_UPPER)
+        return self.lex_meta.check_flag(Attributes.IS_UPPER)
 
     @property
     def is_title(self):
         """Whether the token is in titlecase."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_TITLE)
+        return self.lex_meta.check_flag(Attributes.IS_TITLE)
 
     @property
     def is_punct(self):
         """Whether the token is punctuation."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_PUNCT)
 
     @property
     def is_space(self):
         """Whether the token consists of whitespace characters."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_SPACE)
+        return self.lex_meta.check_flag(Attributes.IS_SPACE)
 
     @property
     def is_bracket(self):
         """Whether the token is a bracket."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_BRACKET)
+        return self.lex_meta.check_flag(Attributes.IS_BRACKET)
 
     @property
     def is_quote(self):
         """Whether the token is a quotation mark."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_QUOTE)
+        return self.lex_meta.check_flag(Attributes.IS_QUOTE)
 
     @property
     def is_left_punct(self):
         """Whether the token is a left punctuation mark."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_LEFT_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_LEFT_PUNCT)
 
     @property
     def is_right_punct(self):
         """Whether the token is a right punctuation mark."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_RIGHT_PUNCT)
+        return self.lex_meta.check_flag(Attributes.IS_RIGHT_PUNCT)
 
     @property
     def is_currency(self):
         """Whether the token is a currency symbol."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.IS_CURRENCY)
+        return self.lex_meta.check_flag(Attributes.IS_CURRENCY)
 
     @property
     def like_url(self):
         """Whether the token resembles a URL."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_URL)
+        return self.lex_meta.check_flag(Attributes.LIKE_URL)
 
     @property
     def like_num(self):
         """Whether the token resembles a number, e.g. "10.9",
         "10" etc.
         """
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_NUM)
+        return self.lex_meta.check_flag(Attributes.LIKE_NUM)
 
     @property
     def like_email(self):
         """Whether the token resembles an email address."""
-        return LexemeMeta.check_flag(self.lex_meta, Attributes.LIKE_EMAIL)
+        return self.lex_meta.check_flag(Attributes.LIKE_EMAIL)
