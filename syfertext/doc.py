@@ -167,43 +167,18 @@ class Doc(AbstractObject):
             yield self[i]
 
     @property
+    def vector(self):
+        """Get doc vector as an average of in-vocabulary token's vectors
+
+        Returns:
+            span_vector: doc vector.
+        """
+        return self.get_vector()
+
+    @property
     def text(self):
         """Returns the text present in the doc with whitespaces"""
         return "".join(token.text_with_ws for token in self)
-
-    @property
-    def vector(self):
-        """Get document vector as an average of in-vocabulary token's vectors
-
-        Returns:
-          doc_vector: document vector
-        """
-
-        # Accumulate the vectors here
-        vectors = None
-
-        # Count the tokens that have vectors
-        vector_count = 0
-
-        for token in self:
-
-            # Get the vector of the token if one exists
-            if token.has_vector:
-
-                # Increment the vector counter
-                vector_count += 1
-
-                # Cumulate token's vector by summing them
-                vectors = token.vector if vectors is None else vectors + token.vector
-
-        # If no tokens with vectors were found, just get the default vector(zeros)
-        if vector_count == 0:
-            doc_vector = self.vocab.vectors.default_vector
-        else:
-            # Create the final Doc vector
-            doc_vector = vectors / vector_count
-
-        return doc_vector
 
     @property
     def vector_norm(self) -> torch.FloatTensor:
@@ -251,12 +226,8 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            doc_vector: document vector ignoring excluded tokens
+            doc_vector: Document vector ignoring excluded tokens.
         """
-
-        # If the excluded_token dict in None all token are included
-        if excluded_tokens is None:
-            return self.vector
 
         # Get the valid tokens which are to be included
         valid_tokens = self._get_valid_tokens(excluded_tokens)
@@ -279,7 +250,7 @@ class Doc(AbstractObject):
         if vector_count == 0:
             doc_vector = self.vocab.vectors.default_vector
         else:
-            # Create the final Doc vector
+            # Take average of the vectors
             doc_vector = vectors / vector_count
         return doc_vector
 
@@ -297,10 +268,8 @@ class Doc(AbstractObject):
                 containing all the vectors.
         """
 
-        if excluded_tokens is None:
-            valid_tokens = self
-        else:
-            valid_tokens = self._get_valid_tokens(excluded_tokens)
+        # Get the valid tokens which are to be included
+        valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         # The list for holding all token vectors.
         token_vectors = []
@@ -400,25 +369,29 @@ class Doc(AbstractObject):
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
         Returns:
-            A generator with valid tokens, i.e. tokens which are not to be excluded.
+            A generator with valid tokens, i.e. tokens which are `not` to be excluded.
         """
 
-        # Enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
+        if excluded_tokens is not None:
+            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
 
-        for token in self:
+            for token in self:
 
-            include_token = all(
-                [
-                    token.get_attribute(key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if token.has_attribute(key)
-                ]
-            )
-
-            if include_token:
+                include_token = all(
+                    [
+                        token.get_attribute(key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if token.has_attribute(key)
+                    ]
+                )
+                if include_token:
+                    yield token
+        else:
+            # All tokens are included
+            for token in self:
                 yield token
 
     @staticmethod
