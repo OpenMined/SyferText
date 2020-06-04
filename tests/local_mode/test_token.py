@@ -1,7 +1,7 @@
 import syft as sy
 import torch
 import syfertext
-from syfertext.attrs import Attributes 
+from syfertext.attrs import Attributes
 import numpy as np
 
 hook = sy.TorchHook(torch)
@@ -9,17 +9,19 @@ me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
 
+
 def test_check_flag():
     """ Test the check flag method for tokens"""
-    
+
     doc = nlp("token {")
     token1 = doc[0]
     token2 = doc[1]
 
-    # check same attribute value is returned using check_flag method 
+    # check same attribute value is returned using check_flag method
     # and token attribute
     assert token1.is_digit == token.check_flag(Attributes.IS_DIGIT)
     assert token2.is_bracket == token.check_flag(Attributes.IS_BRACKET)
+
 
 def test_set_flag():
     """ Test if you can set/update the existing token attribute"""
@@ -29,8 +31,8 @@ def test_set_flag():
     token2 = doc[1]
 
     # override an attribute value for a token
-    token1.set_flag(flag_id = Attributes.IS_DIGIT, value=True)
-    
+    token1.set_flag(flag_id=Attributes.IS_DIGIT, value=True)
+
     # the actual token is not digit but you can override the flag to set it True
     assert token1.is_digit
 
