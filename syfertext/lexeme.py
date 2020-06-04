@@ -33,9 +33,9 @@ class LexemeMeta(object):
         """
 
         # checks if value is of correct format
-        assert isinstance(
-            value, Union[int, bool]
-        ), "The value of attribute should be an integer or boolean"
+        # assert isinstance(
+        #    value, Union[int, bool]
+        # ), "The value of attribute should be an integer or boolean"
 
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
@@ -98,9 +98,9 @@ class LexemeMeta(object):
         """
 
         # Make sure that value is of correct format
-        assert isinstance(
-            value, bool
-        ), "The value of attribute from flag_getter for given string should be a boolean"
+        # assert isinstance(
+        #    value, bool
+        # ), "The value of attribute from flag_getter for given string should be a boolean"
 
         one = 1
 

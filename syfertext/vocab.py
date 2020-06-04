@@ -150,19 +150,9 @@ class Vocab:
             # set the next availabel flag_id
             flag_id = len(self.lex_attr_getters) + 1
 
-            if flag_id > 68:
-                raise Exception(
-                    "The maximum number of custom flags is reached, you can replace a current flag by passing its id b/w 28 and 68."
-                )
-
         if flag_id in range(28):
             raise Exception(
                 "Custom flag_id should be greater than 27 as flags for these ids are reserved"
-            )
-
-        if flag_id > 68:
-            raise Exception(
-                "Custom flag_id should be less than 68, maximum numbers of custom flags are capped"
             )
 
         # Iterate over all the current entries in vocabulary and set the flag attribute.
