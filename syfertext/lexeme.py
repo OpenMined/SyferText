@@ -24,7 +24,7 @@ class LexemeMeta(object):
         self.suffix = 0
 
     @staticmethod
-    def set_lexmeta_attr(lex_meta: LexemeMeta, attr_id: int, value: Union[int, bool]) -> None:
+    def set_lexmeta_attr(lex_meta: self, attr_id: int, value: Union[int, bool]) -> None:
         """ Sets all the attributes for given attribute id for LexemeMeta object 
         according to the provided `value`.
 
