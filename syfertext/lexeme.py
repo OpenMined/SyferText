@@ -32,16 +32,11 @@ class LexemeMeta(object):
             value: Value of attribute to set.
         """
 
-        # checks if value is of correct format
-        # assert isinstance(
-        #    value, Union[int, bool]
-        # ), "The value of attribute should be an integer or boolean"
-
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
         # id>9 is only because ids less than 10 are reserved for other attributes.
         if attr_id > 9:
-            self.set_flag(self, attr_id, value)
+            self.set_flag(attr_id, value)
 
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.
@@ -95,11 +90,6 @@ class LexemeMeta(object):
         Args:
             flag_id(int): The flag_id for corresponding attribute to set.
         """
-
-        # Make sure that value is of correct format
-        # assert isinstance(
-        #    value, bool
-        # ), "The value of attribute from flag_getter for given string should be a boolean"
 
         one = 1
 
