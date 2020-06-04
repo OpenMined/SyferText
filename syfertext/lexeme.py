@@ -24,7 +24,7 @@ class LexemeMeta(object):
         self.suffix = 0
 
     @staticmethod
-    def set_lexmeta_attr(lex_meta, attr_id: int, value: Union[int, bool]) -> None:
+    def set_lexmeta_attr(self, attr_id: int, value: Union[int, bool]) -> None:
         """ Sets all the attributes for given attribute id for LexemeMeta object 
         according to the provided `value`.
 
@@ -48,34 +48,32 @@ class LexemeMeta(object):
         # Assign the rest of the `LexemeMeta` object attributes.
         # length and orth attributes are assigned in Vocab class.
         elif attr_id == Attributes.ID:
-            lex_meta.id = value
+            self.id = value
 
         elif attr_id == Attributes.LOWER:
-            lex_meta.lower = value
+            self.lower = value
 
         elif attr_id == Attributes.SHAPE:
-            lex_meta.shape = value
+            self.shape = value
 
         elif attr_id == Attributes.PREFIX:
-            lex_meta.prefix = value
+            self.prefix = value
 
         elif attr_id == Attributes.SUFFIX:
-            lex_meta.suffix = value
+            self.suffix = value
 
         elif attr_id == Attributes.LANG:
-            lex_meta.lang = value
+            self.lang = value
 
     # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
     @staticmethod
-    def check_flag(lex_meta, flag_id: int) -> bool:
+    def check_flag(self, flag_id: int) -> bool:
         """This method checks the value of flag corresponding to given flag_id. 
         It check if bit at index corresponding to flag_id is 1 or 0. This method 
         is inspired from Spacy.
         
         Args:
-            lex_meta(LexemeMeta): The `LexemeMeta` object containing flags for 
-                different attributes.
             flag_id(int): The flag_id for corresponding attribute to check.
 
         Returns:
@@ -87,20 +85,18 @@ class LexemeMeta(object):
 
         # Check if bit at index corresponding to flag_id is 1 or 0
         # if one return True otherwise if 0  return False
-        if lex_meta.flags & (one << flag_id):
+        if self.flags & (one << flag_id):
             return True
 
         else:
             return False
 
     @staticmethod
-    def set_flag(lex_meta, flag_id: int, value: bool) -> None:
+    def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag to 1 or zero according to provided attribute value.
         It's inspired from Spacy.
 
         Args:
-            lex_meta(LexemeMeta): The `LexemeMeta` object containing flags for 
-                different attributes.
             flag_id(int): The flag_id for corresponding attribute to set.
         """
 
@@ -108,6 +104,7 @@ class LexemeMeta(object):
         assert isinstance(
             value, bool
         ), "The value of attribute from flag_getter for given string should be a boolean"
+
         one = 1
 
         # lex flag is an integer whose bits are manipulated
@@ -120,10 +117,10 @@ class LexemeMeta(object):
         # or else it's changed to 0. (by default all bits of flag are 0 as
         # it's initialzed with flags = 0)
         if value:
-            lex_meta.flags |= one << flag_id
+            self.flags |= one << flag_id
 
         else:
-            lex_meta.flags &= ~(one << flag_id)
+            self.flags &= ~(one << flag_id)
 
 
 class Lexeme:
