@@ -222,10 +222,10 @@ class Doc(AbstractObject):
 
     def similarity(self, other: "Doc") -> torch.Tensor:
         """Compute the cosine similarity between two Doc vectors.
-        
+
         Args:
             other (Doc): The Doc to compare with.
-        
+
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """
@@ -254,38 +254,25 @@ class Doc(AbstractObject):
             doc_vector: document vector ignoring excluded tokens
         """
 
-        # if the excluded_token dict in None all token are included
+        # If the excluded_token dict in None all token are included
         if excluded_tokens is None:
             return self.vector
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
+        # Get the valid tokens which are to be included
+        valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         vectors = None
 
         # Count the tokens that have vectors
         vector_count = 0
 
-        for token in self:
+        for token in valid_tokens:
 
-            # Get the vector of the token if one exists and if token is not excluded
-            include_token = True
-
-            include_token = all(
-                [
-                    token.get_attribute(key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if token.has_attribute(key)
-                ]
-            )
-
-            if token.has_vector and include_token:
+            if token.has_vector:
                 # Increment the vector counter
                 vector_count += 1
 
-                # Cumulate token's vector by summing them
+                # Accumulate token's vector by summing them
                 vectors = token.vector if vectors is None else vectors + token.vector
 
         # If no tokens with vectors were found, just get the default vector(zeros)
@@ -310,31 +297,17 @@ class Doc(AbstractObject):
                 containing all the vectors.
         """
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        if excluded_tokens is not None:
-            excluded_tokens = {
-                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-            }
+        if excluded_tokens is None:
+            valid_tokens = self
+        else:
+            valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         # The list for holding all token vectors.
         token_vectors = []
 
-        for token in self:
-
-            # Get the vector of the token if the token is not excluded
-            include_token = True
-
-            if excluded_tokens is not None:
-                include_token = all(
-                    [
-                        token.get_attribute(key) not in excluded_tokens[key]
-                        for key in excluded_tokens.keys()
-                        if token.has_attribute(key)
-                    ]
-                )
-
-            if include_token:
-                token_vectors.append(token.vector)
+        for token in valid_tokens:
+            # Get the vector of the token
+            token_vectors.append(token.vector)
 
         # Convert to Numpy array.
         token_vectors = np.array(token_vectors)
@@ -419,6 +392,34 @@ class Doc(AbstractObject):
         )
 
         return token_vectors
+
+    def _get_valid_tokens(self, excluded_tokens):
+        """Handy function to handle the logic of excluding tokens while performing operations on Doc.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+        Returns:
+            A generator with valid tokens, i.e. tokens which are not to be excluded.
+        """
+
+        # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+        excluded_tokens = {
+            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+        }
+
+        for token in self:
+
+            include_token = all(
+                [
+                    token.get_attribute(key) not in excluded_tokens[key]
+                    for key in excluded_tokens.keys()
+                    if token.has_attribute(key)
+                ]
+            )
+
+            if include_token:
+                yield token
 
     @staticmethod
     def create_pointer(
