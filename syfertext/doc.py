@@ -167,18 +167,18 @@ class Doc(AbstractObject):
             yield self[i]
 
     @property
-    def vector(self):
-        """Get doc vector as an average of in-vocabulary token's vectors
-
-        Returns:
-            span_vector: doc vector.
-        """
-        return self.get_vector()
-
-    @property
     def text(self):
         """Returns the text present in the doc with whitespaces"""
         return "".join(token.text_with_ws for token in self)
+
+    @property
+    def vector(self):
+        """Get document vector as an average of in-vocabulary token's vectors
+
+        Returns:
+            doc_vector: doc vector
+        """
+        return self.get_vector()
 
     @property
     def vector_norm(self) -> torch.FloatTensor:
