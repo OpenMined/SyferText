@@ -33,11 +33,11 @@ class LexemeMeta(object):
             attr_id: The integer id for the corresponding attribute.
             value: Value of attribute to set.
         """
-        
+
         # checks if value is of correct format
-        assert (
-            isinstance(value,Union[int,bool]
-            ),"The value of attribute should be an integer or boolean"
+        assert isinstance(
+            value, Union[int, bool]
+        ), "The value of attribute should be an integer or boolean"
 
         # Assign the flag attribute of `LexemeMeta` object.
         # All flags have id >9. check `Attributes` for reference ids.
@@ -92,9 +92,9 @@ class LexemeMeta(object):
 
         else:
             return False
-    
+
     @staticmethod
-    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool)->None:
+    def set_flag(lex_meta: LexemeMeta, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag to 1 or zero according to provided attribute value.
         It's inspired from Spacy.
 
@@ -104,10 +104,10 @@ class LexemeMeta(object):
             flag_id(int): The flag_id for corresponding attribute to set.
         """
 
-         # Make sure that value is of correct format
-        assert(
-            isinstance(value,bool
-            ),"The value of attribute from flag_getter for given string should be a boolean"
+        # Make sure that value is of correct format
+        assert isinstance(
+            value, bool
+        ), "The value of attribute from flag_getter for given string should be a boolean"
         one = 1
 
         # lex flag is an integer whose bits are manipulated
@@ -125,7 +125,7 @@ class LexemeMeta(object):
         else:
             lex_meta.flags &= ~(one << flag_id)
 
-            
+
 class Lexeme:
     """Inspired by Spacy's Lexeme class. It is an entry in the vocabulary.
     It holds various non-contextual attributes related to the corresponding string.  
@@ -146,8 +146,7 @@ class Lexeme:
         # Note: This creates no entry in lex_store if the LexemeMeta is not already present
         self.lex_meta = vocab.get_lex_meta(orth)
 
-    
-    def check_flag(self,flag_id: int) -> bool:
+    def check_flag(self, flag_id: int) -> bool:
         """Checks the value of a boolean flag. This method is inspired from Spacy.
         Args:
             flag_id(int): The attribute ID of the flag to check.
@@ -160,8 +159,7 @@ class Lexeme:
         # the flags are contained in LexemeMeta object.
         return LexemeMeta.check_flag(self.lex_meta, flag_id)
 
-
-    def set_flag(self, flag_id: int, value: bool)->None:
+    def set_flag(self, flag_id: int, value: bool) -> None:
         """Set the sets the value of flag corresponding to flag_id to 1 or zero 
         according to provided attribute value. This method is inspired from Spacy.
 
@@ -172,8 +170,6 @@ class Lexeme:
 
         # Sets the value of flag which is inside lexememeta object
         LexemeMeta.set_flag(self.lex_meta, flag_id, value)
-
-        
 
     @property
     def has_vector(self):
