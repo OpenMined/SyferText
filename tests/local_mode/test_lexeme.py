@@ -67,10 +67,10 @@ def test_lex_text():
     # Get the Lexeme object of text from Vocab
     lexeme = vocab[text]
 
-    # test the text attribute of lexme
+    # test the text attribute of lexeme
     assert lexeme.text == text
 
-    # test the orth_ attribute of lexme
+    # test the orth_ attribute of lexeme
     assert lexeme.orth_ == text
 
 

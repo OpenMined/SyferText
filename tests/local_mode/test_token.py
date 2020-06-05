@@ -19,8 +19,8 @@ def test_check_flag():
 
     # check same attribute value is returned using check_flag method
     # and token attribute
-    assert token1.is_digit == token.check_flag(Attributes.IS_DIGIT)
-    assert token2.is_bracket == token.check_flag(Attributes.IS_BRACKET)
+    assert token1.is_digit == token1.check_flag(Attributes.IS_DIGIT)
+    assert token2.is_bracket == token2.check_flag(Attributes.IS_BRACKET)
 
 
 def test_set_flag():
