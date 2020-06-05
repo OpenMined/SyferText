@@ -28,26 +28,6 @@ def test_check_flag():
     assert lexeme2.is_bracket == lexeme2.check_flag(Attributes.IS_BRACKET)
 
 
-def test_add_flag():
-    """ Test adding custom flags in vocab"""
-
-    doc = nlp("Momento Imdb rattings is 8.4")
-    token1 = doc[0]
-    token2 = doc[1]
-
-    # Sets a new flag on all the current entries in Vocab,
-    # will be added on future entries also
-    IS_MOMENTO = vocab.add_flag(lambda text: text == "Momento")
-
-    assert token1.check_flag(flag_id=IS_MOMENTO) == True
-    assert token2.check_flag(flag_id=IS_MOMENTO) == False
-
-    # lets add another entry in vocab to see if the new flag is added
-    lex = vocab["Inception"]
-
-    assert lex.check_flag(flag_id=IS_MOMENTO) is not None
-
-
 def test_set_flag():
     """ Test if you can set/update the existing token attribute"""
 
