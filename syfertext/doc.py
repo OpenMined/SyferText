@@ -13,6 +13,7 @@ from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
+from typing import Generator
 from .underscore import Underscore
 from .span import Span
 from .pointers.span_pointer import SpanPointer
@@ -250,7 +251,7 @@ class Doc(AbstractObject):
         if vector_count == 0:
             doc_vector = self.vocab.vectors.default_vector
         else:
-            # Take average of the vectors
+            # The Doc vector, which is the average of all vectors
             doc_vector = vectors / vector_count
         return doc_vector
 
@@ -362,17 +363,17 @@ class Doc(AbstractObject):
 
         return token_vectors
 
-    def _get_valid_tokens(self, excluded_tokens):
+    def _get_valid_tokens(self, excluded_tokens: Dict[str, Set[object]] = None) -> Generator[Token]:
         """Handy function to handle the logic of excluding tokens while performing operations on Doc.
 
         Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
-        Returns:
+        Yields:
             A generator with valid tokens, i.e. tokens which are `not` to be excluded.
         """
 
-        if excluded_tokens is not None:
+        if excluded_tokens:
             # Enforcing that the values of the excluded_tokens dict are sets, not lists.
             excluded_tokens = {
                 attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
