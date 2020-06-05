@@ -363,7 +363,9 @@ class Doc(AbstractObject):
 
         return token_vectors
 
-    def _get_valid_tokens(self, excluded_tokens: Dict[str, Set[object]] = None) -> Generator[Token]:
+    def _get_valid_tokens(
+        self, excluded_tokens: Dict[str, Set[object]] = None
+    ) -> Generator[Token, None, None]:
         """Handy function to handle the logic of excluding tokens while performing operations on Doc.
 
         Args:
