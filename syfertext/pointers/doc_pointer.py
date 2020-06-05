@@ -1,12 +1,17 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
-import pickle
+import syft as sy
 
+from .span_pointer import SpanPointer
 from typing import List
 from typing import Union
+from typing import Dict
+from typing import Set
 
 
 class DocPointer(ObjectPointer):
+    """An Object Pointer that points to the Doc Object at remote location"""
+
     def __init__(
         self,
         location: BaseWorker = None,
@@ -17,6 +22,20 @@ class DocPointer(ObjectPointer):
         tags: List[str] = None,
         description: str = None,
     ):
+        """Create a Doc Pointer from `location` where the `Doc` object resides and
+        `id_at_location`, the id of the `Doc` object at that location.
+
+        Args:
+            location (BaseWorker): the worker where the `Doc` object resides that this
+                DocPointer will point to.
+
+            id_at_location (int or str): the id of the `Doc` object at the `location` worker.
+
+            owner (BaseWorker): the owner of the this object ie. `DocPointer`
+
+        Returns:
+            A `DocPointer` object
+        """
 
         super(DocPointer, self).__init__(
             location=location,
@@ -28,97 +47,125 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
-    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+    def get_encrypted_vector(
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
+        excluded_tokens: Dict[str, Set[object]] = None,
+    ):
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
-            self (DocPointer): current pointer to a remote document.
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography (SMPC encryption) functionalities.
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
+            (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency,
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
         """
 
-        assert (
-            len(workers) > 1
-        ), "You need at least two workers in order to encrypt the vector with SMPC"
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
 
         # Create the command
-        kwargs = dict(crypto_provider=crypto_provider, requires_grad=requires_grad)
-        command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
+        kwargs = dict(
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            excluded_tokens=excluded_tokens,
+        )
 
         # Send the command
-        doc_vector = self.owner.send_command(self.location, command)
+        doc_vector = self.owner.send_command(
+            recipient=self.location,
+            cmd_name="get_encrypted_vector",
+            target=self,
+            args_=workers,
+            kwargs_=kwargs,
+        )
 
         # I call get because the returned object is a PointerTensor to the AdditiveSharedTensor
         doc_vector = doc_vector.get()
 
         return doc_vector
 
-    def __len__(self):
+    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
 
-        # Create the command
-        command = ("__len__", self.id_at_location, [], {})
+        # if item is int, so we are trying to access to token
+        assert isinstance(
+            item, slice
+        ), "You are not authorised to access a `Token` from a `DocPointer`"
 
         # Send the command
-        length = self.owner.send_command(self.location, command)
-
-        return length
-
-    @staticmethod
-    def simplify(worker, doc_pointer):
-        """This method is used to reduce a `DocPointer` object into a list of simpler objects that can be serialized
-        """
-
-        # Simplify the attributes
-        location_id = pickle.dumps(doc_pointer.location.id)
-        tags = [pickle.dumps(tag) for tag in doc_pointer.tags] if doc_pointer.tags else None
-        description = pickle.dumps(doc_pointer.description)
-
-        return (
-            location_id,
-            doc_pointer.id_at_location,
-            doc_pointer.id,
-            doc_pointer.garbage_collect_data,
-            tags,
-            description,
+        obj_id = self.owner.send_command(
+            recipient=self.location, cmd_name="__getitem__", target=self, args_=(item,), kwargs_={}
         )
 
-    @staticmethod
-    def detail(worker: BaseWorker, simple_obj):
-        """Create an object of type DocPointer from the reduced representation in `simple_obj`.
+        # we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+        return span
+
+    def get_encrypted_token_vectors(
+        self,
+        *workers: BaseWorker,
+        crypto_provider: BaseWorker = None,
+        requires_grad: bool = True,
+        excluded_tokens: Dict[str, Set[object]] = None,
+    ):
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        excluding token according to the excluded_tokens dictionary.
+
 
         Args:
-            worker (BaseWorker): The worker on which the new DocPointer object is to be created.
-            simple_obj (tuple): A tuple resulting from the serialized then deserialized returned tuple
-                from the `_simplify` static method above.
+            workers (sequence of BaseWorker): A sequence of remote workers from .
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
+            (SMPC encryption) functionalities.
+            requires_grad (bool): A boolean flag indicating whether gradients are required or not.
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes, the keys are the attributes names and they index, for efficiency,
+                sets of values.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            DocPointer: a DocPointer object, pointing to a Doc object
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document
+                this pointer points to.
         """
 
-        # Get the typle elements
-        (location_id, id_at_location, id, garbage_collect_data, tags, description) = simple_obj
+        # You need at least two workers in order to encrypt the vector with SMPC
+        assert len(workers) > 1
 
-        # Unpickle
-        location_id = pickle.loads(location_id)
-        tags = [pickle.loads(tag) for tag in tags] if tags else None
-        description = pickle.loads(description)
-
-        # Get the worker `location` on which lives the pointed-to Doc object
-        location = worker.get_worker(id_or_worker=location_id)
-
-        # Create a DocPointer object
-        doc_pointer = DocPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=worker,
-            id=id,
-            garbage_collect_data=garbage_collect_data,
-            tags=tags,
-            description=description,
+        # Create the command
+        kwargs = dict(
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            excluded_tokens=excluded_tokens,
         )
 
-        return doc_pointer
+        # Send the command
+        token_vectors = self.owner.send_command(
+            recipient=self.location,
+            cmd_name="get_encrypted_token_vectors",
+            target=self,
+            args_=workers,
+            kwargs_=kwargs,
+        )
+
+        # We call get because the returned object is a PointerTensor to the AdditiveSharedTensor
+        token_vectors = token_vectors.get()
+
+        return token_vectors
+
+    def __len__(self):
+
+        # Send the command
+        length = self.owner.send_command(
+            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={},
+        )
+
+        return length

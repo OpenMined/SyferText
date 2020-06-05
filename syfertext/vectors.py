@@ -2,6 +2,7 @@ import pickle
 import os
 from pathlib import Path
 import numpy as np
+import importlib
 
 from .utils import hash_string
 
@@ -9,56 +10,34 @@ from .utils import hash_string
 class Vectors:
     def __init__(self, model_name):
 
-        # Create the path to where the folder named 'model_name' is stored.
-        dirname = str(Path.home())
+        self.model_name = model_name
 
-        self.model_path = os.path.join(dirname, "SyferText", model_name)
+        # At initialization, no vectors are loaded
+        # They will be loaded once a vector is
+        # requested for the first time
+        self.loaded = False
+
+    def _load_data(self):
+        """Loads the vectors from the language model package named
+        `self.model_name` which should be installed.
+        """
+
+        # Import the language model
+        model = importlib.import_module(f"syfertext_{self.model_name}")
+
+        # Import the dictionary of loaders:
+        # This dictionary will be used to laod
+        # `vectors` array and `key2row` dictionary
+        LOADERS = getattr(model, "LOADERS")
 
         # Load the array holding the word vectors
-        self.data, self.default_vector = self._load_vectors()
+        self.data, self.default_vector = LOADERS["vectors"]()
 
         # Load the mappings between word hashes and row indices in 'self.data'
-        self.key2row = self._load_key2row()
+        self.key2row = LOADERS["key2row"]()
 
-    def _load_vectors(self):
-        """Loads the embedding vectors of the vocabulary string from disk.
-
-        Returns:
-            vectors (array): a numpy array which as much rows as words in the vocabulary.
-                                the number of columns is equal to the vector's dimensions.
-            default_vector (array): a numpy array of size (number of vector's dimensions,)
-                                    this vector is used for out-of-vocabulary tokens.
-        """
-
-        # Get the path to the file where vectors are stored
-        vectors_path = os.path.join(self.model_path, "vectors")
-
-        # Unpickle the vectors
-        with open(vectors_path, "rb") as vectors_file:
-            vectors = pickle.load(vectors_file)
-
-        # Create a default vector that is returned
-        # when an out-of-vocabulary token is encountered
-        default_vector = np.zeros(vectors.shape[1], dtype=vectors.dtype)
-
-        return vectors, default_vector
-
-    def _load_key2row(self):
-        """Loads the key2row dictionary from disk.
-
-        Returns:
-            key2row (dict): a dictionary that maps a hash to a word.
-        """
-
-        # Create the path to the file where hash keys to row indices
-        # mappings are stored
-        key2row_path = os.path.join(self.model_path, "key2row")
-
-        # Unpickle the file
-        with open(key2row_path, "rb") as key2row_file:
-            key2row = pickle.load(key2row_file)
-
-        return key2row
+        # Set the `loaded` property to True since data is now loaded
+        self.loaded = True
 
     def has_vector(self, word):
         """Checks whether 'word' has a vector or not in self.data
@@ -70,12 +49,15 @@ class Vectors:
             True if a vector for 'word' already exists in self.data.
         """
 
+        # If data is not yet loaded, then load it
+        if not self.loaded:
+            self._load_data()
+
         # Create the word hash key
         key = hash_string(word)
 
         # if the key exists return True
         if key in self.key2row:
-
             return True
 
         else:
@@ -93,6 +75,10 @@ class Vectors:
             if no vector is found, self.default_vector is returned.
         """
 
+        # If data is not yet loaded, then load it
+        if not self.loaded:
+            self._load_data()
+
         # Create the word hash key
         key = hash_string(word)
 
@@ -100,7 +86,7 @@ class Vectors:
         if not self.has_vector(word):
             return self.default_vector
 
-        # Get the vector row correponding to the hash
+        # Get the vector row corresponding to the hash
         row = self.key2row[key]
 
         # Get the vector

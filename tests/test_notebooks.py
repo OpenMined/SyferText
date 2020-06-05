@@ -3,9 +3,9 @@ import pytest
 import nbformat
 import papermill as pm
 
-"""selecting all the notebook in the tutorial folder using glob."""
-all_notebooks = [n for n in glob.glob("tutorials/**/*.ipynb", recursive=True)]
 
+"""selecting all the notebook in the tutorial folder."""
+all_notebooks = [n for n in glob.glob("tutorials/*.ipynb", recursive=True)]
 
 @pytest.mark.parametrize("notebook", sorted(all_notebooks))
 def test_notebooks(notebook):
