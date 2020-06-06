@@ -1,7 +1,7 @@
 from .token import Token
 import syft
 import torch
-import numpy as np
+# import numpy as np
 
 hook = syft.TorchHook(torch)
 
@@ -248,7 +248,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.Tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -289,7 +289,9 @@ class Doc(AbstractObject):
                 token_vectors.append(token.vector)
 
         # Convert to Numpy array.
-        token_vectors = np.array(token_vectors)
+        # token_vectors = np.array(token_vectors)
+        # Convert to torch tensor (Changing numpy to torch)
+        token_vectors = torch.tensor(token_vectors)
 
         return token_vectors
 
