@@ -6,7 +6,7 @@
 
 ## SyferText
 
-SyferText is a library for privacy preserving Natural Language Processing in Python. It leverage PySyft for doing Encrypted Computation (
+SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft for doing Encrypted Computation
 [Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) and model training. 
 
 - :fire: Define Pre-Processing Pipelines for NLP.
