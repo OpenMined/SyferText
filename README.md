@@ -4,6 +4,16 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
+## SyferText
+
+SyferText is a library for privacy preserving Natural Language Processing in Python. It leverage PySyft for doing Encrypted Computation (
+[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) and model training. 
+
+- :fire: Define Pre-Processing Pipelines for NLP.
+- :rocket: Transfer the pre-processing component to remote data location and get encrypted tensors back.
+- :star: Define your deep learning model with PySyft.
+  
+
 
 ## Installation
 
@@ -114,6 +124,8 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
 </table>
 <br>
 
+[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/0)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/0)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/1)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/1)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/2)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/2)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/3)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/3)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/4)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/4)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/5)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/5)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/6)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/6)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/7)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/7)
+
 ## SyferText News
 
 To get news about feature and tutorial relseases:
@@ -139,3 +151,6 @@ You can reach out to us by contacting Alan on one of the following channels:
 -------
 
 For more updates on our activities at OpenMined and for getting exciting news and announcements about our different projects, you can join our rapidly growing community of 7000+ on [Slack](https://slack.openmined.org/). You can follow our [official twitter page](https://twitter.com/openminedorg), as well as OpenMined [founder's twitter page](https://twitter.com/iamtrask).
+
+## License
+[Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
