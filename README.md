@@ -120,7 +120,7 @@ To get news about feature and tutorial relseases:
 
 Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
 
- and join [#team_nlp channel on slack](https://openmined.slack.com/archives/CUWDZMED9)
+ and join [#lib_syfertext](https://openmined.slack.com/archives/CUWDZMED9) channel on slack.
 
 
 ## Call for Partners
