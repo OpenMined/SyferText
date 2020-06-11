@@ -248,7 +248,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -258,7 +258,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
+            token_vectors: The torch tensor of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
@@ -288,8 +288,11 @@ class Doc(AbstractObject):
             if include_token:
                 token_vectors.append(token.vector)
 
-        # Convert to Numpy array.
-        token_vectors = np.array(token_vectors)
+        # # Convert to Numpy array.
+        # token_vectors = np.array(token_vectors)
+
+        # Convert to torch tensor
+        token_vectors = torch.tensor(token_vectors)
 
         return token_vectors
 
