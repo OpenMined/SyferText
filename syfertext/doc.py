@@ -1,7 +1,6 @@
 from .token import Token
 import syft
 import torch
-
 # import numpy as np
 
 hook = syft.TorchHook(torch)
@@ -250,8 +249,7 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.Tensor:
-
-        """Get the torch tensor of all the vectors corresponding to the tokens in the `Doc`,
+        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
         Args
@@ -260,7 +258,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The torch tensor of shape - (No.of tokens, size of vector)
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
                 containing all the vectors.
         """
 

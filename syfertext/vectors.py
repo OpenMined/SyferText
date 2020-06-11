@@ -2,7 +2,6 @@ import pickle
 import os
 from pathlib import Path
 import numpy as np
-import torch
 import importlib
 
 from .utils import hash_string
@@ -93,4 +92,4 @@ class Vectors:
         # Get the vector
         vector = self.data[row]
 
-        return torch.tensor(vector)
+        return vector
