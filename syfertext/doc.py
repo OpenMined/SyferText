@@ -342,7 +342,7 @@ class Doc(AbstractObject):
         # token_vectors = np.array(token_vectors)
 
         # Convert to torch tensor
-        token_vectors = torch.tensor(token_vectors)
+        token_vectors = torch.tensor(token_vectors, dtype=torch.float32)
 
         return token_vectors
 
