@@ -22,6 +22,7 @@ from typing import Match
 from typing import DefaultDict
 from typing import Dict
 
+import transformers
 
 class TokenMeta(object):
     """This class holds some meta data about a token from the text held by a Doc object.
@@ -48,7 +49,10 @@ class TokenMeta(object):
         self._ = Underscore()
 
 
-class Tokenizer(AbstractSendable):
+class BaseTokenizer(AbstractSendable):
+    pass
+
+class Tokenizer(BaseTokenizer):
     def __init__(
         self,
         vocab: Union[Vocab, str],
@@ -646,3 +650,10 @@ class Tokenizer(AbstractSendable):
         code_dict = dict(code=Tokenizer.proto_id)
 
         return code_dict
+
+class BertTokenizer(BaseTokenizer):
+    def __init__(
+        self,
+        model_name: str
+    ):
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(model_name)

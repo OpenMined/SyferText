@@ -2,6 +2,7 @@ import os
 import syft as sy
 import torch
 import syfertext
+from syfertext.language import Language, BertDefaults
 from pathlib import Path
 import numpy as np
 
@@ -9,7 +10,7 @@ hook = sy.TorchHook(torch)
 me = hook.local_worker
 
 nlp = syfertext.load("en_core_web_lg", owner=me)
-
+bert_nlp = Language('bert-base-uncased', owner=me, config=BertDefaults)
 
 def test_lazy_language_model_load():
     """Test the the language model vectors are loaded only after

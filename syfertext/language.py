@@ -1,4 +1,4 @@
-from .tokenizer import Tokenizer
+from .tokenizer import BaseTokenizer, Tokenizer, BertTokenizer
 from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
@@ -34,7 +34,7 @@ class BaseDefaults(object):
         return vocab
 
     @classmethod
-    def create_tokenizer(cls, vocab) -> Tokenizer:
+    def create_tokenizer(cls, model_name: str) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
         
@@ -44,11 +44,22 @@ class BaseDefaults(object):
 
         """
 
+        # Create the vocabulary
+        vocab = BaseDefaults.create_vocab(model_name)
+
         # Instantiate the Tokenizer object and return it
         tokenizer = Tokenizer(vocab)
 
         return tokenizer
 
+class BertDefaults(BaseDefaults):
+
+    @classmethod
+    def create_tokenizer(cls, vocab) -> Tokenizer:
+        # Instantiate the Tokenizer object and return it
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+        return tokenizer
 
 class Language(AbstractObject):
     """Inspired by spaCy Language class.
@@ -67,17 +78,15 @@ class Language(AbstractObject):
         owner: BaseWorker = None,
         tags: List[str] = None,
         description: str = None,
+        config: BaseDefaults = None
     ):
 
         # Define the default settings
-        self.Defaults = BaseDefaults
-
-        # Create the vocabulary
-        self.vocab = self.Defaults.create_vocab(model_name)
+        self.Defaults = BaseDefaults if config is None else config
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = {"tokenizer": self.Defaults.create_tokenizer(self.vocab)}
+        self.factories = {"tokenizer": self.Defaults.create_tokenizer(model_name)}
 
         # Initialize the subpipeline template
         # It only contains the tokenizer at initialization
