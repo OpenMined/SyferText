@@ -13,7 +13,12 @@ setup(
     license="Apache-2.0",
     version="0.0.1",
     packages=find_packages(),
-    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft==0.2.5", "requests==2.22.0"],
+    install_requires=[
+        "tqdm==4.36.1",
+        "mmh3==2.5.1",
+        "syft @ git+https://github.com/OpenMined/PySyft@1eb369ae3a1865789f5809bec59f066ac1cbe58d",
+        "requests==2.22.0",
+    ],
     extras_require={
         "test": [
             "black>=19.10b0",
