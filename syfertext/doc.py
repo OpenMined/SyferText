@@ -394,6 +394,7 @@ class Doc(AbstractObject):
                         if token.has_attribute(key)
                     ]
                 )
+                
                 if include_token:
                     yield token
         else:
