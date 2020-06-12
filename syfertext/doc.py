@@ -371,6 +371,7 @@ class Doc(AbstractObject):
         Args:
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
         Yields:
             A generator with valid tokens, i.e. tokens which are `not` to be excluded.
         """
@@ -381,8 +382,11 @@ class Doc(AbstractObject):
                 attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
             }
 
+            # Iterate over all tokens in doc
             for token in self:
 
+                # Check if token can be included by comparing its attribute values
+                # to those in excluded_tokens dictionary.
                 include_token = all(
                     [
                         token.get_attribute(key) not in excluded_tokens[key]

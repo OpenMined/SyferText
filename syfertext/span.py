@@ -206,8 +206,11 @@ class Span(AbstractObject):
                 attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
             }
 
+            # Iterate over all tokens in doc
             for token in self:
 
+                # Check if token can be included by comparing its attribute values
+                # to those in excluded_tokens dictionary.
                 include_token = all(
                     [
                         token.get_attribute(key) not in excluded_tokens[key]
