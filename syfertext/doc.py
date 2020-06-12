@@ -338,11 +338,8 @@ class Doc(AbstractObject):
             if include_token:
                 token_vectors.append(token.vector)
 
-        # # Convert to Numpy array.
-        # token_vectors = np.array(token_vectors)
-
         # Convert to torch tensor
-        token_vectors = torch.tensor(token_vectors, dtype=torch.float32)
+        token_vectors = torch.stack(tensors = token_vectors)
 
         return token_vectors
 
