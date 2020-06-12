@@ -20,17 +20,15 @@ class Span(AbstractObject):
     """A slice from a Doc object.
     """
 
-    def __init__(
-        self, doc: "Doc", start: int, end: int, id: int = None, owner: BaseWorker = None,
-    ):
+    def __init__(self, doc: "Doc", start: int, end: int, id: int = None, owner: BaseWorker = None):
         """Create a `Span` object from the slice `doc[start : end]`.
 
         Args:
             doc (Doc): The parent document.
             start (int): The index of the first token of the span.
             end (int): The index of the first token after the span.
-        
-        Returns (Span): 
+
+        Returns (Span):
             The newly constructed object.
 
         """
@@ -75,7 +73,7 @@ class Span(AbstractObject):
         setattr(self._, name, value)
 
     def __getitem__(self, key: Union[int, slice]):
-        """Returns a Token object at position `key` or returns Span using slice `key` or the 
+        """Returns a Token object at position `key` or returns Span using slice `key` or the
         id of the Token object or id of the Span object at remote location.
 
         Args:
@@ -294,7 +292,7 @@ class Span(AbstractObject):
             id_at_location=id_at_location,
             owner=owner,
             id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            garbage_collect_data=True,  # Overriding passed argument
         )
 
         return span_pointer

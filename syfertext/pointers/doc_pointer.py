@@ -42,7 +42,7 @@ class DocPointer(ObjectPointer):
             id_at_location=id_at_location,
             owner=owner,
             id=id,
-            garbage_collect_data=garbage_collect_data,
+            garbage_collect_data=True,  # Overriding passed argument
             tags=tags,
             description=description,
         )
@@ -165,7 +165,7 @@ class DocPointer(ObjectPointer):
 
         # Send the command
         length = self.owner.send_command(
-            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={},
+            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
         )
 
         return length

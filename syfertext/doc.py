@@ -222,10 +222,10 @@ class Doc(AbstractObject):
 
     def similarity(self, other: "Doc") -> torch.Tensor:
         """Compute the cosine similarity between two Doc vectors.
-        
+
         Args:
             other (Doc): The Doc to compare with.
-        
+
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """
@@ -450,7 +450,7 @@ class Doc(AbstractObject):
             id_at_location=id_at_location,
             owner=owner,
             id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            garbage_collect_data=True,  # Overriding passed argument
         )
 
         return doc_pointer
