@@ -1,33 +1,21 @@
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
+from syft.generic.abstract.sendable import AbstractSendable
+import syft.serde.msgpack.serde as serde
 
 from typing import Union
 from typing import Set
 
 
-class LanguageModel(AbstractObject):
-    """This class is responsible of serving the resources and 
-    the configurations that help create a Language object or
-    part of it.
-
-    A language model typically consists of a pipeline template
-    that describes all of the pipe components and resource files
-    such as vectors and vocabulary stored as mapping between 
-    hash keys and vector indexes. Those resources and configuration
-    data for a given language models are persisted on a PyGrid
-    node. An object of this class is sent to live on the object
-    store of the worker where the corresponding language model 
-    is located. This object is also tagged with the name
-    of the language model and the name of its resources and
-    contents. Check the documentation of the `__init__` method
-    to know more.
-
+class LanguageModel(AbstractSendable):
+    """This class is responsible of serving the pipeline template
+    of a language model that allows the Language object to recreate
+    the pipeline and distribute it over workers.
     """
     
     def __init__(self,
-                 source: str,
                  name: str,
-                 id: Union[str, int] = None,
+                 pipeline_template: dict,
                  owner: BaseWorker = None,
                  tags: set[str] = None,
                  description: str = None,
@@ -35,64 +23,25 @@ class LanguageModel(AbstractObject):
         """Initializes the object.
 
         Args:
-            id: The id of the object. Defaults to `None`. If it is
-                `None`, then it will be assigned an automatically
-                generated ID value in the parent class.
-
+            name: The name of the language model. This name will
+                be also used as the ID of the language model. This
+                ID is used to search of the language model over
+                PyGrid.
             owner: The worker that owns this object. That is, the 
                 syft worker on which this object is located.
-
-            tags: This is a very important argument. It will hold
-                the tags that will define the name of the language
-                model served by this object. It will also hold
-                the names of the individual object and  pipe components 
-                included in this model. For instance, if the language model's
-                name is 'syfertext_en_core_web_lg' and if it contains
-                a 'vectors' array that stores the embedding vector for
-                each word in the vocab, and an array called 'key2row'
-                that maps each word hash in the vocab to a row index
-                in the 'vectors' array, and  if  its pipeline
-                contains a Tokenizer object called 'tokenizer' and 
-                a NER model called 'ner_recognizer', that 'tags'
-                argument  will look like this:
-
-                {"#syfertext_en_core_web_lg", 
-                 "#syfertext_en_core_web_lg:vectors",
-                 "#syfertext_en_core_web_lg:key2row",
-                 "#syfertext_en_core_web_lg:tokenizer",
-                 "#syfertext_en_core_web_lg:ner_recognizer",
-                }
-
-                If this argument does not contain the tag
-                "#syfertext_en_core_web_lg", and it only
-                includes tags of the format:
-                "#syfertext_en_core_web_lg:<name>", then this signifies
-                that this object is attached to another LanguageModel
-                that acts as the master object, or the entry point 
-                to the language model retrieval process. 
-                This would be the case when the language model 
-                contains a pipeline that is distributed
-                over several workers due privacy and ownership constrains.
-                Exposing component names with tags this way, 
-                also allows language models to reuse each other's
-                components.
-
+            tags: A set of PyGrid searchable tags that can be 
+                associated with the language model.
             description: A text that describes the language model,
                  its contents, and any other features.
-           
         """ 
 
         self.name = name
-
-        # Set the tag ad #<model_name>. This tag will be
-        # used to search for this language model on PyGrid
-        if tags is None:
-            self.tags = set()
-
-        self.tags.add(f'#{name}')
+        
+        # Set the id to the same as the language model name
+        id = name
 
         # Initialize the pipeline template
-        self.pipeline = []
+        self.pipeline_template = pipeline_template
 
         
         # Initialize the parent class
@@ -103,105 +52,188 @@ class LanguageModel(AbstractObject):
 
 
 
-    @property
-    def pipe_names(self):
-        """Get a list of all pipe names included in the pipeline.
-
-        Returns:
-            name (List[str]): A list of all pipe name in the pipeline.
-        """
-        
-        names = set([pipe_template['name'] for pipe_template in self.pipeline_template])
-
-        return names
-
-    
-
-    def remove_pipe(self, name: str):
-        """Remove a pipe template from the pipeline template.
+    def send_copy(self, destination: BaseWorker) -> "LanguageModel":
+        """This method is called by a LanguageModelPointer using 
+        LanguageModelPointer.get_copy(). It creates a copy of the current
+        object and sends it to the pointer on `destination`
+        which requested the copy.
 
         Args:
-            name: The name of the pipe to remove.
+            location: The worker on which the LanguageModelPointer object
+                which requested the copy is located.
         """
 
-        self.pipeline_template = [pipe for pipe in self.pipeline_template if pipe['name'] != name]
-        
-
-        
-    def add_pipe_template(self,
-                          name: str,
-                          owner: str,
-                          access: Union[None, Set[str]]
-    ):
-        """Adds a pipe template to the pipeline template of 
-        the language model.
-        """
-
-        assert name not in self.pipe_names, f"A pipe with name '{name}' already exists in the pipeline"
-
-        
-        # Create the pipe template
-        pipe_template = dict(name = name,
-                             owner = owner,
-                             access = access
+        # Create the copy
+        language_model = LanguageModel(
+            name=self.name,
+            pipeline_template = self.pipeline_template,
+            owner = self.owner,
+            tags=self.tags,
+            description=self.description,
         )
+
+        # Send the object
+        self.owner.send_obj(language_model, destination)
+
         
-        # Add the pipe template to the pipeline template
-        self.pipeline_template.append(pipe_template)
+    def send(self, location: BaseWorker) -> LanguageModelPointer:
+        """Sends this object to the worker specified by `location`. 
+
+        Args:
+            location (BaseWorker): The BaseWorker object to which the LanguageModel
+                object is to be sent.
+
+            Returns:
+                (LanguageModelPointer): A pointer to this object.
+        """
 
 
+        language_model_pointer = self.owner.send(self, location)
 
+        return language_model_pointer
+
+    
+    def create_pointer(
+        language_model: "LanguageModel" = None,
+        owner: BaseWorker = None,
+        location: BaseWorker = None,
+        id_at_location: str = None,
+        tags: Set[str] = None,
+        register: bool = True,
+        garbage_collect_data: bool = False,
+    ) -> LanguageModelPointer:
+        """Creates a LanguageModelPointer object that points to a given
+        LanguageModel object.
+
+        Args:
+            language_model (LanguageModel): The LanguageModel object 
+                to which the pointer refers.
+                Although this is an instance method (As opposed to statics),
+                this argument is called `language_model` instead of `self` due
+                to the fact that PySyft calls this method, sometimes on
+                the class and sometimes on the object. 
+            owner (BaseWorker): The worker that will own the pointer object.
+            location (BaseWorker): The worker on which the LanguageModel
+                object pointed to by this object is located.
+            id_at_location (str, int): The ID of the LanguageModel object
+                referenced by the pointer.
+            register (bool): Whether to register the pointer object 
+                in the object store or not. (it is required by the 
+                the BaseWorker's object send() method in PySyft, but
+                not used for the moment in this method).
+            garbage_collect_data (bool): Activate garbage collection or not. 
+                default to False meaning that the LanguageModel object shouldn't
+                be GCed once this pointer is removed.
+
+        
+        Returns:
+            A LanguageModelPointer object pointing to this LanguageModel object.
+        """
+        
+        if location is None:
+            location = language_model.owner
+
+        if id_at_location is None:
+            id_at_location = language_model.id
+
+        # Create the pointer object
+        language_model_pointer = LanguageModelPointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+        )
+
+        return language_model_pointer
+        
+    @staticmethod
+    def simplify(worker: BaseWorker, language_model: "LanguageModel") -> Tuple[object]:
+        """Simplifies a LanguageModel object. This method is required by PySyft
+        when a LanguageModel object is sent to another worker. 
+
+        Args:
+            worker: The worker on which the simplify operation 
+                is carried out.
+            language_model: the LanguageModel object to simplify.
+
+        Returns:
+            The simplified LanguageModel object as a tuple of serialized LanguageModel
+            attributes.
 
         """
-        1- To create a brand new language model, we always start by creating
-        a Language object, and then calling calling nlp.to_grid(worker) which
-        will create the LanguageModel object and the underlying LanguageResource
-        objects and push it to PyGrid. We should never create the LanguageModel directly.
 
-        tokenizer = Tokenizer().set_resources(prefixes, ...)  # Should know how to convert itself to LanguageResource
-
-        vocab = Vocab().set_resources(keys = keys, key2row = key2row, vectors = vectors) # Should know ...... get_resources() called by nlp.to_grid()
-
-        nlp = Language(model_name = 'my_new_model')
-        nlp.set_tokenizer(tokenizer)
-        nlp.set_vocab(vocab)
-
-        nlp.to_grid(worker) # This will put all components on same worker with public access
-        nlp.to_grid(tokenizer = {'owner': bob, 'access': None}},
-                    vocab = {'owner' : alice, access': {alice, james}}
-                    my_tagger = {'owner' alice},
-        ) # notice that the component/pipe name is used as kwarg.
-
-        - Factories should be removed and replace by the class name 'SimpleTagger' that
-          is known to SyferText. The factory method is replaced by 'load_resources()' and
-          'dump_resources() -> LanguageResource'
-
-        - We need a method in PySyft similar to .get() but does not remove object
-          from destination, just copy it .copy() to  copy language resources from
-          their pointers inside the 'load_resources()' methods. Or in LanguageResourcePointer
-          object I implement a method 'pull_resource()' that calls the 'send()' method of
-          LanguageResource, which in turn, compresses the simple object and returns it.
-
-        - start by adding dump/load_resources() to Tokenizer and Vocab
-
-        - add set_tokenizer() and set_vocab() to Language
-
-        - when adding any pipe or set_vocab/tokenizer, we call directly dump_resources()
-          this stores the corresponding LanguageResources objects in the store.
-
-        - Then I create the pipeline template as (name = 'stop_tagger', class_name = 'SimpleTagger', owner = Union[None, str])
-
-        - in SubPipeline, I remove the factory and use something like
-          syfertext.factories['<class_name>'](name = <resource/pipe_name>, model_name = "<language_model_name>")
-
-        - The LanguageResource object contains as properties: resource (simple object style), tag = <language_model>:<resource_name>
-
-        - Predictive models should be plans. encapsulated in object Classifier for instance that calls the plan's build() method. and
-          implements dump_resources() and load_resources(). The dump_resources() methods create a LanguageResource object with
-          'resource = built plan'
+        # Simplify the LanguageModel object attributes
+        name_simple = serde._simplify(worker, language_model.name)
+        pipeline_template_simple = serde._simplify(worker, language_model.pipeline_template)        
+        tags_simple = serde._simplify(worker, language_model.tags)
+        description_simple = serde._simplify(worker, language_model.description)                
 
 
-        - I think the method load_state should be called explicitely in the SubPipeline after each object is sent to the
-          corresponding worker.
+        # create the simple LanguageModel object
+        language_model_simple = (name_simple, pipeline_template_simple, tags_simple, description_simple)
 
+        return language_model_simple
+        
+
+    @staticmethod
+    def detail(worker: BaseWorker, language_model_simple: Tuple[object]) -> "LanguageModel":
+        """Takes a simplified language_model object, details it to create
+        a new LanguageModel object. This is usually done on a worker where
+        the LanguageModel object is sent.
+
+
+        Args:
+            worker (BaseWorker): The worker on which the
+                detail operation is carried out.
+            language_model_simple: The simplified LanguageModel object.
+
+        Returns:
+            A LanguageModel object.
         """
+
+        # Unpack the simple language model object
+        name_simple, pipeline_template, tags_simple, description_simple = language_model_simple
+        
+        # Detail the attributes
+        name = serde._detail(worker, name_simple)
+        pipeline_template = serde._detail(worker, pipeline_template_simple)        
+        tags = serde._detail(worker, tags_simple)
+        description = serde._detail(worker, description_simple)
+
+        # Create a LanguageModel object
+        language_model = LanguageModel(
+            name = name,
+            pipeline_template = pipeline_template,
+            owner = worker,
+            tags = tags,
+            description = description,
+        )
+
+        return language_model
+
+    
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(LanguageModel, "proto_id"):
+            LanguageModel.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=LanguageModel.proto_id)
+
+        return code_dict
+        

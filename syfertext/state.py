@@ -53,18 +53,15 @@ class State(AbstractSendable):
 
         super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-    def send_copy(self, destination: BaseWorker) -> "State":
+    def send_copy(self, destination: BaseWorker) -> None:
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
-        object and send it to the pointer on `destination`
+        object and sends it to the pointer on `destination`
         which requested the copy.
 
         Args:
             location: The worker on which the StatePointer object
                 which requested the copy is located.
-
-        Returns:
-            A copy of the current state object.
         """
 
         # Create the copy
@@ -116,7 +113,7 @@ class State(AbstractSendable):
             state (State): The State object to which the pointer refers.
                 Although this is an instance method (As opposed to statics),
                 this argument is called `state` instead of `self` due
-                to the fact that PySyft calls this method, sometimes of 
+                to the fact that PySyft calls this method, sometimes on
                 the class and sometimes on the object. 
             owner (BaseWorker): The worker that will own the pointer object.
             location (BaseWorker): The worker on which the State

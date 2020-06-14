@@ -78,16 +78,14 @@ class SubPipeline(AbstractSendable):
             
         
     def load_template(
-        self, template: Dict[str, Union[bool, List[str]]], factories: Dict[str, type],
+        self, template: dict, factories: Dict[str, type],
     ):
         """Loads the subpipeline template.
 
 
         Args:
             template (dict): This is a dictionary representing
-                the subpipeline template. Here is an example of
-                how a template looks like: 
-                {'remote': True, 'names': ['tokenizer', 'tagger']}
+                the subpipeline template.
             factories (dict): This is a dictionary that contains 
                 a mapping between a pipe name and the class that
                 is used to create the object representing the pipe.
@@ -153,7 +151,8 @@ class SubPipeline(AbstractSendable):
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
+        for t in doc:
+            print(t.text)
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
