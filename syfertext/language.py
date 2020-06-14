@@ -3,12 +3,14 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .attrs import Attributes
 
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
+
 from typing import List, Union, Tuple
 
 
@@ -17,7 +19,7 @@ class BaseDefaults(object):
     """
 
     @classmethod
-    def create_vocab(cls, model_name) -> Vocab:
+    def create_vocab(cls, model_name: str) -> Vocab:
         """Creates the Vocab object that holds the vocabulary along with vocabulary meta data
 
         Todo:

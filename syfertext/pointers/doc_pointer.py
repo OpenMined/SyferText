@@ -23,14 +23,14 @@ class DocPointer(ObjectPointer):
         description: str = None,
     ):
         """Create a Doc Pointer from `location` where the `Doc` object resides and
-        `id_at_location`, the id of the `Doc` object at that location. 
+        `id_at_location`, the id of the `Doc` object at that location.
 
         Args:
             location (BaseWorker): the worker where the `Doc` object resides that this
                 DocPointer will point to.
-            
+
             id_at_location (int or str): the id of the `Doc` object at the `location` worker.
-            
+
             owner (BaseWorker): the owner of the this object ie. `DocPointer`
 
         Returns:
@@ -47,6 +47,32 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
+    def __len__(self):
+
+        # Send the command
+        length = self.owner.send_command(
+            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
+        )
+
+        return length
+
+    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
+
+        # if item is int, so we are trying to access to token
+        assert isinstance(
+            item, slice
+        ), "You are not authorized to access a `Token` from a `DocPointer`"
+
+        # Send the command
+        obj_id = self.owner.send_command(
+            recipient=self.location, cmd_name="__getitem__", target=self, args_=(item,), kwargs_={}
+        )
+
+        # we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+        return span
+
     def get_encrypted_vector(
         self,
         *workers: BaseWorker,
@@ -58,11 +84,11 @@ class DocPointer(ObjectPointer):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
             (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
@@ -80,34 +106,20 @@ class DocPointer(ObjectPointer):
             excluded_tokens=excluded_tokens,
         )
 
-        command = ("get_encrypted_vector", self.id_at_location, workers, kwargs)
-
         # Send the command
-        doc_vector = self.owner.send_command(self.location, command)
+        doc_vector = self.owner.send_command(
+            recipient=self.location,
+            cmd_name="get_encrypted_vector",
+            target=self,
+            args_=workers,
+            kwargs_=kwargs,
+        )
 
         # I call get because the returned object is a PointerTensor to the AdditiveSharedTensor
         doc_vector = doc_vector.get()
 
         return doc_vector
-
-    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
-
-        # if item is int, so we are trying to access to token
-        assert isinstance(
-            item, slice
-        ), "You are not authorised to access a `Token` from a `DocPointer`"
-
-        # Create the command
-        command = ("__getitem__", self.id_at_location, [item], {})
-
-        # Send the command
-        obj_id = self.owner.send_command(self.location, command)
-
-        # we create a SpanPointer from the obj_id
-        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
-
-        return span
-
+      
     @property
     def sents(self):
         """Iterate over the sentences in the remote document. Yields sentence `SpanPointer`
@@ -131,6 +143,7 @@ class DocPointer(ObjectPointer):
             # we create a SpanPointer from the obj_id
             yield SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
 
+
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
@@ -144,16 +157,16 @@ class DocPointer(ObjectPointer):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
             (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document 
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document
                 this pointer points to.
         """
 
@@ -166,41 +179,17 @@ class DocPointer(ObjectPointer):
             requires_grad=requires_grad,
             excluded_tokens=excluded_tokens,
         )
-        command = ("get_encrypted_token_vectors", self.id_at_location, workers, kwargs)
 
         # Send the command
-        token_vectors = self.owner.send_command(self.location, command)
+        token_vectors = self.owner.send_command(
+            recipient=self.location,
+            cmd_name="get_encrypted_token_vectors",
+            target=self,
+            args_=workers,
+            kwargs_=kwargs,
+        )
 
         # We call get because the returned object is a PointerTensor to the AdditiveSharedTensor
         token_vectors = token_vectors.get()
 
         return token_vectors
-
-    def __getitem__(self, item):
-
-        assert isinstance(item, slice), (
-            "DocPointer object can't return a Token. Please call"
-            "__getitem__ on a slice to get a pointer to a Span residing"
-            "on remote machine."
-        )
-
-        # Create the command
-        command = ("__getitem__", self.id_at_location, [item], {})
-
-        # Send the command
-        span_id = self.owner.send_command(self.location, command)
-
-        # Create a SpanPointer from the span_id
-        span = SpanPointer(location=self.location, id_at_location=span_id, owner=sy.local_worker)
-
-        return span
-
-    def __len__(self):
-
-        # Create the command
-        command = ("__len__", self.id_at_location, [], {})
-
-        # Send the command
-        length = self.owner.send_command(self.location, command)
-
-        return length

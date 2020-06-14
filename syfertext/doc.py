@@ -6,13 +6,14 @@ import numpy as np
 hook = syft.TorchHook(torch)
 
 
-from syft.generic.object import AbstractObject
+from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 
 from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
+from typing import Generator
 from .underscore import Underscore
 from .span import Span
 from .pointers.span_pointer import SpanPointer
@@ -36,7 +37,7 @@ class Doc(AbstractObject):
 
         # we assign the client_id in the __call__ method of the SubPipeline
         # This is used to keep track of the worker where the pointer
-        # of this doc resides. However if it is passed explicitely
+        # of this doc resides. However if it is passed explicitly
         # in init , we assign this client_id
         if client_id is not None:
             self.client_id = client_id
@@ -73,13 +74,13 @@ class Doc(AbstractObject):
         setattr(self._, name, value)
 
     def has_attribute(self, name: str) -> bool:
-        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False` 
+        """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False`
 
         Args:
             name (str): name of the custom attribute.
-        
+
         Returns:
-            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`  
+            attr_exists (bool): `True` if `self._.name` exists, otherwise `False`
         """
 
         # `True` if `self._` has attribute `name`, `False` otherwise
@@ -95,16 +96,28 @@ class Doc(AbstractObject):
         """
 
         # Before removing the attribute, check if it exists
-        assert self.has_attribute(name), "Document does not have the attribute {}".format(name)
+        assert self.has_attribute(name), f"Document does not have the attribute {name}"
 
         delattr(self._, name)
+
+    def get_attribute(self, name: str):
+        """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
+
+        Args:
+            name (str): name of the custom attribute.
+
+        Returns:
+            value (obj): value of the custom attribute with name `name`.
+        """
+
+        return getattr(self._, name)
 
     def __getitem__(self, key: Union[int, slice]) -> Union[Token, Span, int]:
         """Returns a Token object at position `key` or Span object using slice.
 
 
         Args:
-            key (int or slice): The index of the token within the Doc, 
+            key (int or slice): The index of the token within the Doc,
                 or the slice of the Doc to return as a Span object.
         Returns:
             Token or Span or id of the Span object.
@@ -169,34 +182,45 @@ class Doc(AbstractObject):
         """Get document vector as an average of in-vocabulary token's vectors
 
         Returns:
-          doc_vector: document vector
+            doc_vector: doc vector
+        """
+        return self.get_vector()
+
+    @property
+    def vector_norm(self) -> torch.FloatTensor:
+        """Get the L2 norm of the document vector
+
+        Returns:
+            A torch tensor representing the L2 norm of the document vector
         """
 
-        # Accumulate the vectors here
-        vectors = None
+        vector = torch.tensor(self.vector)
 
-        # Count the tokens that have vectors
-        vector_count = 0
+        norm = (vector ** 2).sum()
+        norm = torch.sqrt(norm)
 
-        for token in self:
+        return norm
 
-            # Get the vector of the token if one exists
-            if token.has_vector:
+    def similarity(self, other: "Doc") -> torch.Tensor:
+        """Compute the cosine similarity between two Doc vectors.
 
-                # Increment the vector counter
-                vector_count += 1
+        Args:
+            other (Doc): The Doc to compare with.
 
-                # Cumulate token's vector by summing them
-                vectors = token.vector if vectors is None else vectors + token.vector
+        Returns:
+            Tensor: A cosine similarity score. Higher is more similar.
+        """
 
-        # If no tokens with vectors were found, just get the default vector(zeros)
-        if vector_count == 0:
-            doc_vector = self.vocab.vectors.default_vector
-        else:
-            # Create the final Doc vector
-            doc_vector = vectors / vector_count
+        # Make sure both vectors have non-zero norms
+        assert (
+            self.vector_norm.item() != 0.0 and other.vector_norm.item() != 0.0
+        ), "One of the provided vectors has a zero norm!"
 
-        return doc_vector
+        # Compute similarity
+        sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
+        sim /= self.vector_norm * other.vector_norm
+
+        return sim
 
     @property
     def is_sentenced(self):
@@ -289,48 +313,31 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            doc_vector: document vector ignoring excluded tokens
+            doc_vector: Document vector ignoring excluded tokens.
         """
 
-        # if the excluded_token dict in None all token are included
-        if excluded_tokens is None:
-            return self.vector
-
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
+        # Get the valid tokens which are to be included
+        valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         vectors = None
 
         # Count the tokens that have vectors
         vector_count = 0
 
-        for token in self:
+        for token in valid_tokens:
 
-            # Get the vector of the token if one exists and if token is not excluded
-            include_token = True
-
-            include_token = all(
-                [
-                    getattr(token._, key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if hasattr(token._, key)
-                ]
-            )
-
-            if token.has_vector and include_token:
+            if token.has_vector:
                 # Increment the vector counter
                 vector_count += 1
 
-                # Cumulate token's vector by summing them
+                # Accumulate token's vector by summing them
                 vectors = token.vector if vectors is None else vectors + token.vector
 
         # If no tokens with vectors were found, just get the default vector(zeros)
         if vector_count == 0:
             doc_vector = self.vocab.vectors.default_vector
         else:
-            # Create the final Doc vector
+            # The Doc vector, which is the average of all vectors
             doc_vector = vectors / vector_count
         return doc_vector
 
@@ -344,35 +351,19 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector) 
+            token_vectors: The Numpy array of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
-        # enforcing that the values of the excluded_tokens dict are sets, not lists.
-        if excluded_tokens is not None:
-            excluded_tokens = {
-                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-            }
+        # Get the valid tokens which are to be included
+        valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         # The list for holding all token vectors.
         token_vectors = []
 
-        for token in self:
-
-            # Get the vector of the token if the token is not excluded
-            include_token = True
-
-            if excluded_tokens is not None:
-                include_token = all(
-                    [
-                        getattr(token._, key) not in excluded_tokens[key]
-                        for key in excluded_tokens.keys()
-                        if hasattr(token._, key)
-                    ]
-                )
-
-            if include_token:
-                token_vectors.append(token.vector)
+        for token in valid_tokens:
+            # Get the vector of the token
+            token_vectors.append(token.vector)
 
         # Convert to Numpy array.
         token_vectors = np.array(token_vectors)
@@ -429,16 +420,16 @@ class Doc(AbstractObject):
 
         Args:
             workers (sequence of BaseWorker): A sequence of remote workers from .
-            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography 
+            crypto_provider (BaseWorker): A remote worker responsible for providing cryptography
                 (SMPC encryption) functionalities.
             requires_grad (bool): A boolean flag indicating whether gradients are required or not.
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
-                of their attributes, the keys are the attributes names and they index, for efficiency, 
+                of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document, 
+            Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document,
                 ingonoring the excluded token.
         """
 
@@ -457,6 +448,45 @@ class Doc(AbstractObject):
         )
 
         return token_vectors
+
+    def _get_valid_tokens(
+        self, excluded_tokens: Dict[str, Set[object]] = None
+    ) -> Generator[Token, None, None]:
+        """Handy function to handle the logic of excluding tokens while performing operations on Doc.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+                Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+        Yields:
+            A generator with valid tokens, i.e. tokens which are `not` to be excluded.
+        """
+
+        if excluded_tokens:
+            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
+
+            # Iterate over all tokens in doc
+            for token in self:
+
+                # Check if token can be included by comparing its attribute values
+                # to those in excluded_tokens dictionary.
+                include_token = all(
+                    [
+                        token.get_attribute(key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if token.has_attribute(key)
+                    ]
+                )
+
+                if include_token:
+                    yield token
+        else:
+            # All tokens are included
+            for token in self:
+                yield token
 
     @staticmethod
     def create_pointer(
