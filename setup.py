@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_packages
 import os
 
-# Utility function function to read README.md file for long description
+# Utility function to read README.md file for long description
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
