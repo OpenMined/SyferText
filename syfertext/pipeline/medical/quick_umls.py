@@ -9,6 +9,8 @@ import pickle
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
+import nltk
+
 class QuickUMLS:
     """ Extracts medical entities using
     approximation matching. Also does UMLS linking by
@@ -27,7 +29,7 @@ class QuickUMLS:
         overlapping_criteria = 'score',
         window = 5,
         similarity_name = 'jaccard', 
-        keep_uppercase = True
+        keep_uppercase = False
     ):
         """ 
         Instantiate QuickUMLS object. This is the main interface through 
@@ -85,6 +87,11 @@ class QuickUMLS:
         # Initialize Simstring reader
         self.searcher = None
         self.string_to_cui = None
+
+        self.min_match_length = 3
+
+        self._stopwords = list(nltk.corpus.stopwords.words('english'))
+        self.negations = ['none', 'non', 'neither', 'nor', 'no', 'not']
     
     def factory(self):
         """Creates a clone of this object.
@@ -144,6 +151,62 @@ class QuickUMLS:
             # to access definition use, quickUMLS.kb[cui] to extract definitions    
 
         return doc
+    
+        
+    def _is_valid_start_token(self, tok):
+            return not(
+                (self._is_stop_term(tok) and tok.text not in self.negations)
+            )
+
+    def _is_stop_term(self, tok):
+        return tok.text in self._stopwords
+
+    def _is_valid_end_token(self, tok):
+            return not(
+                self._is_stop_term(tok)
+            )
+
+    def _is_longer_than_min(self, span):
+            return (len(span.text.strip())) >= self.min_match_length
+    
+    def _make_ngrams_detail(self, sent, window : int):
+
+        sent_length = len(sent)
+
+        for i in range(sent_length):
+            tok = sent[i]
+
+            if self._is_valid_start_token(tok):
+                compensate = False
+            else:
+                compensate = True
+
+            span_end = min(sent_length, i + window) + 1
+
+            if (
+                i + 1 == sent_length and            
+                self._is_valid_end_token(tok) and  
+                len(tok) >= self.min_match_length
+            ):
+                yield(i, i+1, tok.text)
+
+            for j in range(i + 1, span_end):
+                if compensate:
+                    compensate = False
+                    continue
+
+                if not self._is_valid_end_token(sent[j - 1]):
+                    continue
+
+                span = sent[i:j]
+
+                if not self._is_longer_than_min(span):
+                    continue
+
+                yield (
+                    i, j,
+                    span.text.strip()
+                )
 
     def _get_all_matches(self, ngrams):
         """Returns all matches in the form of list
@@ -267,7 +330,7 @@ class QuickUMLS:
             List: List of all matches in the text
         """
 
-        ngrams = list(self._make_ngrams(doc, self.window))
+        ngrams = list(self._make_ngrams_detail(doc, self.window))
 
         matches = self._get_all_matches(ngrams)
 
