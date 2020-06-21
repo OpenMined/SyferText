@@ -99,7 +99,7 @@ class DocPointer(ObjectPointer):
         # if item is int, so we are trying to access to token
         assert isinstance(
             item, slice
-        ), "You are not authorised to access a `Token` from a `DocPointer`"
+        ), "You are not authorized to access a `Token` from a `DocPointer`"
 
         # Send the command
         obj_id = self.owner.send_command(

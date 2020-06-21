@@ -1,6 +1,7 @@
 from .doc import Doc
 from .vocab import Vocab
 from .state import State
+from .pointers import StatePointer
 from .underscore import Underscore
 
 from . import LOCAL_WORKER
@@ -204,11 +205,21 @@ class Tokenizer(AbstractSendable):
         state_id = f"{self.model_name}:{self.__class__.__name__.lower()}"
 
         # Search for the state
-        state = search_state(query=state_id, local_worker = self.owner)
+        result = search_state(query=state_id, local_worker = self.owner)
 
         # If no state is found, return
-        if not state:
+        if not result:
             return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+            
+        elif isinstance(result, State):
+            state = result
+        
 
         # Detail the simple object contained in the state
         exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj

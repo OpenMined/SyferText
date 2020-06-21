@@ -5,6 +5,7 @@ from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
+from .language_model import LanguageModel
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -233,46 +234,14 @@ class Language(AbstractObject):
 
         """Adds a pipe template to the pipeline template. 
 
-        A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
-        Few main steps are carried out here:
-
-        1- The new pipe name is added at the right position in the pipeline template.
-           Here is an example of how pipeline template list looks like
-
-           self.pipeline_template = [{'remote': True,  'name': 'tokenizer'},
-                                     {'remote': True,  'name': <pipe_1_name>},
-                                     {'remote': False, 'name': <pipe_2_name>},
-                                     {'remote': True,  'name': <pipe_3_name>},
-                                     {'remote': True,  'name': <pipe_4_name>}]
-
-        2- The pipeline template is parsed into a list of subpipeline templates.
-           Each subpipeline template is an aggregation of adjacent pipes with
-           the same value for 'remote'.
-           Here is an example of how the subpipeline template list for the above
-           pipeline template would look like:
-
-           self.subpipeline_templates = [{'remote': True, 'names': ['tokenizer',
-                                                                    'pipe_1_name',
-                                                                    'pipe_2_name']},
-                                         {'remote': False, 'name': ['pipe_3_name']},
-                                         {'remote': True,  'name': ['pipe_4_name'
-                                                                    'pipe_5_name']}
-                                        ]
-
-        3- The pipeline is initialize by creating a list with as many empty dicts as
-           there are subpipelines:
-
-           self.pipeline = [dict(), dict()]
-
-
         Args:
             component (callable): This is a callable that takes a Doc object and modifies
                 it inplace.
-            name (str): The name of the pipeline component to be added. Defaults to None.
             access: The set of worker ids where this component's state can be sent. 
                 if the string '*' is included in the set,  then all workers are allowed 
                 to receive a copy of the state. If set to None, then only the worker where this
                 component is saved will be allowed to get a copy of the state.
+            name (str): The name of the pipeline component to be added. Defaults to None.
             before (str): The name of the pipeline component before which the new component
                 is to be added. Defaults to None.
             after (str): The name of the pipeline component after which the new component
@@ -528,3 +497,52 @@ class Language(AbstractObject):
         # return the Doc object
         return doc
     
+
+    def deploy(self, worker: BaseWorker,
+               tags: Set[str] = None,
+               description: str = None,
+    ) -> None:
+        """Deploys the pipeline to PyGrid by creating a LanguageModel
+        object and sending it to the worker where it is to be deployed.
+        The State objects of every pipe component and every resource are
+        also deployed to the same worker.
+
+        Args:
+            worker: The worker on which the pipeline is to be deployed.
+            tags: A set of PyGrid searchable tags that can be 
+                associated with the deployed pipeline.
+            description: A text that describes the deployed pipeline,
+                 its contents, and any other features.
+
+        """
+
+        # Set the `location_id` property of each pipe component to
+        # the worker on which the pipeline is deployed
+        pipeline_template = []
+
+        for pipe in self.pipeline_template:
+
+            # Copy the pipe componenet
+            new_pipe = pipe.copy()
+
+            # Change the pipe's location
+            new_pipe['location_id'] = worker.id
+
+            # Add the pipe to the template
+            pipeline_template.append(new_pipe)
+
+
+        # Create a LanguageModel object
+        language_model = LanguageModel(name = self.model_name,
+                                       pipeline_template = pipeline_template,
+                                       owner = self.owner,
+                                       tags = tags,
+                                       description = description)
+
+
+
+        # Send the language model object to the destination worker
+        language_model_pointer = language_model.send(location = worker)
+
+        # Tell the LanguageModel object to deploy all State objects
+        language_model_pointer.deploy_states()

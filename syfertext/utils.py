@@ -127,8 +127,9 @@ def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
         local_worker: The local worker on which the state should
             be first searched
     Returns:
-        A State object whose ID is specified by `query`. If no state is 
-            found, None is returned.
+        A State object whose ID is specified by `query` if the State is found
+        on the local worker. Or, a StatePointer if the State is on a remote
+        pointer. If no stats i found, None is returned.
     """
 
     # Start first by searching for the state on the local worker.
@@ -163,7 +164,7 @@ def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
             # Get the StatePointer object returned
             state_ptr = result[0]
 
-            # Get the state using its pointer
+            # Get a copy of the state using its pointer
             state = state_ptr.get_copy()
 
             return state

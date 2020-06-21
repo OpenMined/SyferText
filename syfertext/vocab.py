@@ -6,6 +6,7 @@ from .vectors import Vectors
 from .string_store import StringStore
 from .utils import search_state
 from .state import State
+from .pointers import StatePointer
 from . import LOCAL_WORKER
 
 import syft.serde.msgpack.serde as serde
@@ -70,11 +71,20 @@ class Vocab:
         state_id = f"{self.model_name}:vocab"
 
         # Search for the state
-        state = search_state(query=state_id, local_worker = self.owner)
+        result = search_state(query=state_id, local_worker = self.owner)
 
-        # If no state is found, just return
-        if not state:
+        # If no state is found, return
+        if not result:
             return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+            
+        elif isinstance(result, State):
+            state = result
 
         # Detail the simple object contained in the state
         key2index_simple, vectors_simple = state.simple_obj

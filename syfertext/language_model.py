@@ -1,3 +1,6 @@
+from .pointers.language_model_pointer import LanguageModelPointer
+from .utils import msgpack_code_generator
+
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.abstract.sendable import AbstractSendable
@@ -5,6 +8,8 @@ import syft.serde.msgpack.serde as serde
 
 from typing import Union
 from typing import Set
+from typing import Tuple
+from typing import Dict
 
 
 class LanguageModel(AbstractSendable):
@@ -17,7 +22,7 @@ class LanguageModel(AbstractSendable):
                  name: str,
                  pipeline_template: dict,
                  owner: BaseWorker = None,
-                 tags: set[str] = None,
+                 tags: Set[str] = None,
                  description: str = None,
     ):
         """Initializes the object.
@@ -99,6 +104,7 @@ class LanguageModel(AbstractSendable):
         location: BaseWorker = None,
         id_at_location: str = None,
         tags: Set[str] = None,
+        ptr_id = None,
         register: bool = True,
         garbage_collect_data: bool = False,
     ) -> LanguageModelPointer:
@@ -191,7 +197,7 @@ class LanguageModel(AbstractSendable):
         """
 
         # Unpack the simple language model object
-        name_simple, pipeline_template, tags_simple, description_simple = language_model_simple
+        name_simple, pipeline_template_simple, tags_simple, description_simple = language_model_simple
         
         # Detail the attributes
         name = serde._detail(worker, name_simple)
