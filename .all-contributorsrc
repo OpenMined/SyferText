@@ -13,6 +13,18 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dzlab",
+      "name": "bachr",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/1645304?v=4",
+      "profile": "https://dzlab.github.io/",
+      "contributions": [
+        "ideas",
+        "code",
+        "design",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
