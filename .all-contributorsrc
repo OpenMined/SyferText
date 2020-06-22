@@ -1,0 +1,24 @@
+{
+  "files": [
+    "CONTRIBUTORS.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "sachin-101",
+      "name": "Sachin Kumar",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/44168164?v=4",
+      "profile": "https://www.linkedin.com/in/sachin-kumar-837b2b17b/",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "SyferText",
+  "projectOwner": "OpenMined",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
