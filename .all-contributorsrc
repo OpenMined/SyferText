@@ -13,6 +13,18 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bicycleman15",
+      "name": "Jatin Prakash",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/47978882?v=4",
+      "profile": "https://github.com/bicycleman15",
+      "contributions": [
+        "ideas",
+        "code",
+        "design",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
