@@ -136,14 +136,16 @@ class QuickUMLS:
         for match in matches:
             
             # TODO : maybe first add cuis in StringStore
-            cuis = []
+            cuis = set()
             for each_match in match:
-                cuis.append(each_match['cui'])
+                cuis.add(each_match['cui'])
+                
+            cui_list = list(cuis)
             
             entity = Span(doc, match[0]['start'], match[0]['end'])
 
             # Set cuis in custom attr
-            entity.set_attribute('cuis', cuis)
+            entity.set_attribute('cuis', cui_list)
             entity.set_attribute('ent_type','medical term')
 
             doc.ents.append(entity)
