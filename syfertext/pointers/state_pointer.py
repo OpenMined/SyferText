@@ -66,7 +66,19 @@ class StatePointer(ObjectPointer):
 
         return state
 
+    def send_copy(self, destination: Union[str, BaseWorker]) -> None:
+        """Calls the `send_copy` method of the underlying State object.
+        """
 
+        # Send the command
+        self.owner.send_command(recipient = self.location,
+                                cmd_name = "send_copy",
+                                target = self,
+                                args_ = tuple(),
+                                kwargs_ = {"destination": destination}
+        )
+
+        
     @staticmethod
     def simplify(worker: BaseWorker, state_pointer: "StatePointer") -> Tuple[object]:
         """Simplifies a StatePointer object. This method is required by PySyft

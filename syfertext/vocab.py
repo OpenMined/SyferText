@@ -5,6 +5,7 @@ from pathlib import Path
 from .vectors import Vectors
 from .string_store import StringStore
 from .utils import search_state
+from .utils import create_state_query
 from .state import State
 from .pointers import StatePointer
 from . import LOCAL_WORKER
@@ -68,7 +69,8 @@ class Vocab:
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = f"{self.model_name}:vocab"
+        state_id = create_state_query(model_name = self.model_name,
+                                      state_name = 'vocab')
 
         # Search for the state
         result = search_state(query=state_id, local_worker = self.owner)

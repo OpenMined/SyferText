@@ -53,16 +53,26 @@ class State(AbstractSendable):
 
         super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-    def send_copy(self, destination: BaseWorker) -> None:
+        
+    def send_copy(self, destination: Union[str, BaseWorker]) -> None:
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
         object and sends it to the pointer on `destination`
         which requested the copy.
 
         Args:
-            location: The worker on which the StatePointer object
+            location: The worker (or its id) on which the StatePointer object
                 which requested the copy is located.
         """
+
+        # If `destination` is a worker ID, get the underlying worker
+        if isinstance(destination, str):
+            destination = self.owner._known_workers[destination]
+            
+        # Make sure `destination` has access to the current state
+        assert (
+            {"*", destination.id} & self.access
+        ), f"Worker `{destination.id}` does not have the necessary permissions to access state `{self.id}`"
 
         # Create the copy
         state = State(

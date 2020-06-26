@@ -66,45 +66,22 @@ class LanguageModelPointer(ObjectPointer):
 
         return language_model
 
-
     def deploy_states(self) -> None:
-        """Search for the State objects associated with this language model and 
-        deploy them on the corresponding workers by sending copies of them.
+        """Forwards the call to the `deploy_states` method of the underlying
+        `language_model` object which, in turn, searches for the State objects 
+        associated with this language model and deploys them on the 
+        corresponding workers by sending copies of them.
         """
 
-        # Loop through all pipe templates
-        for template in self.pipeline_template:
-
-            # Get the name of the pipe component
-            pipe_name = template['name']
-
-            # Get the location where the pipe component should be deployed
-            location_id = template['location_id']
-
-            # Construct the state ID that will be used as the search query
-            state_id = utils.create_state_id(model_name = self.id_at_location,
-                                             state_name = pipe_name)
-            
-            # Search for the state
-            result = search_state(query=state_id, local_worker = self.owner)
-
-            # If no state is found, pass
-            if not result
-                continue
-
-            # If a state is found get either its pointer if it is remote
-            # or the state itself if it is local
-            elif isinstance(result, StatePointer):
-                
-                # Get a copy of the state using its pointer
-                state = result.get_copy()
-
-            elif isinstance(result, State):
-                pass
-
-            
-
+        # Send the command
+        self.owner.send_command(recipient = self.location,
+                                cmd_name = "deploy_states",
+                                target = self,
+                                args_ = tuple(),
+                                kwargs_ = {}
+        )
         
+
 
     @staticmethod
     def simplify(worker: BaseWorker, language_model_pointer: "LanguageModelPointer") -> Tuple[object]:

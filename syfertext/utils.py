@@ -116,6 +116,25 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
+def create_state_query(model_name: str, state_name: str) -> str:
+    """Construct an ID that will be used to search for a State object
+    on PyGrid.
+
+    Args:
+        model_name: The name of the language model to which the State
+            object belongs.
+        state_name: The name of the State object.
+
+    Returns:
+        A `str` representing the ID of the State object that is used as
+            a search query.
+    """
+
+    query = f"{model_name}:{state_name}"
+
+    return query
+
+
 def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
     """Searches for a State object on the grid of workers.
     It first checks out whether the object could be found on the local worker.
@@ -164,10 +183,8 @@ def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
             # Get the StatePointer object returned
             state_ptr = result[0]
 
-            # Get a copy of the state using its pointer
-            state = state_ptr.get_copy()
 
-            return state
+            return state_ptr
 
 class MsgpackCodeGenerator:
     def __init__(self):

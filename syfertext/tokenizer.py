@@ -13,10 +13,10 @@ from .punctuations import TOKENIZER_SUFFIXES
 from .punctuations import TOKENIZER_INFIXES
 from .utils import hash_string
 from .utils import search_state
+from .utils import create_state_query
 from .utils import compile_suffix_regex
 from .utils import compile_infix_regex
 from .utils import compile_prefix_regex
-
 from .utils import msgpack_code_generator
 
 import re
@@ -202,7 +202,8 @@ class Tokenizer(AbstractSendable):
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = f"{self.model_name}:{self.__class__.__name__.lower()}"
+        state_id = create_state_query(model_name = self.model_name,
+                                      state_name = self.__class__.__name__.lower())
 
         # Search for the state
         result = search_state(query=state_id, local_worker = self.owner)
