@@ -652,8 +652,6 @@ class Tokenizer(BaseTokenizer):
         return code_dict
 
 class BertTokenizer(BaseTokenizer):
-    def __init__(
-        self,
-        model_name: str
-    ):
+    def __init__(self, model_name: str):
         self.tokenizer = transformers.BertTokenizer.from_pretrained(model_name)
+        self.vocab = self.tokenizer.vocab

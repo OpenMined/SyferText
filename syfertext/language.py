@@ -55,10 +55,9 @@ class BaseDefaults(object):
 class BertDefaults(BaseDefaults):
 
     @classmethod
-    def create_tokenizer(cls, vocab) -> Tokenizer:
+    def create_tokenizer(cls, model_name: str = 'bert-base-uncased') -> Tokenizer:
         # Instantiate the Tokenizer object and return it
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-
+        tokenizer = BertTokenizer(model_name)
         return tokenizer
 
 class Language(AbstractObject):
@@ -87,6 +86,8 @@ class Language(AbstractObject):
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = {"tokenizer": self.Defaults.create_tokenizer(model_name)}
+
+        self.vocab = self.factories["tokenizer"].vocab
 
         # Initialize the subpipeline template
         # It only contains the tokenizer at initialization
