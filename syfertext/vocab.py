@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .vectors import Vectors
 from .string_store import StringStore
-from .utils import search_state
+from .utils import search_resource
 from .utils import create_state_query
 from .state import State
 from .pointers import StatePointer
@@ -73,7 +73,7 @@ class Vocab:
                                       state_name = 'vocab')
 
         # Search for the state
-        result = search_state(query=state_id, local_worker = self.owner)
+        result = search_resource(query=state_id, local_worker = self.owner)
 
         # If no state is found, return
         if not result:

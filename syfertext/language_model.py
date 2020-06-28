@@ -1,7 +1,7 @@
 from .pointers.language_model_pointer import LanguageModelPointer
 from .utils import msgpack_code_generator
 from .utils import create_state_query
-from .utils import search_state
+from .utils import search_resource
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -91,7 +91,7 @@ class LanguageModel(AbstractSendable):
                                           state_name = state_name)
             
             # Search for the state
-            result = search_state(query=state_id, local_worker = self.owner)
+            result = search_resource(query=state_id, local_worker = self.owner)
 
             # If no state is found, pass
             if not result:

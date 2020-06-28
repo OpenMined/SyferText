@@ -36,15 +36,11 @@ class Language(AbstractObject):
     def __init__(
         self,
         model_name: str,
-        id: int = None,
         owner: BaseWorker = None,
         tags: List[str] = None,
         description: str = None,
     ):
 
-        # Create a dictionary that associates to the name of each text-processing component
-        # of the pipeline, an object that is charged to accomplish the job.
-        self.factories = dict()
 
         # Set the model name
         self.model_name = model_name
@@ -52,6 +48,10 @@ class Language(AbstractObject):
         # Initialize the subpipeline template
         self.pipeline_template = []
 
+        # Create a dictionary that associates to the name of each text-processing component
+        # of the pipeline, an object that is charged to accomplish the job.
+        self.factories = dict()
+        
         # Initialize an empty dict of State object.
         # The keys of this dict are the names of the components
         # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
@@ -64,7 +64,7 @@ class Language(AbstractObject):
         # Initialize the pipeline as an empty dictionary
         self._reset_pipeline()
 
-        super(Language, self).__init__(id=id, owner=owner, tags=tags, description=description)
+        super(Language, self).__init__(id=None, owner=owner, tags=tags, description=description)
 
     @property
     def pipe_names(self) -> List[str]:
@@ -126,6 +126,27 @@ class Language(AbstractObject):
         # Save the state in the object store
         self._save_state(state=state, name="vocab", access = access)
 
+    def load_pipeline(self, pipeline_template, states):
+
+        # Load the states
+        self.states = states
+
+        # Load the pipeline template
+        self.pipeline_template = pipeline_template
+
+        # Create the factories;
+        # Create and entry for each pipe component
+        self.factories = dict()
+
+        for pipe_template in self.pipeline_template:
+
+            # Get the pipe name and its class name
+            name = pipe_template['name']
+            class_name = pipe_template['class_name']
+
+            self.factories[name] = globals()[class_name]
+        
+        
     def _save_state(self, state: State, name: str, access: Set[str] = None):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
@@ -357,6 +378,8 @@ class Language(AbstractObject):
         # Delete the pipe using its index
         pipe = self.pipeline_template.pop(pipe_index)
 
+        del self.factories[name]
+        
         # Reset the pipeline.
         self._reset_pipeline()
 
@@ -505,8 +528,6 @@ class Language(AbstractObject):
 
     def deploy(self,
                worker: BaseWorker,
-               tags: Set[str] = None,
-               description: str = None,
     ) -> None:
         """Deploys the pipeline to PyGrid by creating a LanguageModel
         object and sending it to the worker where it is to be deployed.
@@ -515,11 +536,6 @@ class Language(AbstractObject):
 
         Args:
             worker: The worker on which the pipeline is to be deployed.
-            tags: A set of PyGrid searchable tags that can be 
-                associated with the deployed pipeline.
-            description: A text that describes the deployed pipeline,
-                 its contents, and any other features.
-
         """
 
         # Set the `location_id` property of each state to
@@ -537,8 +553,8 @@ class Language(AbstractObject):
                                        pipeline_template = self.pipeline_template,
                                        states = states,
                                        owner = self.owner,
-                                       tags = tags,
-                                       description = description)
+                                       tags = self.tags,
+                                       description = self.description)
 
 
 

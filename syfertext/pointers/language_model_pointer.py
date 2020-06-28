@@ -2,7 +2,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
-from ..utils import search_state
+from ..utils import search_resource
 from ..utils import msgpack_code_generator
 
 from typing import Union

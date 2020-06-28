@@ -12,7 +12,7 @@ from .punctuations import TOKENIZER_PREFIXES
 from .punctuations import TOKENIZER_SUFFIXES
 from .punctuations import TOKENIZER_INFIXES
 from .utils import hash_string
-from .utils import search_state
+from .utils import search_resource
 from .utils import create_state_query
 from .utils import compile_suffix_regex
 from .utils import compile_infix_regex
@@ -206,7 +206,7 @@ class Tokenizer(AbstractSendable):
                                       state_name = self.__class__.__name__.lower())
 
         # Search for the state
-        result = search_state(query=state_id, local_worker = self.owner)
+        result = search_resource(query=state_id, local_worker = self.owner)
 
         # If no state is found, return
         if not result:

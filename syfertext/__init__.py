@@ -10,38 +10,56 @@ HOOK = syft.TorchHook(torch)
 LOCAL_WORKER = HOOK.local_worker
 
 from .language import Language
+from .language_model import LanguageModel
+from .pointers import LanguageModelPointer
 from .pipeline import SubPipeline
+from .utils import search_resource
+
 from typing import Set
 
 
-def load(
-    model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
-):
-    """Loads the specified language model `model_name` and returns a Language object.
+def load(model_name: str) -> Language:
+    """Searches for `model_name` on PyGrid and loads it as a Language object.
 
     Args:
-        model_name (str): The name of the language model.
-        owner (BaseWorker): The worker that should own the Language object.
-        id (int): The Identifier of the Language object in the worker's object registery.
-        tags (set): A set of str that help search for the Language object across workers.
-        description (str): A str that describes the Language object.
-
+        model_name (str): The name of the language model to search for  on PyGrid.
 
     Returns:
         a an object of the Language class, representing the requested language model.
     """
 
+    # Search for the language model
+    result = search_resource(query=model_name, local_worker = LOCAL_WORKER)
+
+    # If no language model is found, return
+    if not result:
+        return
+
+    # If a language model is found get either its pointer if it is remote
+    # or the language model itself if it is local
+    elif isinstance(result, LanguageModelPointer):
+        
+        # Get a copy of the language model using its pointer
+        language_model = result.get_copy()
+
+    elif isinstance(result, LanguageModel):
+        language_model = result
+    
     # Instantiate a Language object
     nlp = Language(model_name,
-                   id=id,
-                   owner=owner,
-                   tags=tags,
-                   description=description)
+                   owner=LOCAL_WORKER,
+                   tags=language_model.tags,
+                   description=language_model.description)
 
+    # Load the pipeline into the Language object
+    nlp.load_pipeline(pipeline_template = language_model.pipeline_template,
+                      states = language_model.states)
+    
     return nlp
 
+
 def create(
-    model_name, owner: BaseWorker, id: int = None, tags: Set[str] = None, description: str = None
+    model_name, tags: Set[str] = None, description: str = None
 ):
     """Creates a new Language object. This function is used when a new language model
     is constructed from local files.
@@ -49,8 +67,6 @@ def create(
 
     Args:
         model_name (str): The name of the language model to create.
-        owner (BaseWorker): The worker that should own the Language object.
-        id (int): The Identifier of the Language object in the worker's object store.
         tags (set): A set of str that help search for the Language model across workers.
         description (str): A str that describes the Language object.
 
@@ -59,13 +75,13 @@ def create(
         a an object of the Language class, representing the created language model.
     """
 
+
     #TODO: The create method should first search over pygrid to make sure no other
     #      model has the same name
 
     # Instantiate a Language object
     nlp = Language(model_name = model_name,
-                   id=id,
-                   owner=owner,
+                   owner=LOCAL_WORKER,
                    tags=tags,
                    description=description)
 

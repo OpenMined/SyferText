@@ -135,56 +135,56 @@ def create_state_query(model_name: str, state_name: str) -> str:
     return query
 
 
-def search_state(query: str, local_worker: BaseWorker) -> Union["State", None]:
-    """Searches for a State object on the grid of workers.
+def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
+    """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
     local worker.
 
     Args:
-        query: The ID of the State object to be searched for.
+        query: The ID of the object to be searched for.
         local_worker: The local worker on which the state should
             be first searched
     Returns:
-        A State object whose ID is specified by `query` if the State is found
-        on the local worker. Or, a StatePointer if the State is on a remote
-        pointer. If no stats i found, None is returned.
+        An object whose ID is specified by `query` if the object is found
+        on the local worker. Or, a pointer to it if the object is on a remote
+        worker. If no object is found, None is returned.
     """
 
-    # Start first by searching for the state on the local worker.
+    # Start first by searching for the resource on the local worker.
     result = local_worker.search(query=query)
 
-    # If a state is found, then return it.
+    # If an object is found, then return it.
     if result:
 
-        # Make sure only on state is found
+        # Make sure only one resource object is found
         assert (
             len(result) == 1
-        ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{local_worker}`."
+        ), f"Ambiguous result: multiple objects matching the search query were found on worker `{local_worker}`."
 
         return result[0]
 
 
-    # If no state is found on the local worker, search on all
+    # If no object is found on the local worker, search on all
     # workers connected to the local_worker
     for _, location in local_worker._known_workers.items():
 
-        # Search for the state on this worker. The result is a list
+        # Search for the object on this worker. (The result is a list)
         result = local_worker.request_search(query=query, location=location)
 
-        # If a state is found, process the result.
+        # If an object is found, process the result.
         if result:
 
-            # Make sure only on state is found
+            # Make sure only one object is found
             assert (
                 len(result) == 1
-            ), f"Ambiguous result: multiple `State` objects matching the search query were found on worker `{location}`."
+            ), f"Ambiguous result: multiple objects matching the search query were found on worker `{location}`."
 
-            # Get the StatePointer object returned
-            state_ptr = result[0]
+            # Get the pointer object returned
+            object_ptr = result[0]
 
 
-            return state_ptr
+            return object_ptr
 
 class MsgpackCodeGenerator:
     def __init__(self):
