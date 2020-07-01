@@ -265,7 +265,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector)
+            token_vectors: The torch tensor of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
@@ -279,8 +279,10 @@ class Doc(AbstractObject):
             # Get the vector of the token
             token_vectors.append(token.vector)
 
-        # Convert to torch tensor
-        token_vectors = torch.stack(tensors = token_vectors)
+        # Convert to Numpy array.
+        # token_vectors = np.array(token_vectors)
+        # Convert to torch tensor.
+        token_vectors = torch.stack(tensors=token_vectors)
 
         return token_vectors
 

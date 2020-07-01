@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import numpy as np
 import importlib
+import torch
 from typing import Union
 
 from .utils import hash_string
@@ -95,5 +96,5 @@ class Vectors:
 
         # Get the vector
         vector = self.data[row]
-
+        vector = torch.tensor(vector)
         return vector
