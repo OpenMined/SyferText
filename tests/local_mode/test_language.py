@@ -3,8 +3,8 @@ import syft as sy
 import torch
 import syfertext
 from pathlib import Path
+import numpy as np
 
-import torch
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
@@ -41,7 +41,7 @@ def test_vector_valid_token_is_not_zero():
     doc = nlp("banana")
     actual = doc[0].vector
     # changed from numpy to torch zeros tensor
-    zeros = torch.zeros(actual.shape, dtype=torch.float32)
+    zeros = np.zeros(actual.shape)
 
     # check that at least one cell in actual vector is not zero
     assert (actual != zeros).any() == True
@@ -53,7 +53,7 @@ def test_vector_non_valid_token_is_zero():
     doc = nlp("outofvocabularytoken")
     actual = doc[0].vector
     # changed from numpy to torch zeros tensor
-    zeros = torch.zeros(actual.shape, dtype=torch.float32)
+    zeros = np.zeros(actual.shape)
 
     # check that all cells in actual vector are zeros
     assert (actual == zeros).all() == True
