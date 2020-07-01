@@ -1,5 +1,10 @@
 from setuptools import setup
 from setuptools import find_packages
+import os
+
+# Utility function to read README.md file for long description
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
 setup(
@@ -13,6 +18,8 @@ setup(
     license="Apache-2.0",
     version="0.0.1",
     packages=find_packages(),
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     install_requires=[
         "tqdm==4.36.1",
         "mmh3==2.5.1",
@@ -28,4 +35,5 @@ setup(
             "papermill>=1.2.1",
         ]
     },
+    classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
 )
