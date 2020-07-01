@@ -96,5 +96,5 @@ class Vectors:
 
         # Get the vector
         vector = self.data[row]
-        vector = torch.tensor(vector)
+        vector = torch.tensor(vector, dtype=torch.float32)
         return vector
