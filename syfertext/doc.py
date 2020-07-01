@@ -1,7 +1,7 @@
 from .token import Token
 import syft
 import torch
-# import numpy as np
+import numpy as np
 
 hook = syft.TorchHook(torch)
 
@@ -255,7 +255,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.Tensor:
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -279,10 +279,8 @@ class Doc(AbstractObject):
             # Get the vector of the token
             token_vectors.append(token.vector)
 
-        # Convert to Numpy array.
-        # token_vectors = np.array(token_vectors)
-        # Convert to torch tensor (Changing numpy to torch)
-        token_vectors = torch.tensor(token_vectors)
+        # Convert to torch tensor
+        token_vectors = torch.stack(tensors = token_vectors)
 
         return token_vectors
 
@@ -304,7 +302,9 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
+
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
+            
         """
 
         # You need at least two workers in order to encrypt the vector with SMPC
