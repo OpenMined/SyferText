@@ -1,7 +1,6 @@
 import pickle
 import os
 from pathlib import Path
-import numpy as np
 import importlib
 import torch
 from typing import Union
