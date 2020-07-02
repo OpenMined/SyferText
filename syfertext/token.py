@@ -178,7 +178,7 @@ class Token(AbstractObject):
         Returns: 
             Tensor: The L2 norm of the vector representation.
         """
-        
+
         return torch.sqrt((self.vector ** 2).sum())
 
     def similarity(self, other):
@@ -231,7 +231,6 @@ class Token(AbstractObject):
 
     # Following attributes are inspired from Spacy, they have similar behaviour as in spacy.
     # Some of the attributes are redundant but they are to maintain consistency with other attributes
-
 
     @property
     def text_with_ws(self):
