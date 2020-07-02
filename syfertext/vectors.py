@@ -34,7 +34,7 @@ class Vectors:
 
         # Load the array holding the word vectors
         self.data, self.default_vector = LOADERS["vectors"]()
-        
+
         # Convert the default vector to torch Tensor
         self.default_vector = torch.Tensor(self.default_vector)
 
@@ -99,8 +99,8 @@ class Vectors:
 
         # Get the vector
         vector = self.data[row]
-        
+
         # Convert the vectors to torch Tensors
         vector = torch.tensor(vector, dtype=torch.float32)
-        
+
         return vector
