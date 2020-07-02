@@ -2,7 +2,7 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
 
-from .span_pointer import Spaointer
+from .span_pointer import SpanPointer
 from typing import List
 from typing import Union
 from typing import Dict
