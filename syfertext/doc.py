@@ -1,7 +1,6 @@
 from .token import Token
 import syft
 import torch
-import numpy as np
 
 hook = syft.TorchHook(torch)
 
@@ -313,9 +312,6 @@ class Doc(AbstractObject):
         # Storing the average of vectors of each in-vocabulary token's vectors
         doc_vector = self.get_vector(excluded_tokens=excluded_tokens)
 
-        # Create a Syft/Torch tensor
-        doc_vector = torch.Tensor(doc_vector)
-
         # Encrypt the vector using SMPC with PySyft
         doc_vector = doc_vector.fix_precision().share(
             *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
@@ -330,7 +326,7 @@ class Doc(AbstractObject):
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
     ) -> torch.Tensor:
-        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        """Get the Tensors of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
 
@@ -354,9 +350,6 @@ class Doc(AbstractObject):
 
         # The array of all vectors corresponding to the tokens in `Doc`.
         token_vectors = self.get_token_vectors(excluded_tokens=excluded_tokens)
-
-        # Create a Syft/Torch tensor
-        token_vectors = torch.Tensor(token_vectors)
 
         # Encrypt the tensor using SMPC with PySyft
         token_vectors = token_vectors.fix_precision().share(
