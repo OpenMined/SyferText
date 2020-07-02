@@ -1,6 +1,7 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
+import torch
 
 from .span_pointer import SpanPointer
 from typing import List
@@ -79,7 +80,7 @@ class DocPointer(ObjectPointer):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.tensor:
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
@@ -126,7 +127,7 @@ class DocPointer(ObjectPointer):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 

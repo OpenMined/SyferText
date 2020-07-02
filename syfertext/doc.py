@@ -1,7 +1,6 @@
 from .token import Token
 import syft
 import torch
-import numpy as np
 
 hook = syft.TorchHook(torch)
 
@@ -255,7 +254,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
-    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
+    def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -265,7 +264,7 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
-            token_vectors: The Numpy array of shape - (No.of tokens, size of vector)
+            token_vectors: The torch tensor of shape - (No.of tokens, size of vector)
                 containing all the vectors.
         """
 
@@ -279,8 +278,8 @@ class Doc(AbstractObject):
             # Get the vector of the token
             token_vectors.append(token.vector)
 
-        # Convert to Numpy array.
-        token_vectors = np.array(token_vectors)
+        # Convert to list of tensors to torch tensor.
+        token_vectors = torch.stack(tensors=token_vectors, dim=0)
 
         return token_vectors
 
@@ -302,7 +301,9 @@ class Doc(AbstractObject):
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
         Returns:
+
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
+            
         """
 
         # You need at least two workers in order to encrypt the vector with SMPC
@@ -310,9 +311,6 @@ class Doc(AbstractObject):
 
         # Storing the average of vectors of each in-vocabulary token's vectors
         doc_vector = self.get_vector(excluded_tokens=excluded_tokens)
-
-        # Create a Syft/Torch tensor
-        doc_vector = torch.Tensor(doc_vector)
 
         # Encrypt the vector using SMPC with PySyft
         doc_vector = doc_vector.fix_precision().share(
@@ -328,7 +326,7 @@ class Doc(AbstractObject):
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
     ) -> torch.Tensor:
-        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        """Get the Tensors of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
 
@@ -352,9 +350,6 @@ class Doc(AbstractObject):
 
         # The array of all vectors corresponding to the tokens in `Doc`.
         token_vectors = self.get_token_vectors(excluded_tokens=excluded_tokens)
-
-        # Create a Syft/Torch tensor
-        token_vectors = torch.Tensor(token_vectors)
 
         # Encrypt the tensor using SMPC with PySyft
         token_vectors = token_vectors.fix_precision().share(

@@ -1,6 +1,5 @@
 from .attrs import Attributes
 
-import numpy as np
 from typing import Union
 
 
@@ -163,9 +162,7 @@ class Lexeme:
     def vector_norm(self) -> float:
         """The L2 norm of the vector."""
 
-        vector = self.vector
-
-        return np.sqrt((vector ** 2).sum())
+        return torch.sqrt((self.vector ** 2).sum())
 
     @property
     def vector(self):
