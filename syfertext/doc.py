@@ -279,7 +279,7 @@ class Doc(AbstractObject):
             token_vectors.append(token.vector)
 
         # Convert to list of tensors to torch tensor.
-        token_vectors = torch.stack(tensors=token_vectors, dim=0, dtype=torch.float32)
+        token_vectors = torch.stack(tensors=token_vectors, dim=0)
 
         return token_vectors
 
