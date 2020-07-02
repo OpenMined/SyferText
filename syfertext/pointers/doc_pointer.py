@@ -1,6 +1,7 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
+import torch
 
 from .span_pointer import Spaointer
 from typing import List
