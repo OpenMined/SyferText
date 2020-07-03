@@ -7,11 +7,12 @@
 ## SyferText
 
 SyferText is a library for privacy preserving Natural Language Processing in Python. It leverage PySyft for doing Encrypted Computation (
-[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) and model training. 
+[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) and model training. The two main use cases of SyferText are:
 
-- :fire: Define Pre-Processing Pipelines for NLP.
-- :rocket: Transfer the pre-processing component to remote data location and get encrypted tensors back.
-- :star: Define your deep learning model with PySyft.
+- :fire: Secure plaintext pre-processing: Pre-process text data located on a remote server without breaking the privacy of data.
+- :rocket: Secure Pipeline Deploy: Encapsulate the complete pipeline of pre-processing and model securely and deploy it.
+  
+To get more detailed introduction on SyferText watch :movie_camera: [OpenMined AMA](https://youtu.be/gtwOPxxJ5F4) with Alan Aboudib on SyferText.
   
 
 
