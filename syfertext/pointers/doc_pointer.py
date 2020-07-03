@@ -18,7 +18,6 @@ class DocPointer(ObjectPointer):
         id_at_location: Union[str, int] = None,
         owner: BaseWorker = None,
         id: Union[str, int] = None,
-        garbage_collect_data: bool = True,
         tags: List[str] = None,
         description: str = None,
     ):
@@ -28,9 +27,7 @@ class DocPointer(ObjectPointer):
         Args:
             location (BaseWorker): the worker where the `Doc` object resides that this
                 DocPointer will point to.
-
             id_at_location (int or str): the id of the `Doc` object at the `location` worker.
-
             owner (BaseWorker): the owner of the this object ie. `DocPointer`
 
         Returns:
@@ -42,7 +39,7 @@ class DocPointer(ObjectPointer):
             id_at_location=id_at_location,
             owner=owner,
             id=id,
-            garbage_collect_data=True,  # Overriding passed argument
+            garbage_collect_data=True,  # Always True
             tags=tags,
             description=description,
         )

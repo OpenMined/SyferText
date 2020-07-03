@@ -288,11 +288,7 @@ class Span(AbstractObject):
             owner = span.owner
 
         span_pointer = SpanPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=True,  # Overriding passed argument
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return span_pointer

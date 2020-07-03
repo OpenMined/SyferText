@@ -191,11 +191,7 @@ class SubPipeline(AbstractSendable):
 
         # Create the pointer object
         subpipeline_pointer = SubPipelinePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=True,  # Overriding passed argument
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return subpipeline_pointer

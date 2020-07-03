@@ -19,7 +19,6 @@ class SubPipelinePointer(ObjectPointer):
         id_at_location: Union[str, int],
         owner: BaseWorker,
         id: Union[str, int],
-        garbage_collect_data: bool = True,
     ):
         """Initializes the object.
 
@@ -31,7 +30,6 @@ class SubPipelinePointer(ObjectPointer):
             owner (BaseWorker): The worker that owns this pointer
                 object.
             id (str, int): The ID of the pointer object.
-            garbage_collect_data (bool): Activate garbage collection or not.
         """
 
         # Initialize the parent object
@@ -40,7 +38,7 @@ class SubPipelinePointer(ObjectPointer):
             id_at_location=id_at_location,
             owner=owner,
             id=id,
-            garbage_collect_data=True,  # Overriding passed argument
+            garbage_collect_data=True,  # Always True
         )
 
     def __call__(self, pointer: Union[StringPointer, DocPointer]):
