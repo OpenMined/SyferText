@@ -1,6 +1,7 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
+import torch
 
 from .span_pointer import SpanPointer
 from typing import List
@@ -44,13 +45,39 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
+    def __len__(self):
+
+        # Send the command
+        length = self.owner.send_command(
+            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
+        )
+
+        return length
+
+    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
+
+        # if item is int, so we are trying to access to token
+        assert isinstance(
+            item, slice
+        ), "You are not authorized to access a `Token` from a `DocPointer`"
+
+        # Send the command
+        obj_id = self.owner.send_command(
+            recipient=self.location, cmd_name="__getitem__", target=self, args_=(item,), kwargs_={}
+        )
+
+        # we create a SpanPointer from the obj_id
+        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
+
+        return span
+
     def get_encrypted_vector(
         self,
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.tensor:
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
@@ -91,30 +118,13 @@ class DocPointer(ObjectPointer):
 
         return doc_vector
 
-    def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
-
-        # if item is int, so we are trying to access to token
-        assert isinstance(
-            item, slice
-        ), "You are not authorised to access a `Token` from a `DocPointer`"
-
-        # Send the command
-        obj_id = self.owner.send_command(
-            recipient=self.location, cmd_name="__getitem__", target=self, args_=(item,), kwargs_={}
-        )
-
-        # we create a SpanPointer from the obj_id
-        span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
-
-        return span
-
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -157,12 +167,3 @@ class DocPointer(ObjectPointer):
         token_vectors = token_vectors.get()
 
         return token_vectors
-
-    def __len__(self):
-
-        # Send the command
-        length = self.owner.send_command(
-            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
-        )
-
-        return length

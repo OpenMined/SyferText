@@ -4,7 +4,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
-
 ## Installation
 
 In order to install and start using SyferText, you first have to install `git-lfs` by following [this short guide](https://github.com/git-lfs/git-lfs/wiki/Installation). 
@@ -120,7 +119,7 @@ To get news about feature and tutorial relseases:
 
 Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
 
- and join [#team_nlp channel on slack](https://openmined.slack.com/archives/CUWDZMED9)
+ and join [#lib_syfertext](https://openmined.slack.com/archives/CUWDZMED9) channel on slack.
 
 
 ## Call for Partners
@@ -139,3 +138,13 @@ You can reach out to us by contacting Alan on one of the following channels:
 -------
 
 For more updates on our activities at OpenMined and for getting exciting news and announcements about our different projects, you can join our rapidly growing community of 7000+ on [Slack](https://slack.openmined.org/). You can follow our [official twitter page](https://twitter.com/openminedorg), as well as OpenMined [founder's twitter page](https://twitter.com/iamtrask).
+
+
+## Support
+For support in using this library, please join the **#lib_syfertext** Slack channel. If you’d like to follow along with any code changes to the library, please join the **#code_syfertext** Slack channel. [Click here to join our Slack community!](https://slack.openmined.org)
+
+
+## Contributors ✨
+[CONTRIBUTORS.md](https://github.com/OpenMined/SyferText/blob/master/CONTRIBUTORS.md)
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
