@@ -423,11 +423,7 @@ class Doc(AbstractObject):
             owner = doc.owner
 
         doc_pointer = DocPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return doc_pointer

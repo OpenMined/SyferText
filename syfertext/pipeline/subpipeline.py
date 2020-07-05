@@ -25,8 +25,8 @@ class SubPipeline(AbstractSendable):
     is an PySyft object that encapsulate one or more
     pipe components that operate on the same worker.
 
-    At initialization of SyferText, a `owner` property 
-    is assigned to this class, and holds the PySyft 
+    At initialization of SyferText, a `owner` property
+    is assigned to this class, and holds the PySyft
     local worker as the default owner.
     """
 
@@ -34,11 +34,11 @@ class SubPipeline(AbstractSendable):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
-        only done by the detailer after the SubPipeline object 
-        is sent to a remote worker. 
+        only done by the detailer after the SubPipeline object
+        is sent to a remote worker.
         When the SubPipeline is created on the local worker by
-        the Language object, it is not assigned any list of pipe 
-        components; the subpipeline is instead created from a 
+        the Language object, it is not assigned any list of pipe
+        components; the subpipeline is instead created from a
         template that is loaded using the method `load_template`.
 
         Args:
@@ -70,9 +70,9 @@ class SubPipeline(AbstractSendable):
         Args:
             template (dict): This is a dictionary representing
                 the subpipeline template. Here is an example of
-                how a template looks like: 
+                how a template looks like:
                 {'remote': True, 'names': ['tokenizer', 'tagger']}
-            factories (dict): This is a dictionary that contains 
+            factories (dict): This is a dictionary that contains
                 a mapping between a pipe name and the object that
                 knows how to create such a pipe using a factory
                 method. Example to create a tokenizer:
@@ -94,10 +94,10 @@ class SubPipeline(AbstractSendable):
         not both.
 
         Args:
-            input (str, String, Doc): The input on which the 
-                subpipeline operates. It could be either the text 
+            input (str, String, Doc): The input on which the
+                subpipeline operates. It could be either the text
                 or it could be the Doc to modify.
-            input_id (str, int): The ID of the input on which 
+            input_id (str, int): The ID of the input on which
                 the subpipeline components operate.
 
         Returns:
@@ -176,33 +176,29 @@ class SubPipeline(AbstractSendable):
                 object pointed to by this object is located.
             id_at_location (str, int): The PySyft ID of the SubPipeline
                 object referenced by this pointer.
-            owner (BaseWorker): The worker that owns this pointer 
+            owner (BaseWorker): The worker that owns this pointer
                 object.
-            register (bool): Whether to register the pointer object 
-                in the object store or not. (it is required by the 
+            register (bool): Whether to register the pointer object
+                in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
             ptr_id (str, int): The ID of the pointer object.
             garbage_collect_data (bool): Activate garbage collection or not.
-        
+
         Returns:
             A SubPipelinePointer object pointing to `subpipeline`.
         """
 
         # Create the pointer object
         subpipeline_pointer = SubPipelinePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return subpipeline_pointer
 
     @staticmethod
     def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> tuple:
-        """Simplifies a SubPipeline object. 
+        """Simplifies a SubPipeline object.
 
         This requires simplifying each underlying pipe
         component.
@@ -215,7 +211,7 @@ class SubPipeline(AbstractSendable):
 
         Returns:
             (tuple): The simplified SubPipeline object.
-        
+
         """
 
         # Simplify the attributes and pipe components
@@ -282,9 +278,9 @@ class SubPipeline(AbstractSendable):
         return subpipeline
 
     def send(self, location: BaseWorker):
-        """Sends this object to the worker specified by 'location'. 
+        """Sends this object to the worker specified by 'location'.
         Args:
-            location (BaseWorker): The BaseWorker object to which the object is 
+            location (BaseWorker): The BaseWorker object to which the object is
                 to be sent. Note that this is never actually the BaseWorker but instead
                 a class which inherits the BaseWorker abstraction.
             Returns:
