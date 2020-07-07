@@ -35,5 +35,6 @@ def load(
 
     return nlp
 
+
 # Set the default owners of some classes
 SubPipeline.owner = hook.local_worker

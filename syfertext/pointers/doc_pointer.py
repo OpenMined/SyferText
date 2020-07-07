@@ -119,7 +119,7 @@ class DocPointer(ObjectPointer):
         doc_vector = doc_vector.get()
 
         return doc_vector
-      
+
     @property
     def sents(self):
         """Iterate over the sentences in the remote document. Yields sentence `SpanPointer`
@@ -142,7 +142,6 @@ class DocPointer(ObjectPointer):
 
             # we create a SpanPointer from the obj_id
             yield SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
-
 
     def get_encrypted_token_vectors(
         self,

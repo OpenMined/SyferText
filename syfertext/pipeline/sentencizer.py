@@ -1,11 +1,13 @@
 from syfertext.doc import Doc
 from syfertext.token import Token
+from ..utils import msgpack_code_generator
 
+from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
 
-class Sentencizer:
+class Sentencizer(AbstractSendable):
     """Segment the Doc into sentences using a rule-based strategy.
     """
 
@@ -121,3 +123,26 @@ class Sentencizer:
         sentencizer = Sentencizer(punct_chars=punct_chars,)
 
         return sentencizer
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+        Both keys are optional, the common and right way would be to add only the "code" key.
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(Sentencizer, "proto_id"):
+            Sentencizer.proto_id = msgpack_code_generator()
+
+        code_dict = dict(code=Sentencizer.proto_id)
+
+        return code_dict
