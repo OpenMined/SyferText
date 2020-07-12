@@ -7,9 +7,6 @@
 
 ## Installation
 
-
-Language models in SyferText v0.1.0 will be deployed on PyGrid and loaded by a simple call to syfertext.load() without the need to download any language model packages beforehand.
-
 Go ahead and install SyferText:
 
 ```
