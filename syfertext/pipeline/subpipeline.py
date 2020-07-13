@@ -23,23 +23,20 @@ class SubPipeline(AbstractSendable):
     is an PySyft object that encapsulate one or more
     pipe components that operate on the same worker.
 
-    At initialization of SyferText, a `owner` property 
-    is assigned to this class, and holds the PySyft 
+    At initialization of SyferText, a `owner` property
+    is assigned to this class, and holds the PySyft
     local worker as the default owner.
     """
 
-    def __init__(self,
-                 model_name: str,
-                 id: Union[str, int] = None,
-                 pipes: List[callable] = None):
+    def __init__(self, model_name: str, id: Union[str, int] = None, pipes: List[callable] = None):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
-        only done by the detailer after the SubPipeline object 
-        is sent to a remote worker. 
+        only done by the detailer after the SubPipeline object
+        is sent to a remote worker.
         When the SubPipeline is created on the local worker by
-        the Language object, it is not assigned any list of pipe 
-        components; the subpipeline is instead created from a 
+        the Language object, it is not assigned any list of pipe
+        components; the subpipeline is instead created from a
         template that is loaded using the method `load_template`.
 
         Args:
@@ -62,31 +59,28 @@ class SubPipeline(AbstractSendable):
         # Set the name of the language model to which this
         # subpipeline belongs
         self.model_name = model_name
-        
+
         # Create the subpipeline
         self.subpipeline = pipes
 
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
     def load_states(self) -> None:
-        """Calls the `load_state()` method of each pipe object in 
+        """Calls the `load_state()` method of each pipe object in
         self.subpipeline.
         """
 
         for pipe in self.subpipeline:
             pipe.load_state()
-            
-        
-    def load_template(
-        self, template: dict, factories: Dict[str, type],
-    ):
+
+    def load_template(self, template: dict, factories: Dict[str, type]):
         """Loads the subpipeline template.
 
 
         Args:
             template (dict): This is a dictionary representing
                 the subpipeline template.
-            factories (dict): This is a dictionary that contains 
+            factories (dict): This is a dictionary that contains
                 a mapping between a pipe name and the class that
                 is used to create the object representing the pipe.
         """
@@ -96,7 +90,8 @@ class SubPipeline(AbstractSendable):
 
         # Create the subpipeline property
         self.subpipeline = [
-            factories[name](model_name=self.model_name, owner = self.owner) for name in template["names"]
+            factories[name](model_name=self.model_name, owner=self.owner)
+            for name in template["names"]
         ]
 
     def __call__(
@@ -108,10 +103,10 @@ class SubPipeline(AbstractSendable):
         not both.
 
         Args:
-            input (str, String, Doc): The input on which the 
-                subpipeline operates. It could be either the text 
+            input (str, String, Doc): The input on which the
+                subpipeline operates. It could be either the text
                 or it could be the Doc to modify.
-            input_id (str, int): The ID of the input on which 
+            input_id (str, int): The ID of the input on which
                 the subpipeline components operate.
 
         Returns:
@@ -151,8 +146,7 @@ class SubPipeline(AbstractSendable):
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-        for t in doc:
-            print(t.text)
+
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
@@ -191,15 +185,15 @@ class SubPipeline(AbstractSendable):
                 object pointed to by this object is located.
             id_at_location (str, int): The PySyft ID of the SubPipeline
                 object referenced by this pointer.
-            owner (BaseWorker): The worker that owns this pointer 
+            owner (BaseWorker): The worker that owns this pointer
                 object.
-            register (bool): Whether to register the pointer object 
-                in the object store or not. (it is required by the 
+            register (bool): Whether to register the pointer object
+                in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
             ptr_id (str, int): The ID of the pointer object.
             garbage_collect_data (bool): Activate garbage collection or not.
-        
+
         Returns:
             A SubPipelinePointer object pointing to `subpipeline`.
         """
@@ -217,7 +211,7 @@ class SubPipeline(AbstractSendable):
 
     @staticmethod
     def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> Tuple[object]:
-        """Simplifies a SubPipeline object. 
+        """Simplifies a SubPipeline object.
 
         This requires simplifying each underlying pipe
         component.
@@ -230,13 +224,13 @@ class SubPipeline(AbstractSendable):
 
         Returns:
             (tuple): The simplified SubPipeline object.
-        
+
         """
 
         # Simplify the attributes and pipe components
         id_simple = serde._simplify(worker, subpipeline.id)
         client_id_simple = serde._simplify(worker, subpipeline.client_id)
-        model_name_simple = serde._simplify(worker, subpipeline.model_name)        
+        model_name_simple = serde._simplify(worker, subpipeline.model_name)
         pipe_names_simple = serde._simplify(worker, subpipeline.pipe_names)
 
         # A list to store the simplified pipes
@@ -271,7 +265,7 @@ class SubPipeline(AbstractSendable):
         # Detail the client ID and the pipe names
         id = serde._detail(worker, id_simple)
         client_id = serde._detail(worker, client_id_simple)
-        model_name = serde._detail(worker, model_name_simple)        
+        model_name = serde._detail(worker, model_name_simple)
         pipe_names = serde._detail(worker, pipe_names_simple)
 
         # Initialize a list of pipes
@@ -287,13 +281,10 @@ class SubPipeline(AbstractSendable):
 
             pipe = msgpack_global_state.detailers[proto_id](worker, pipe_simple)
 
-
             pipes.append(pipe)
 
         # Create the subpipeline object and set the client ID
-        subpipeline = SubPipeline(id=id,
-                                  model_name = model_name,
-                                  pipes=pipes)
+        subpipeline = SubPipeline(id=id, model_name=model_name, pipes=pipes)
 
         # Set some key properties
         subpipeline.client_id = client_id
@@ -303,9 +294,9 @@ class SubPipeline(AbstractSendable):
         return subpipeline
 
     def send(self, location: BaseWorker):
-        """Sends this object to the worker specified by 'location'. 
+        """Sends this object to the worker specified by 'location'.
         Args:
-            location (BaseWorker): The BaseWorker object to which the object is 
+            location (BaseWorker): The BaseWorker object to which the object is
                 to be sent. Note that this is never actually the BaseWorker but instead
                 a class which inherits the BaseWorker abstraction.
             Returns:
