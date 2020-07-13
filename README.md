@@ -7,7 +7,7 @@
 
 ## Installation
 
-Go ahead and install SyferText:
+You can install SyferText by directly cloning this repo:
 
 ```
 $ git clone https://github.com/OpenMined/SyferText.git
