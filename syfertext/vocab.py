@@ -13,22 +13,23 @@ from . import LOCAL_WORKER
 import syft.serde.msgpack.serde as serde
 from syft.workers.base import BaseWorker
 
-import numpy
+import numpy as np
 
 from typing import Dict
 
+
 class Vocab:
     def __init__(
-            self,
-            key2index: Dict[int, int] = None,
-            vectors: numpy.array = None,
-            model_name: str = None,
-            owner: BaseWorker = None
+        self,
+        hash2row: Dict[int, int] = None,
+        vectors: np.ndarray = None,
+        model_name: str = None,
+        owner: BaseWorker = None,
     ):
         """Initializes the Vocab object.
 
         Args:
-            key2index (optional): A dictionary that maps each token hash to an index that
+            hash2row (optional): A dictionary that maps each token hash to an index that
                 points to the embedding vector of that token in `vectors`.
                 This index can also be used as an input a an embedding layer.
             vectors (optional): A 2D numpy array that contains the word embeddings of tokens.
@@ -37,11 +38,11 @@ class Vocab:
         """
 
         # Create the Vectors object
-        self.vectors = Vectors(key2index, vectors)
+        self.vectors = Vectors(hash2row, vectors)
 
         self.model_name = model_name
         self.owner = owner
-        
+
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
         # their hashes. It can be used to retrieve a string given its hash
@@ -63,17 +64,16 @@ class Vocab:
 
         Modifies:
             self.vectors: The `vectors` property is initialized with the loaded
-                state which included the `key2index` mapping and optionally the
-                `vectors` array. 
+                state which included the `hash2row` mapping and optionally the
+                `vectors` array.
         """
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(model_name = self.model_name,
-                                      state_name = 'vocab')
+        state_id = create_state_query(model_name=self.model_name, state_name="vocab")
 
         # Search for the state
-        result = search_resource(query=state_id, local_worker = self.owner)
+        result = search_resource(query=state_id, local_worker=self.owner)
 
         # If no state is found, return
         if not result:
@@ -84,22 +84,22 @@ class Vocab:
         elif isinstance(result, StatePointer):
             # Get a copy of the state using its pointer
             state = result.get_copy()
-            
+
         elif isinstance(result, State):
             state = result
 
         # Detail the simple object contained in the state
-        key2index_simple, vectors_simple = state.simple_obj
+        hash2row_simple, vectors_simple = state.simple_obj
 
-        key2index = serde._detail(LOCAL_WORKER, key2index_simple)
+        hash2row = serde._detail(LOCAL_WORKER, hash2row_simple)
         vectors = serde._detail(LOCAL_WORKER, vectors_simple)
 
         # Load the state
-        self.vectors.load_data(vectors=vectors, key2index=key2index)
+        self.vectors.load_data(vectors=vectors, hash2row=hash2row)
 
     def dump_state(self) -> State:
         """Returns a State object that holds the current state of this object.
-        The state is characterized by the `key2index` mapping and optionally the
+        The state is characterized by the `hash2row` mapping and optionally the
         `vectors` array.
 
         Returns:
@@ -107,7 +107,7 @@ class Vocab:
         """
 
         # Simply the state variables
-        key2index_simple = serde._simplify(LOCAL_WORKER, self.vectors.key2index)
+        hash2row_simple = serde._simplify(LOCAL_WORKER, self.vectors.hash2row)
         vectors_simple = serde._simplify(LOCAL_WORKER, self.vectors.vectors)
 
         # Create the query. This is the ID according to which the
@@ -115,6 +115,6 @@ class Vocab:
         state_id = f"{self.model_name}:vocab"
 
         # Create the State object
-        state = State(simple_obj=(key2index_simple, vectors_simple), id=state_id, access={"*"})
+        state = State(simple_obj=(hash2row_simple, vectors_simple), id=state_id, access={"*"})
 
         return state
