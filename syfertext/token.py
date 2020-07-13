@@ -158,7 +158,7 @@ class Token(AbstractObject):
     def vector_norm(self) -> torch.Tensor:
         """The L2 norm of the token's vector representation.
 
-        Returns: 
+        Returns:
             Tensor: The L2 norm of the vector representation.
         """
 
@@ -173,10 +173,10 @@ class Token(AbstractObject):
 
     def similarity(self, other):
         """Compute the cosine similarity between tokens' vectors.
-        
+
         Args:
             other (Token): The Token to compare with.
-        
+
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """

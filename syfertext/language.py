@@ -18,9 +18,10 @@ from typing import List
 from typing import Union
 from typing import Tuple
 from typing import Set
+from typing import Dict
 
 from collections import defaultdict
-import numpy
+import numpy as np
 
 
 class Language(AbstractObject):
@@ -41,17 +42,16 @@ class Language(AbstractObject):
         description: str = None,
     ):
 
-
         # Set the model name
         self.model_name = model_name
-        
+
         # Initialize the subpipeline template
         self.pipeline_template = []
 
         # Create a dictionary that associates to the name of each text-processing component
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = dict()
-        
+
         # Initialize an empty dict of State object.
         # The keys of this dict are the names of the components
         # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
@@ -60,7 +60,7 @@ class Language(AbstractObject):
         # Initialize the property that should hold the subpipeline templates
         # list for each worker
         self.subpipeline_templates = defaultdict(list)
-        
+
         # Initialize the pipeline as an empty dictionary
         self._reset_pipeline()
 
@@ -81,8 +81,8 @@ class Language(AbstractObject):
 
         Args:
             tokenizer: the Tokenizer object.
-            access: The set of worker ids where this tokenizer's state could be sent. 
-                if the string '*' is included in the set,  then all workers are allowed 
+            access: The set of worker ids where this tokenizer's state could be sent.
+                if the string '*' is included in the set,  then all workers are allowed
                 to receive a copy of the state. If set to None, then only the worker where this
                 component is saved will be allowed to get a copy of the state.
         """
@@ -98,25 +98,21 @@ class Language(AbstractObject):
         # Add the tokenizer to the pipeline
         self.add_pipe(component=tokenizer, name=name, access=access)
 
-
-    def set_vocab(self, vocab: Vocab, access: Set[str] = None):
+    def set_vocab(self, vocab: Vocab, access: Set[str] = None) -> None:
         """Load a new vocab to the Language object. This methods modifies the
         `vocab` propery.
 
         Args:
-            access: The set of worker ids where this Vocab's state could be sent. 
-                if the string '*' is included in the set,  then all workers are allowed 
+            access: The set of worker ids where this Vocab's state could be sent.
+                if the string '*' is included in the set,  then all workers are allowed
                 to receive a copy of the state. If set to None, then only the worker where this
                 component is saved will be allowed to get a copy of the state.
-            key2row: A dictionary that maps each token hash to an index that
-                points to the embedding vector of that token in `vectors`.
-            vectors: A 2D numpy array that contains the word embeddings of tokens.
         """
 
         # Set the most restrictive access by default
         if access is None:
             access = {self.owner.id}
-        
+
         # Set the language model name to which this vocab object belongs.
         vocab.set_model_name(model_name=self.model_name)
 
@@ -124,7 +120,7 @@ class Language(AbstractObject):
         state = vocab.dump_state()
 
         # Save the state in the object store
-        self._save_state(state=state, name="vocab", access = access)
+        self._save_state(state=state, name="vocab", access=access)
 
     def load_pipeline(self, pipeline_template, states):
 
@@ -141,12 +137,11 @@ class Language(AbstractObject):
         for pipe_template in self.pipeline_template:
 
             # Get the pipe name and its class name
-            name = pipe_template['name']
-            class_name = pipe_template['class_name']
+            name = pipe_template["name"]
+            class_name = pipe_template["class_name"]
 
             self.factories[name] = globals()[class_name]
-        
-        
+
     def _save_state(self, state: State, name: str, access: Set[str] = None):
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
@@ -159,7 +154,7 @@ class Language(AbstractObject):
         """
 
         # Add to the list of State objects known to this Language object
-        self.states[name] = dict(state = state, access = access)
+        self.states[name] = dict(state=state, access=access)
 
         # Register it in the object store
         self.owner.register_obj(state)
@@ -169,7 +164,7 @@ class Language(AbstractObject):
         create the subpipeline templates for `worker`.
 
         Args:
-            location_id: The ID of the worker according to 
+            location_id: The ID of the worker according to
                 which the subpipeline template should be parsed.
         """
 
@@ -180,13 +175,13 @@ class Language(AbstractObject):
 
         # Create an entry of `location_id` in the pipeline
         self.pipeline[location_id] = []
-        
+
         # Initialize a subpipeline template
-        subpipeline_template = dict(names = [])
+        subpipeline_template = dict(names=[])
 
         # Create the subpipeline templates for that location
         self.subpipeline_templates[location_id].append(subpipeline_template)
-        
+
         # Loop through the pipeline template elements
         for pipe_template in self.pipeline_template:
 
@@ -197,11 +192,10 @@ class Language(AbstractObject):
             # Notice that PySyft models should never be sent to a
             # remote worker even if their `access` property of the corresponding
             # state allows for this
-            access = self.states.get(pipe_template["name"]).get('access')
-            
-            if ({"*", location_id} & access  and
-                pipe_template["class_name"] != nn.Module.__name__ ):
-                
+            access = self.states.get(pipe_template["name"]).get("access")
+
+            if {"*", location_id} & access and pipe_template["class_name"] != nn.Module.__name__:
+
                 subpipeline_template["names"].append(pipe_template["name"])
 
             # Otherwise, create a new subpipeline template and add the
@@ -209,18 +203,15 @@ class Language(AbstractObject):
             else:
                 subpipeline_template = dict(names=[pipe_template["name"]])
 
-
                 self.subpipeline_templates[location_id].append(subpipeline_template)
-
 
         # Now create the subpipeline objects
         for subpipeline_template in self.subpipeline_templates[location_id]:
 
             # Instantiate a subpipeline and load the subpipeline template
-            subpipeline = SubPipeline(model_name = self.model_name)
+            subpipeline = SubPipeline(model_name=self.model_name)
 
             subpipeline.load_template(template=subpipeline_template, factories=self.factories)
-
 
             # Send the subpipeline to the worker where the input is located
             # if the destination worker is different from the local one
@@ -237,11 +228,9 @@ class Language(AbstractObject):
         for subpipeline in self.pipeline[location_id]:
 
             subpipeline.load_states()
-                
-        
+
     def _reset_pipeline(self):
-        """Reset the `pipeline` class property.
-        """
+        """Reset the `pipeline` class property."""
 
         # Initialize a new empty pipeline with as an empty dict
         self.pipeline = {}
@@ -249,7 +238,6 @@ class Language(AbstractObject):
         # Initialize a new `subpipelins_template` property
         self.subpipeline_templates = defaultdict(list)
 
-        
     def add_pipe(
         self,
         component: callable,
@@ -261,13 +249,13 @@ class Language(AbstractObject):
         last: bool = True,
     ):
 
-        """Adds a pipe template to the pipeline template. 
+        """Adds a pipe template to the pipeline template.
 
         Args:
             component (callable): This is a callable that takes a Doc object and modifies
                 it inplace.
-            access: The set of worker ids where this component's state could be sent. 
-                if the string '*' is included in the set,  then all workers are allowed 
+            access: The set of worker ids where this component's state could be sent.
+                if the string '*' is included in the set,  then all workers are allowed
                 to receive a copy of the state. If set to None, then only the worker where this
                 component is saved will be allowed to get a copy of the state.
             name (str): The name of the pipeline component to be added. Defaults to None.
@@ -306,7 +294,6 @@ class Language(AbstractObject):
             sum([bool(before), bool(after), bool(first), bool(last)]) < 2
         ), "Only one among arguments 'before', 'after', 'first' or 'last' should be set."
 
-        
         if access is None:
             access = {self.owner.id}
 
@@ -314,19 +301,17 @@ class Language(AbstractObject):
         self.factories[name] = globals()[component.__class__.__name__]
 
         # Set the language model name to which this tokenizer belongs.
-        component.set_model_name(model_name = self.model_name)
+        component.set_model_name(model_name=self.model_name)
 
         # Get the component's state
         state = component.dump_state()
 
         # Save the component's state
-        self._save_state(state=state, name=name, access = access)
-        
+        self._save_state(state=state, name=name, access=access)
+
         # Create the pipe template that will be added the pipeline
         # template
-        pipe_template = dict(name=name,
-                             class_name=component.__class__.__name__,
-        )
+        pipe_template = dict(name=name, class_name=component.__class__.__name__)
 
         # Add the pipe template at the right position
         if last or not any([before, after, first]):
@@ -379,16 +364,17 @@ class Language(AbstractObject):
         pipe = self.pipeline_template.pop(pipe_index)
 
         del self.factories[name]
-        
+
         # Reset the pipeline.
         self._reset_pipeline()
 
         return pipe
 
-    def _run_subpipeline_from_template(self,
-                                       template_index: int,
-                                       location_id: str,
-                                       input=Union[str, String, StringPointer, Doc, DocPointer]
+    def _run_subpipeline_from_template(
+        self,
+        template_index: int,
+        location_id: str,
+        input=Union[str, String, StringPointer, Doc, DocPointer],
     ) -> Union[Doc, DocPointer]:
         """Creates a `subpipeline` object and sends it to the appropriate
         worker if `input` is remote. Then runs the subpipeline at position
@@ -484,7 +470,6 @@ class Language(AbstractObject):
         # return the doc
         return doc
 
-    
     def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
         """The text is tokenized and  pipeline components are called
         here, and the Doc object is returned.
@@ -507,28 +492,25 @@ class Language(AbstractObject):
 
         # Create a subpipeline templates list for the worker where `input` is located
         # If it does not already exist
-        self._parse_pipeline_template(location_id = location_id)
-        
+        self._parse_pipeline_template(location_id=location_id)
+
         # Runs the first subpipeline.
         # The first subpipeline is the one that has the tokenizer
-        doc = self._run_subpipeline_from_template(template_index=0,
-                                                  location_id = location_id,
-                                                  input = text)
+        doc = self._run_subpipeline_from_template(
+            template_index=0, location_id=location_id, input=text
+        )
 
         # Apply the the rest of subpipelines sequentially
         # Each subpipeline will modify the document `doc` inplace
-        for i in range(1, len(self.pipeline[location_id]) ):
-            doc = self._run_subpipeline_from_template(template_index=i,
-                                                      location_id = location_id,
-                                                      input=doc)
+        for i in range(1, len(self.pipeline[location_id])):
+            doc = self._run_subpipeline_from_template(
+                template_index=i, location_id=location_id, input=doc
+            )
 
         # return the Doc object
         return doc
-    
 
-    def deploy(self,
-               worker: BaseWorker,
-    ) -> None:
+    def deploy(self, worker: BaseWorker) -> None:
         """Deploys the pipeline to PyGrid by creating a LanguageModel
         object and sending it to the worker where it is to be deployed.
         The State objects of every pipe component and every resource are
@@ -543,23 +525,22 @@ class Language(AbstractObject):
         states = self.states.copy()
 
         for pipe_name in self.states:
-            
-            # Change the pipe's location
-            states[pipe_name]['location_id'] = worker.id
 
+            # Change the pipe's location
+            states[pipe_name]["location_id"] = worker.id
 
         # Create a LanguageModel object
-        language_model = LanguageModel(name = self.model_name,
-                                       pipeline_template = self.pipeline_template,
-                                       states = states,
-                                       owner = self.owner,
-                                       tags = self.tags,
-                                       description = self.description)
-
-
+        language_model = LanguageModel(
+            name=self.model_name,
+            pipeline_template=self.pipeline_template,
+            states=states,
+            owner=self.owner,
+            tags=self.tags,
+            description=self.description,
+        )
 
         # Send the language model object to the destination worker
-        language_model_pointer = language_model.send(location = worker)
-        
+        language_model_pointer = language_model.send(location=worker)
+
         # Tell the LanguageModel object to deploy all State objects
         language_model_pointer.deploy_states()

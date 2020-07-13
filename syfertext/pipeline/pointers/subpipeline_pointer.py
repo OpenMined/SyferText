@@ -12,7 +12,7 @@ from typing import List
 
 class SubPipelinePointer(ObjectPointer):
     """Use this class to create a pointer to a subpipeline object.
-    Such pointers are used to send commands to execute different 
+    Such pointers are used to send commands to execute different
     methods of remote subpipeline object.
     """
 
@@ -31,7 +31,7 @@ class SubPipelinePointer(ObjectPointer):
                 object pointed to by this object is located.
             id_at_location (str, int): The PySyft ID of the SubPipeline
                 object referenced by this pointer.
-            owner (BaseWorker): The worker that owns this pointer 
+            owner (BaseWorker): The worker that owns this pointer
                 object.
             id (str, int): The ID of the pointer object.
             garbage_collect_data (bool): Activate garbage collection or not.
@@ -46,29 +46,24 @@ class SubPipelinePointer(ObjectPointer):
             garbage_collect_data=garbage_collect_data,
         )
 
-        
     def load_states(self) -> None:
         """Calls the `load_states()` method of the Subpipeline
         object referenced by this pointer object.
         """
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "load_states",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {})
+        self.owner.send_command(
+            recipient=self.location, cmd_name="load_states", target=self, args_=tuple(), kwargs_={}
+        )
 
-
-    
     def __call__(self, pointer: Union[StringPointer, DocPointer]):
         """Forwards the call to the `__call__` method of the
-        `SubPipeline` object it points to. 
+        `SubPipeline` object it points to.
         This forwarding mecanism is needed when the SubPipeline is
         located on a remote worker.
 
         Args:
-            pointer: A pointer to the PySyft `String` to be tokenized or 
+            pointer: A pointer to the PySyft `String` to be tokenized or
                 to the `Doc` object to by modified.
         """
 
@@ -92,7 +87,6 @@ class SubPipelinePointer(ObjectPointer):
         )
 
         return response
-
 
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
@@ -119,4 +113,3 @@ class SubPipelinePointer(ObjectPointer):
         code_dict = dict(code=SubPipelinePointer.proto_id)
 
         return code_dict
-    

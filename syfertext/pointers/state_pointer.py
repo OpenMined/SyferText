@@ -18,10 +18,7 @@ class StatePointer(ObjectPointer):
     """
 
     def __init__(
-        self,
-        location: BaseWorker,
-        id_at_location: str,
-        owner: BaseWorker,
+        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
     ):
         """Initializes the State object.
 
@@ -44,7 +41,7 @@ class StatePointer(ObjectPointer):
         )
 
     def get_copy(self) -> "State":
-        """This method is used to download a copy of the remote 
+        """This method is used to download a copy of the remote
         State object.
 
         Returns:
@@ -53,13 +50,13 @@ class StatePointer(ObjectPointer):
         """
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "send_copy",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {"destination": self.owner}
+        self.owner.send_command(
+            recipient=self.location,
+            cmd_name="send_copy",
+            target=self,
+            args_=tuple(),
+            kwargs_={"destination": self.owner},
         )
-
 
         # Get the state from the local object store
         state = self.owner.get_obj(self.id_at_location)
@@ -67,25 +64,24 @@ class StatePointer(ObjectPointer):
         return state
 
     def send_copy(self, destination: Union[str, BaseWorker]) -> None:
-        """Calls the `send_copy` method of the underlying State object.
-        """
+        """Calls the `send_copy` method of the underlying State object."""
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "send_copy",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {"destination": destination}
+        self.owner.send_command(
+            recipient=self.location,
+            cmd_name="send_copy",
+            target=self,
+            args_=tuple(),
+            kwargs_={"destination": destination},
         )
 
-        
     @staticmethod
     def simplify(worker: BaseWorker, state_pointer: "StatePointer") -> Tuple[object]:
         """Simplifies a StatePointer object. This method is required by PySyft
-        when a StatePointer object is sent to another worker. 
+        when a StatePointer object is sent to another worker.
 
         Args:
-            worker: The worker on which the simplify operation 
+            worker: The worker on which the simplify operation
                 is carried out.
             state_pointer: the StatePointer object to simplify.
 
@@ -99,13 +95,10 @@ class StatePointer(ObjectPointer):
         location_simple = serde._simplify(worker, state_pointer.location)
         id_at_location_simple = serde._simplify(worker, state_pointer.id_at_location)
 
-
         # create the simple StatePointer object
         state_pointer_simple = (location_simple, id_at_location_simple)
 
         return state_pointer_simple
-
-
 
     @staticmethod
     def detail(worker: BaseWorker, state_pointer_simple: Tuple[object]) -> "StatePointer":
@@ -123,14 +116,12 @@ class StatePointer(ObjectPointer):
             A StatePointer object.
         """
 
-        
         # Unpack the simple state
         location_simple, id_at_location_simple = state_pointer_simple
 
         # Detail the attributes
         location = serde._detail(worker, location_simple)
         id_at_location = serde._detail(worker, id_at_location_simple)
-
 
         # If the detailing is happening on the worker pointed
         # to by this pointer, there is no point in keeping a
@@ -139,17 +130,12 @@ class StatePointer(ObjectPointer):
         # of CommandMessages in PySyft.
         if worker.id == location.id:
             return worker.get_obj(id_at_location)
-        
+
         # Create a State object
-        state_pointer = StatePointer(
-            location = location,
-            id_at_location = id_at_location,
-            owner = worker
-        )
+        state_pointer = StatePointer(location=location, id_at_location=id_at_location, owner=worker)
 
         return state_pointer
-    
-    
+
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
@@ -175,4 +161,3 @@ class StatePointer(ObjectPointer):
         code_dict = dict(code=StatePointer.proto_id)
 
         return code_dict
-    
