@@ -147,4 +147,4 @@ For support in using this library, please join the **#lib_syfertext** Slack chan
 ## Contributors ✨
 [CONTRIBUTORS.md](https://github.com/OpenMined/SyferText/blob/master/CONTRIBUTORS.md)
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
