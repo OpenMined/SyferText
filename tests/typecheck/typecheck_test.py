@@ -1,7 +1,8 @@
 import pytest
 from typing import List, Union, Optional, Tuple, Dict, DefaultDict
 from syfertext.typecheck.typecheck import type_hints
-
+import warnings
+warnings.filterwarnings('ignore')
 '''
     TypedDict not included as it was added in python 3.8
 '''
