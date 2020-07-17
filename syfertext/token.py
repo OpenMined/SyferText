@@ -1,4 +1,5 @@
 from .utils import hash_string
+from .typecheck.typecheck import type_hints
 
 import syft as sy
 import torch
@@ -44,7 +45,8 @@ class Token(AbstractObject):
         # Whether this token has a vector or not
         self.has_vector = self.doc.vocab.vectors.has_vector(self.orth_)
 
-    def set_attribute(self, name: str, value: object):
+    @type_hints
+    def set_attribute(self, name: str, value: object) -> None:
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
 
@@ -60,6 +62,7 @@ class Token(AbstractObject):
 
         setattr(self._, name, value)
 
+    @type_hints
     def has_attribute(self, name: str) -> bool:
         """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False`
 
@@ -75,7 +78,8 @@ class Token(AbstractObject):
 
         return attr_exists
 
-    def remove_attribute(self, name: str):
+    @type_hints
+    def remove_attribute(self, name: str) -> None:
         """Removes the attribute `name` from the Underscore object `self._`
 
         Args:
@@ -87,6 +91,7 @@ class Token(AbstractObject):
 
         delattr(self._, name)
 
+    # Find return type : custom attribute
     def get_attribute(self, name: str):
         """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
 
@@ -99,7 +104,8 @@ class Token(AbstractObject):
 
         return getattr(self._, name)
 
-    def nbor(self, offset=1):
+    @type_hints
+    def nbor(self, offset=1) -> Token:
         """Gets the neighbouring token at `self.position + offset` if it exists
 
         Args:
@@ -118,26 +124,31 @@ class Token(AbstractObject):
 
         return neighbor
 
-    def __str__(self):
+    @type_hints
+    def __str__(self) -> str:
         # The call to `str()` in the following is to account for the case
         # when text is of type String or StringPointer (which are Syft string types)
         return self.orth_
 
     @property
-    def text(self):
+    @type_hints
+    def text(self) -> str:
         """Get the token text in str type"""
         return self.orth_
 
     @property
-    def orth_(self):
+    @type_hints
+    def orth_(self) -> str:
         """Get the token text in str type"""
         return str(self.doc.vocab.store[self.orth])
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
         """Get the length of the token"""
         return len(self.orth_)
 
     @property
+    @type_hints
     def text_with_ws(self) -> str:
         """Get the text with trailing whitespace if it exists"""
 
@@ -146,15 +157,18 @@ class Token(AbstractObject):
         else:
             return self.orth_
 
-    def __repr__(self):
+    @type_hints
+    def __repr__(self) -> str:
         return f"Token[{self.orth_}]"
 
+    # Find return type: Vector
     @property
     def vector(self):
         """Get the token vector"""
         return self.doc.vocab.vectors[self.orth_]
 
     @property
+    @type_hints
     def vector_norm(self) -> torch.Tensor:
         """The L2 norm of the token's vector representation.
 
@@ -171,7 +185,8 @@ class Token(AbstractObject):
 
         return norm
 
-    def similarity(self, other):
+    @type_hints
+    def similarity(self, other) -> torch.Tensor:
         """Compute the cosine similarity between tokens' vectors.
         
         Args:
@@ -192,7 +207,8 @@ class Token(AbstractObject):
 
         return sim
 
-    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True):
+    @type_hints
+    def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True) -> torch.Tensor:
         """Get the mean of the vectors of each Token in this documents.
 
         Args:

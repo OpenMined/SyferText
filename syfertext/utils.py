@@ -1,4 +1,5 @@
 from syft.workers.base import BaseWorker
+from .typecheck.typecheck import type_hints
 
 import mmh3
 import os
@@ -11,6 +12,7 @@ from typing import Tuple
 from typing import Union
 
 
+@type_hints
 def hash_string(string: str) -> int:
     """Create a hash for a given string. 
     Hashes created by this functions will be used everywhere by
@@ -22,6 +24,7 @@ def hash_string(string: str) -> int:
     return key
 
 
+@type_hints
 def normalize_slice(length: int, start: int, stop: int, step: int = None):
     """This function is used to convert the negative slice boundaries to positive values.
     eg. start = -4, stop = -1, length = 6 gets converted to start = 2, stop = 5
@@ -67,6 +70,7 @@ def normalize_slice(length: int, start: int, stop: int, step: int = None):
 
 # The following three functions for compiling prefix, suffix and infix regex are adapted
 # from Spacy  https://github.com/explosion/spaCy/blob/master/spacy/util.py.
+@type_hints
 def compile_prefix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of prefix rules into a regex object.
 
@@ -86,6 +90,7 @@ def compile_prefix_regex(entries: Tuple) -> Pattern:
         return re.compile(expression)
 
 
+@type_hints
 def compile_suffix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
     
@@ -101,6 +106,7 @@ def compile_suffix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
+@type_hints
 def compile_infix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of infix rules into a regex object.
 
@@ -116,6 +122,7 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
+@type_hints
 def create_state_query(model_name: str, state_name: str) -> str:
     """Construct an ID that will be used to search for a State object
     on PyGrid.
@@ -134,7 +141,7 @@ def create_state_query(model_name: str, state_name: str) -> str:
 
     return query
 
-
+@type_hints
 def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
     """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
@@ -191,6 +198,7 @@ class MsgpackCodeGenerator:
 
         self.code = 1999
 
+    @type_hints
     def __call__(self) -> int:
         """Generates and returns a unique msgpack code
 

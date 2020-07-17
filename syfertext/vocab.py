@@ -9,6 +9,7 @@ from .utils import create_state_query
 from .state import State
 from .pointers import StatePointer
 from . import LOCAL_WORKER
+from .typecheck.typecheck import type_hints
 
 import syft.serde.msgpack.serde as serde
 from syft.workers.base import BaseWorker
@@ -50,6 +51,7 @@ class Vocab:
         # Only strings that are encountered during tokenization will be stored here
         self.store = StringStore()
 
+    @type_hints
     def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
@@ -59,6 +61,7 @@ class Vocab:
 
         self.model_name = model_name
 
+    @type_hints
     def load_state(self) -> None:
         """Search for the state of this Vocab object on PyGrid.
 
@@ -97,6 +100,7 @@ class Vocab:
         # Load the state
         self.vectors.load_data(vectors=vectors, hash2row=hash2row)
 
+    @type_hints
     def dump_state(self) -> State:
         """Returns a State object that holds the current state of this object.
         The state is characterized by the `hash2row` mapping and optionally the

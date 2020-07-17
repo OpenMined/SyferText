@@ -2,6 +2,7 @@ from .pointers.language_model_pointer import LanguageModelPointer
 from .utils import msgpack_code_generator
 from .utils import create_state_query
 from .utils import search_resource
+from .typecheck.typecheck import type_hints
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -74,6 +75,7 @@ class LanguageModel(AbstractSendable):
 
 
 
+    @type_hints
     def deploy_states(self) -> None:
         """Search for the State objects associated with this language model and 
         deploy them on the corresponding workers by sending copies of them.
@@ -101,7 +103,8 @@ class LanguageModel(AbstractSendable):
             # using its pointer
             state = result.send_copy(destination = location_id)
 
-        
+
+    @type_hints        
     def send_copy(self, destination: Union[str, BaseWorker]) -> "LanguageModel":
         """This method is called by a LanguageModelPointer using 
         LanguageModelPointer.get_copy(). It creates a copy of the current
@@ -126,7 +129,7 @@ class LanguageModel(AbstractSendable):
         # Send the object
         self.owner.send_obj(language_model, destination)
 
-        
+    @type_hints    
     def send(self, location: BaseWorker) -> LanguageModelPointer:
         """Sends this object to the worker specified by `location`. 
 
@@ -144,7 +147,9 @@ class LanguageModel(AbstractSendable):
         return language_model_pointer
 
     
+    @type_hints
     def create_pointer(
+        self,
         language_model: "LanguageModel" = None,
         owner: BaseWorker = None,
         location: BaseWorker = None,
@@ -198,6 +203,7 @@ class LanguageModel(AbstractSendable):
         return language_model_pointer
         
     @staticmethod
+    @type_hints
     def simplify(worker: BaseWorker, language_model: "LanguageModel") -> Tuple[object]:
         """Simplifies a LanguageModel object. This method is required by PySyft
         when a LanguageModel object is sent to another worker. 
@@ -228,6 +234,7 @@ class LanguageModel(AbstractSendable):
         
 
     @staticmethod
+    @type_hints
     def detail(worker: BaseWorker, language_model_simple: Tuple[object]) -> "LanguageModel":
         """Takes a simplified language_model object, details it to create
         a new LanguageModel object. This is usually done on a worker where
@@ -267,6 +274,7 @@ class LanguageModel(AbstractSendable):
 
     
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.

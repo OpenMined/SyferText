@@ -1,3 +1,4 @@
+from .typecheck.typecheck import type_hints
 from .utils import hash_string
 from typing import Union
 
@@ -23,7 +24,8 @@ class StringStore:
             for word in strings:
                 self.add(word)
 
-    def __contains__(self, string):
+    @type_hints
+    def __contains__(self, string) -> bool:
         """Check whether string is in the store
 
         Args:
@@ -35,7 +37,8 @@ class StringStore:
 
         return string in self.str_to_key.keys()
 
-    def add(self, string: str):
+    @type_hints
+    def add(self, string: str) -> int:
         """Add a sting to the StringStore
 
         Args:
@@ -64,7 +67,8 @@ class StringStore:
 
         return key
 
-    def __getitem__(self, string_or_id: Union[str, int]):
+    @type_hints
+    def __getitem__(self, string_or_id: Union[str, int]) -> Union[str, int]:
         """Retrieve a string from a given hash or vice-versa.
         If passed argument is a string which is not found in the store,
         then it is added to the store and the corresponding key is returned.
@@ -97,7 +101,8 @@ class StringStore:
 
             return key
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
         """Get the number of strings in the store."""
 
         return len(self.str_to_key)

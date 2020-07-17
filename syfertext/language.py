@@ -6,6 +6,7 @@ from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
 from .language_model import LanguageModel
+from .typecheck.typecheck import type_hints
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -67,6 +68,7 @@ class Language(AbstractObject):
         super(Language, self).__init__(id=None, owner=owner, tags=tags, description=description)
 
     @property
+    @type_hints
     def pipe_names(self) -> List[str]:
         """Returns a list of component names in the pipeline in order of execution.
 
@@ -76,7 +78,8 @@ class Language(AbstractObject):
 
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
-    def set_tokenizer(self, tokenizer: Tokenizer, access: Set[str] = None):
+    @type_hints
+    def set_tokenizer(self, tokenizer: Tokenizer, access: Set[str] = None) -> None:
         """Set the tokenizer object.
 
         Args:
@@ -98,6 +101,7 @@ class Language(AbstractObject):
         # Add the tokenizer to the pipeline
         self.add_pipe(component=tokenizer, name=name, access=access)
 
+    @type_hints
     def set_vocab(self, vocab: Vocab, access: Set[str] = None) -> None:
         """Load a new vocab to the Language object. This methods modifies the
         `vocab` propery.
@@ -122,7 +126,8 @@ class Language(AbstractObject):
         # Save the state in the object store
         self._save_state(state=state, name="vocab", access=access)
 
-    def load_pipeline(self, pipeline_template, states):
+    @type_hints
+    def load_pipeline(self, pipeline_template, states) -> None:
 
         # Load the states
         self.states = states
@@ -142,7 +147,8 @@ class Language(AbstractObject):
 
             self.factories[name] = globals()[class_name]
 
-    def _save_state(self, state: State, name: str, access: Set[str] = None):
+    @type_hints
+    def _save_state(self, state: State, name: str, access: Set[str] = None) -> None:
         """Saves a State object in the object store of the local worker.
         Make sure that the local workers `is_client_worker` is set to False.
 
@@ -159,6 +165,7 @@ class Language(AbstractObject):
         # Register it in the object store
         self.owner.register_obj(state)
 
+    @type_hints
     def _parse_pipeline_template(self, location_id: str) -> None:
         """Parses the `pipeline_template` property to
         create the subpipeline templates for `worker`.
@@ -229,7 +236,8 @@ class Language(AbstractObject):
 
             subpipeline.load_states()
 
-    def _reset_pipeline(self):
+    @type_hints
+    def _reset_pipeline(self) -> None:
         """Reset the `pipeline` class property.
         """
 
@@ -239,6 +247,7 @@ class Language(AbstractObject):
         # Initialize a new `subpipelins_template` property
         self.subpipeline_templates = defaultdict(list)
 
+    @type_hints
     def add_pipe(
         self,
         component: callable,
@@ -248,7 +257,7 @@ class Language(AbstractObject):
         after: str = None,
         first: bool = False,
         last: bool = True,
-    ):
+    ) -> None:
 
         """Adds a pipe template to the pipeline template.
 
@@ -341,6 +350,7 @@ class Language(AbstractObject):
         # Reset the pipeline.
         self._reset_pipeline()
 
+    @type_hints
     def remove_pipe(self, name: str) -> Tuple[str, callable]:
         """Removes the pipeline whose name is 'name'
 
@@ -371,6 +381,7 @@ class Language(AbstractObject):
 
         return pipe
 
+    @type_hints
     def _run_subpipeline_from_template(
         self,
         template_index: int,
@@ -471,6 +482,7 @@ class Language(AbstractObject):
         # return the doc
         return doc
 
+    @type_hints
     def __call__(self, text: Union[str, String, StringPointer]) -> Union[Doc, DocPointer]:
         """The text is tokenized and  pipeline components are called
         here, and the Doc object is returned.
@@ -511,6 +523,7 @@ class Language(AbstractObject):
         # return the Doc object
         return doc
 
+    @type_hints
     def deploy(self, worker: BaseWorker) -> None:
         """Deploys the pipeline to PyGrid by creating a LanguageModel
         object and sending it to the worker where it is to be deployed.

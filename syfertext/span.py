@@ -11,7 +11,9 @@ from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
+from typing import Iterator
 
+from .typecheck.typecheck import type_hints
 from .underscore import Underscore
 from .utils import normalize_slice
 
@@ -58,7 +60,8 @@ class Span(AbstractObject):
         # using the `self.set_attribute` method
         self._ = Underscore()
 
-    def set_attribute(self, name: str, value: object):
+    @type_hints
+    def set_attribute(self, name: str, value: object) -> None:
         """Creates a custom attribute with the name `name` and
        value `value` in the Underscore object `self._`
 
@@ -74,7 +77,9 @@ class Span(AbstractObject):
 
         setattr(self._, name, value)
 
-    def __getitem__(self, key: Union[int, slice]):
+    # Find return type: Union[token, span]
+    @type_hints
+    def __getitem__(self, key: Union[int, slice]) -> Union[Token, "Span"]:
         """Returns a Token object at position `key` or returns Span using slice `key` or the 
         id of the Token object or id of the Span object at remote location.
 
@@ -129,11 +134,13 @@ class Span(AbstractObject):
 
             return span
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
         """Return the number of tokens in the Span."""
         return self.end - self.start
 
-    def __iter__(self):
+    @type_hints
+    def __iter__(self) -> Iterator[Token]:
         """Allows to loop over tokens in `Span.doc`"""
 
         for i in range(len(self)):
@@ -142,6 +149,7 @@ class Span(AbstractObject):
             yield self[i]
 
     @property
+    # Find return type: torch.Tensor
     def vector(self):
         """Get span vector as an average of in-vocabulary token's vectors
 
@@ -175,6 +183,7 @@ class Span(AbstractObject):
 
         return span_vector
 
+    # Find return type: torch.Tensor
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get Span vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
@@ -232,6 +241,7 @@ class Span(AbstractObject):
 
         return span_vector
 
+    # Import inside: Doc
     def as_doc(self):
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
@@ -265,6 +275,7 @@ class Span(AbstractObject):
         return doc
 
     @staticmethod
+    # Import inside: SpanPointer
     def create_pointer(
         span,
         location: BaseWorker = None,
@@ -289,6 +300,7 @@ class Span(AbstractObject):
         if owner is None:
             owner = span.owner
 
+        """ Gives unexpected keyword argument """
         span_pointer = SpanPointer(
             location=location,
             id_at_location=id_at_location,

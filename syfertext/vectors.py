@@ -5,6 +5,7 @@ import numpy as np
 import importlib
 
 from .utils import hash_string
+from .typecheck.typecheck import type_hints
 
 from typing import Dict
 
@@ -28,6 +29,7 @@ class Vectors:
         # This will create the self.default_vector property
         self._create_default_vector()
 
+    @type_hints
     def _create_default_vector(self) -> None:
         """Create a default vector that is returned
         when an out-of-vocabulary token is encountered
@@ -44,7 +46,9 @@ class Vectors:
         if isinstance(self.vectors, np.ndarray):
             self.default_vector = np.zeros(self.vectors.shape[1], dtype=self.vectors.dtype)
 
-    def load_data(self, hash2row: Dict[int, int], vectors: np.ndarray):
+    # Check parameter
+    @type_hints
+    def load_data(self, hash2row: Dict[int, int], vectors: np.ndarray) -> None:
         """Loads the vector data. This is needed when the Vocab object loads its
         state, which might contain vector data.
 
@@ -62,7 +66,8 @@ class Vectors:
         # out-of-vocabulary
         self._create_default_vector()
 
-    def has_vector(self, word: str):
+    @type_hints
+    def has_vector(self, word: str) -> bool:
         """Checks whether 'word' has a vector or not in self.vectors
 
         Args:
@@ -85,6 +90,7 @@ class Vectors:
         else:
             return False
 
+    # Find return type: Vector
     def __getitem__(self, word):
         """takes a word as a string and returns the corresponding vector
 

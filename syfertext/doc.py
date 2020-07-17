@@ -13,10 +13,12 @@ from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
+from typing import Iterator
 from .underscore import Underscore
 from .span import Span
 from .pointers.span_pointer import SpanPointer
 from .utils import normalize_slice
+from .typecheck.typecheck import type_hints
 
 
 class Doc(AbstractObject):
@@ -51,7 +53,8 @@ class Doc(AbstractObject):
         # using the `self.set_attribute` method
         self._ = Underscore()
 
-    def set_attribute(self, name: str, value: object):
+    @type_hints
+    def set_attribute(self, name: str, value: object) -> None:
         """Creates a custom attribute with the name `name` and
            value `value` in the Underscore object `self._`
 
@@ -67,6 +70,7 @@ class Doc(AbstractObject):
 
         setattr(self._, name, value)
 
+    @type_hints
     def has_attribute(self, name: str) -> bool:
         """Returns `True` if the Underscore object `self._` has an attribute `name`. otherwise returns `False`
 
@@ -82,7 +86,8 @@ class Doc(AbstractObject):
 
         return attr_exists
 
-    def remove_attribute(self, name: str):
+    @type_hints
+    def remove_attribute(self, name: str) -> None:
         """Removes the attribute `name` from the Underscore object `self._`
 
         Args:
@@ -94,6 +99,7 @@ class Doc(AbstractObject):
 
         delattr(self._, name)
 
+    # Find return type
     def get_attribute(self, name: str):
         """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
 
@@ -106,6 +112,7 @@ class Doc(AbstractObject):
 
         return getattr(self._, name)
 
+    @type_hints
     def __getitem__(self, key: Union[int, slice]) -> Union[Token, Span, int]:
         """Returns a Token object at position `key` or Span object using slice.
 
@@ -155,11 +162,13 @@ class Doc(AbstractObject):
 
             return span
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
         """Return the number of tokens in the Doc."""
         return len(self.container)
 
-    def __iter__(self):
+    @type_hints
+    def __iter__(self) -> Iterator[Token]:
         """Allows to loop over tokens in `self.container`"""
         for i in range(len(self.container)):
 
@@ -167,10 +176,12 @@ class Doc(AbstractObject):
             yield self[i]
 
     @property
-    def text(self):
+    @type_hints
+    def text(self) -> str:
         """Returns the text present in the doc with whitespaces"""
         return "".join(token.text_with_ws for token in self)
 
+    # Find Return Type: Vector
     @property
     def vector(self):
         """Get document vector as an average of in-vocabulary token's vectors
@@ -205,8 +216,10 @@ class Doc(AbstractObject):
 
         return doc_vector
 
+    # Find return type: for Tensor or FloatTensor
     @property
-    def vector_norm(self) -> torch.FloatTensor:
+    @type_hints
+    def vector_norm(self) -> torch.Tensor:
         """Get the L2 norm of the document vector
 
         Returns:
@@ -220,6 +233,7 @@ class Doc(AbstractObject):
 
         return norm
 
+    @type_hints
     def similarity(self, other: "Doc") -> torch.Tensor:
         """Compute the cosine similarity between two Doc vectors.
         
@@ -241,6 +255,7 @@ class Doc(AbstractObject):
 
         return sim
 
+    # Find Return Type: Vector
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
@@ -296,6 +311,7 @@ class Doc(AbstractObject):
             doc_vector = vectors / vector_count
         return doc_vector
 
+    # Find Return Type: Vector
     def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> np.ndarray:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
@@ -341,13 +357,14 @@ class Doc(AbstractObject):
 
         return token_vectors
 
+    @type_hints
     def get_encrypted_vector(
         self,
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.Tensor:
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
@@ -378,6 +395,7 @@ class Doc(AbstractObject):
 
         return doc_vector
 
+    @type_hints
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
@@ -420,6 +438,7 @@ class Doc(AbstractObject):
 
         return token_vectors
 
+    # Import inside: DocPointer
     @staticmethod
     def create_pointer(
         doc,
@@ -429,7 +448,7 @@ class Doc(AbstractObject):
         owner: BaseWorker = None,
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
-    ):
+    ) -> "DocPointer":
         """Creates a DocPointer object that points to a Doc object living in the the worker 'location'.
 
         Returns:

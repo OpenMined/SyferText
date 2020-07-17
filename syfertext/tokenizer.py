@@ -18,6 +18,7 @@ from .utils import compile_suffix_regex
 from .utils import compile_infix_regex
 from .utils import compile_prefix_regex
 from .utils import msgpack_code_generator
+from .typecheck.typecheck import type_hints
 
 import re
 
@@ -124,7 +125,8 @@ class Tokenizer(AbstractSendable):
 
         # Set the owner
         self.owner = owner
-        
+
+    @type_hints        
     def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
@@ -134,13 +136,14 @@ class Tokenizer(AbstractSendable):
 
         self.model_name = model_name
 
+    @type_hints
     def load_rules(
         self,
         exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
         prefixes: List[str] = TOKENIZER_PREFIXES,
         suffixes: List[str] = TOKENIZER_SUFFIXES,
         infixes: List[str] = TOKENIZER_INFIXES,
-    ):
+    ) -> None:
         """Sets/Resets the tokenization rules.
            
         Args:
@@ -187,7 +190,8 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = {}
 
-
+    
+    @type_hints
     def load_state(self) -> None:
         """Search for the state of this object on PyGrid.
 
@@ -235,6 +239,7 @@ class Tokenizer(AbstractSendable):
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
 
+    @type_hints
     def dump_state(self) -> State:
         """Returns a State object that holds the current state of this object.
 
@@ -262,7 +267,8 @@ class Tokenizer(AbstractSendable):
 
         return state
 
-    def __call__(self, text: Union[String, str]):
+    @type_hints
+    def __call__(self, text: Union[String, str]) -> Doc:
         """The real tokenization procedure takes place here.
         As in the spaCy library. This is not exactly equivalent to 
         text.split(' '). Because tokens can be white spaces if two or
@@ -389,6 +395,7 @@ class Tokenizer(AbstractSendable):
 
         return doc
 
+    @type_hints
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """ Tokenize each substring formed after splitting affixes and processing 
             exceptions. Returns Doc object.
@@ -430,6 +437,7 @@ class Tokenizer(AbstractSendable):
 
         return doc
 
+    @type_hints
     def _split_affixes(
         self, substring: str, start_pos: int
     ) -> Tuple[str, int, DefaultDict, List[TokenMeta]]:
@@ -506,6 +514,7 @@ class Tokenizer(AbstractSendable):
 
         return substring, pos, affixes, exception_tokens
 
+    @type_hints
     def _attach_tokens(
         self,
         doc: Doc,
@@ -565,6 +574,7 @@ class Tokenizer(AbstractSendable):
 
         return doc
 
+    @type_hints
     def _get_prefix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
         """Makes TokenMeta data for substring which are prefixes.
 
@@ -603,6 +613,7 @@ class Tokenizer(AbstractSendable):
 
         return token_meta, substring, pos
 
+    @type_hints
     def _get_suffix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
         """Makes TokenMeta data for substring suffixes.
 
@@ -643,6 +654,7 @@ class Tokenizer(AbstractSendable):
 
         return token_meta, substring, pos
 
+    @type_hints
     def _get_infix_token_metas(self, substring: str, pos: int) -> Tuple[List[TokenMeta], str, int]:
         """Makes list of TokenMeta data for substring which are infixes.
 
@@ -705,6 +717,7 @@ class Tokenizer(AbstractSendable):
 
         return infix_tokens_metas, substring, pos
 
+    @type_hints
     def _get_exception_token_metas(self, substring: str, pos: int) -> Tuple[List[TokenMeta], str]:
         """Make a list of TokenMeta objects of exceptions found in `substring`.
 
@@ -746,6 +759,7 @@ class Tokenizer(AbstractSendable):
 
         return exception_token_metas, substring
 
+    @type_hints
     def infix_matches(self, substring: str) -> List[Match]:
         """Find internal split points of the string, such as hyphens.
         
@@ -766,6 +780,7 @@ class Tokenizer(AbstractSendable):
         # matches for the infixes in the substring.
         return list(self.infix_finditer(substring))
 
+    @type_hints
     def find_prefix(self, substring: str) -> int:
         """Find the length of a prefix that should be segmented from the
         string, or None if no prefix rules match.
@@ -787,6 +802,7 @@ class Tokenizer(AbstractSendable):
         # Return the length of the prefix match in the substring.
         return (match.end() - match.start()) if match is not None else 0
 
+    @type_hints
     def find_suffix(self, substring: str) -> int:
         """Find the length of a suffix that should be segmented from the
         string, or None if no suffix rules match.
@@ -808,6 +824,7 @@ class Tokenizer(AbstractSendable):
         # Return the length of the suffix match in the substring.
         return (match.end() - match.start()) if match is not None else 0
 
+    # Find return type
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):
         """This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
@@ -820,7 +837,8 @@ class Tokenizer(AbstractSendable):
         return model_name
 
     @staticmethod
-    def detail(worker: BaseWorker, simple_obj: tuple):
+    @type_hints
+    def detail(worker: BaseWorker, simple_obj: tuple) -> "Tokenizer":
         """Create an object of type Tokenizer from the reduced representation in `simple_obj`.
 
         Args:
@@ -844,6 +862,7 @@ class Tokenizer(AbstractSendable):
         return tokenizer
 
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.

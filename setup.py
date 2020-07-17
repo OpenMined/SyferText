@@ -17,6 +17,7 @@ setup(
         "mmh3==2.5.1",
         "syft @ git+https://github.com/OpenMined/PySyft@1eb369ae3a1865789f5809bec59f066ac1cbe58d",
         "requests==2.22.0",
+        "typeguard==2.9.1",
     ],
     extras_require={
         "test": [

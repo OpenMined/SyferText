@@ -14,10 +14,11 @@ from .language_model import LanguageModel
 from .pointers import LanguageModelPointer
 from .pipeline import SubPipeline
 from .utils import search_resource
+from .typecheck.typecheck import type_hints
 
 from typing import Set
 
-
+@type_hints
 def load(model_name: str) -> Language:
     """Searches for `model_name` on PyGrid and loads it as a Language object.
 
@@ -57,10 +58,10 @@ def load(model_name: str) -> Language:
     
     return nlp
 
-
+@type_hints
 def create(
     model_name, tags: Set[str] = None, description: str = None
-):
+) -> Language:
     """Creates a new Language object. This function is used when a new language model
     is constructed from local files.
 
