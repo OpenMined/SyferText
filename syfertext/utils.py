@@ -25,7 +25,7 @@ def hash_string(string: str) -> int:
 
 
 @type_hints
-def normalize_slice(length: int, start: int, stop: int, step: int = None):
+def normalize_slice(length: int, start: int, stop: int, step: int = None) -> Tuple[int, int]:
     """This function is used to convert the negative slice boundaries to positive values.
     eg. start = -4, stop = -1, length = 6 gets converted to start = 2, stop = 5
 
