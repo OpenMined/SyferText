@@ -5,6 +5,10 @@ import mmh3
 import os
 import re
 
+from .state import State
+from .pointers.state_pointer import StatePointer
+from .language_model import LanguageModel
+from .pointers.language_model_pointer import LanguageModelPointer
 
 from typing import Pattern
 from typing import Match

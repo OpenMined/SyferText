@@ -3,6 +3,7 @@ from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
 from ..utils import msgpack_code_generator
+from ..typecheck.typecheck import type_hints
 
 from typing import Union
 from typing import Tuple
@@ -43,6 +44,7 @@ class StatePointer(ObjectPointer):
             garbage_collect_data=False,
         )
 
+    @type_hints
     def get_copy(self) -> "State":
         """This method is used to download a copy of the remote 
         State object.
@@ -66,6 +68,7 @@ class StatePointer(ObjectPointer):
 
         return state
 
+    @type_hints
     def send_copy(self, destination: Union[str, BaseWorker]) -> None:
         """Calls the `send_copy` method of the underlying State object.
         """
@@ -80,6 +83,7 @@ class StatePointer(ObjectPointer):
 
         
     @staticmethod
+    @type_hints
     def simplify(worker: BaseWorker, state_pointer: "StatePointer") -> Tuple[object]:
         """Simplifies a StatePointer object. This method is required by PySyft
         when a StatePointer object is sent to another worker. 
@@ -108,6 +112,7 @@ class StatePointer(ObjectPointer):
 
 
     @staticmethod
+    @type_hints
     def detail(worker: BaseWorker, state_pointer_simple: Tuple[object]) -> "StatePointer":
         """Takes a simplified StatePointer object, details it to create
         a new StatePointer object. This is usually done on a worker where
@@ -151,6 +156,7 @@ class StatePointer(ObjectPointer):
     
     
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.

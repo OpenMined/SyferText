@@ -4,6 +4,7 @@ import syft as sy
 
 from typing import List
 from typing import Union
+from ..typecheck.typecheck import type_hints
 
 
 class SpanPointer(ObjectPointer):
@@ -35,7 +36,8 @@ class SpanPointer(ObjectPointer):
             location=location, id_at_location=id_at_location, owner=owner, id=id,
         )
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
 
         # Send the command
         length = self.owner.send_command(
@@ -44,7 +46,8 @@ class SpanPointer(ObjectPointer):
 
         return length
 
-    def __getitem__(self, item: Union[slice, int]):
+    @type_hints
+    def __getitem__(self, item: Union[slice, int]) -> "Span":
 
         # if item is int, so we are trying to access to token
         assert isinstance(
@@ -61,7 +64,8 @@ class SpanPointer(ObjectPointer):
 
         return span
 
-    def as_doc(self):
+    @type_hints
+    def as_doc(self) -> "Doc":
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
         Returns:

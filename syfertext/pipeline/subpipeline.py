@@ -2,6 +2,7 @@ from ..doc import Doc
 from ..pointers.doc_pointer import DocPointer
 from .pointers import SubPipelinePointer
 from ..utils import msgpack_code_generator
+from ..typecheck.typecheck import type_hints
 
 import syft as sy
 from syft.generic.abstract.sendable import AbstractSendable
@@ -65,6 +66,7 @@ class SubPipeline(AbstractSendable):
 
         super(SubPipeline, self).__init__(id=id, owner=self.owner)
 
+    @type_hints
     def load_states(self) -> None:
         """Calls the `load_state()` method of each pipe object in
         self.subpipeline.
@@ -73,7 +75,8 @@ class SubPipeline(AbstractSendable):
         for pipe in self.subpipeline:
             pipe.load_state()
 
-    def load_template(self, template: dict, factories: Dict[str, type]):
+    @type_hints
+    def load_template(self, template: dict, factories: Dict[str, type]) -> None:
         """Loads the subpipeline template.
 
 
@@ -94,6 +97,7 @@ class SubPipeline(AbstractSendable):
             for name in template["names"]
         ]
 
+    @type_hints
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
     ) -> Union[int, str, Doc]:
@@ -166,6 +170,7 @@ class SubPipeline(AbstractSendable):
         return doc
 
     @staticmethod
+    @type_hints
     def create_pointer(
         subpipeline: "SubPipeline",
         owner: BaseWorker,
@@ -210,6 +215,7 @@ class SubPipeline(AbstractSendable):
         return subpipeline_pointer
 
     @staticmethod
+    @type_hints
     def simplify(worker: BaseWorker, subpipeline: "SubPipeline") -> Tuple[object]:
         """Simplifies a SubPipeline object.
 
@@ -247,6 +253,7 @@ class SubPipeline(AbstractSendable):
         return (id_simple, client_id_simple, model_name_simple, pipe_names_simple, pipes_simple)
 
     @staticmethod
+    @type_hints
     def detail(worker: BaseWorker, simple_obj: tuple) -> "SubPipeline":
         """Takes a simplified SubPipeline object, details it along with
         every pipe included in it and returns a SubPipeline object.
@@ -293,7 +300,8 @@ class SubPipeline(AbstractSendable):
 
         return subpipeline
 
-    def send(self, location: BaseWorker):
+    @type_hints
+    def send(self, location: BaseWorker) -> SubPipelinePointer:
         """Sends this object to the worker specified by 'location'.
         Args:
             location (BaseWorker): The BaseWorker object to which the object is
@@ -308,6 +316,7 @@ class SubPipeline(AbstractSendable):
         return ptr
 
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.
@@ -333,7 +342,9 @@ class SubPipeline(AbstractSendable):
 
         return code_dict
 
-    def __repr__(self):
+
+    @type_hints
+    def __repr__(self) -> str:
 
         # Create a list of pipe names included in the subpipeline
         pipe_names = "[" + " > ".join(self.pipe_names) + "]"

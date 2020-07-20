@@ -1,12 +1,14 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
+import torch
 
 from .span_pointer import SpanPointer
 from typing import List
 from typing import Union
 from typing import Dict
 from typing import Set
+from ..typecheck.typecheck import type_hints
 
 
 class DocPointer(ObjectPointer):
@@ -47,13 +49,14 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
+    @type_hints
     def get_encrypted_vector(
         self,
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.Tensor:
         """Get the mean of the vectors of each Token in this documents.
 
         Args:
@@ -94,6 +97,7 @@ class DocPointer(ObjectPointer):
 
         return doc_vector
 
+    @type_hints
     def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
 
         # if item is int, so we are trying to access to token
@@ -111,13 +115,14 @@ class DocPointer(ObjectPointer):
 
         return span
 
+    @type_hints
     def get_encrypted_token_vectors(
         self,
         *workers: BaseWorker,
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
-    ):
+    ) -> torch.Tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
@@ -161,7 +166,8 @@ class DocPointer(ObjectPointer):
 
         return token_vectors
 
-    def __len__(self):
+    @type_hints
+    def __len__(self) -> int:
 
         # Send the command
         length = self.owner.send_command(

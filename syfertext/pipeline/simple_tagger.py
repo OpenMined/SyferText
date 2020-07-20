@@ -1,6 +1,7 @@
 from syfertext.doc import Doc
 from syfertext.token import Token
 from ..utils import msgpack_code_generator
+from ..typecheck.typecheck import type_hints
 
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
@@ -8,6 +9,7 @@ from syft.generic.abstract.sendable import AbstractSendable
 
 from typing import Union
 from typing import Dict
+from typing import Tuple
 
 
 class SimpleTagger(AbstractSendable):
@@ -64,7 +66,8 @@ class SimpleTagger(AbstractSendable):
         self.tag = tag
         self.default_tag = default_tag
 
-    def factory(self):
+    @type_hints
+    def factory(self) -> None:
         """Creates a clone of this object.
         This method is used by the SupPipeline class to create
         objects using subpipeline templates.
@@ -78,7 +81,8 @@ class SimpleTagger(AbstractSendable):
             case_sensitive=self.case_sensitive,
         )
 
-    def __call__(self, doc: Doc):
+    @type_hints
+    def __call__(self, doc: Doc) -> Doc:
 
         # Start tagging
         for token in doc:
@@ -91,7 +95,8 @@ class SimpleTagger(AbstractSendable):
 
         return doc
 
-    def _desensitize_lookups(self, lookups: Union[dict, list, set]):
+    @type_hints
+    def _desensitize_lookups(self, lookups: Union[dict, list, set]) -> Union[dict, list, set]:
         """Converts every token in `self.lookups` to lower case to enable
            case in-sensitive matching
 
@@ -113,6 +118,7 @@ class SimpleTagger(AbstractSendable):
         if isinstance(lookups, list) or isinstance(lookups, set):
             return {token.lower() for token in lookups}
 
+    # Find return type: tag
     def _get_tag(self, token: Token):
         """Gets the tag that should be assigned to the Token object `token`.
            If now value is found, self.default is used instead
@@ -142,6 +148,7 @@ class SimpleTagger(AbstractSendable):
         return tag
 
     @staticmethod
+    # Find return type: Tuple of what?
     def simplify(worker: BaseWorker, simple_tagger: "SimpleTagger"):
         """Simplifies a SimpleTagger object. 
 
@@ -166,7 +173,8 @@ class SimpleTagger(AbstractSendable):
         return (attribute, lookups, tag, default_tag, case_sensitive)
 
     @staticmethod
-    def detail(worker: BaseWorker, simple_obj: tuple):
+    @type_hints
+    def detail(worker: BaseWorker, simple_obj: tuple) -> "SimpleTagger":
         """Takes a simplified SimpleTagger object, details it 
            and returns a SimpleTagger object.
 
@@ -200,6 +208,7 @@ class SimpleTagger(AbstractSendable):
         return simple_tagger
 
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.
