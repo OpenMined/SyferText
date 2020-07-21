@@ -1,8 +1,8 @@
 import pickle
 import os
 from pathlib import Path
-import numpy as np
 import importlib
+import torch
 from typing import Union
 
 from .utils import hash_string
@@ -33,6 +33,9 @@ class Vectors:
 
         # Load the array holding the word vectors
         self.data, self.default_vector = LOADERS["vectors"]()
+
+        # Convert the default vector to torch Tensor
+        self.default_vector = torch.Tensor(self.default_vector)
 
         # Load the mappings between word hashes and row indices in 'self.data'
         self.key2row = LOADERS["key2row"]()
@@ -95,5 +98,8 @@ class Vectors:
 
         # Get the vector
         vector = self.data[row]
+
+        # Convert the vectors to torch Tensors
+        vector = torch.tensor(vector, dtype=torch.float32)
 
         return vector

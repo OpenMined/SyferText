@@ -5,10 +5,8 @@ from .lexeme import LexemeMeta
 
 import syft as sy
 import torch
-import numpy as np
 from typing import Union
 from syft.generic.string import String
-
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 
@@ -181,17 +179,10 @@ class Token(AbstractObject):
             Tensor: The L2 norm of the vector representation.
         """
 
-        # Convert the vector from a numpy array to a Tensor
-        vector = torch.tensor(self.vector)
-
-        # Compute the norm
-        norm = (vector ** 2).sum()
-        norm = torch.sqrt(norm)
-
-        return norm
+        return torch.sqrt((self.vector ** 2).sum())
 
     def similarity(self, other):
-        """Compute the cosine similarity between tokens' vectors.
+        """Compute the cosine similarity between tokens vectors.
         
         Args:
             other (Token): The Token to compare with.
@@ -231,9 +222,6 @@ class Token(AbstractObject):
         # Get the vector
         vector = self.doc.vocab.vectors[self.orth_]
 
-        # Create a Syft/Torch tensor
-        vector = torch.Tensor(vector)
-
         # Encrypt the vector using SMPC
         vector = vector.fix_precision().share(
             *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
@@ -243,13 +231,6 @@ class Token(AbstractObject):
 
     # Following attributes are inspired from Spacy, they have similar behaviour as in spacy.
     # Some of the attributes are redundant but they are to maintain consistency with other attributes
-
-    @property
-    def vector_norm(self):
-        """The L2 norm of the token's vector"""
-
-        vector = self.vector
-        return np.sqrt((vector ** 2).sum())
 
     @property
     def text_with_ws(self):
