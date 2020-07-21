@@ -3,6 +3,22 @@
 ![CI](https://github.com/OpenMined/SyferText/workflows/CI/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+## SyferText
+
+SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft to perform Federated Learning and Encrypted Computations (
+[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) on text data. The two main usage scenarios of SyferText are:
+
+- :fire: **Secure plaintext pre-processing:** Enables pre-processing of  text located on a remote machine without breaking data privacy.
+- :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle the complete pipeline of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
+  
+To get a more detailed introduction about SyferText, watch :movie_camera: [OpenMined AMA Session](https://youtu.be/gtwOPxxJ5F4) with Alan Aboudib available on YouTube.
+  
 
 ## Installation
 
@@ -120,14 +136,25 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
 </table>
 <br>
 
+[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/0)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/0)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/1)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/1)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/2)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/2)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/3)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/3)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/4)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/4)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/5)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/5)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/6)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/6)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/7)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/7)
+
 ## SyferText News
 
 To get news about feature and tutorial relseases:
 
 Alan Aboudib: [@twitter](https://twitter.com/alan_aboudib)
 
- and join [#lib_syfertext](https://openmined.slack.com/archives/CUWDZMED9) channel on slack.
+and join [#lib_syfertext](https://openmined.slack.com/archives/CUWDZMED9) channel on slack.
 
+
+## Support
+For support in using this library, please join the [#lib_syfertext](https://openmined.slack.com/archives/CUWDZMED9) Slack channel. If you’d like to follow along with any code changes to the library, please join the **#code_syfertext** Slack channel. [Click here to join our Slack community!](https://slack.openmined.org)
+
+
+## Contributors ✨
+[CONTRIBUTORS.md](https://github.com/OpenMined/SyferText/blob/master/CONTRIBUTORS.md)
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
 
 ## Call for Partners
 
@@ -142,16 +169,6 @@ You can reach out to us by contacting Alan on one of the following channels:
 
  [LinkedIn](https://www.linkedin.com/in/ala-aboudib/) | [Slack](https://app.slack.com/client/T6963A864/DDKH3SXKL/user_profile/UDKH3SH8S) | [Twitter](https://twitter.com/alan_aboudib)
  
--------
-
-For more updates on our activities at OpenMined and for getting exciting news and announcements about our different projects, you can join our rapidly growing community of 7000+ on [Slack](https://slack.openmined.org/). You can follow our [official twitter page](https://twitter.com/openminedorg), as well as OpenMined [founder's twitter page](https://twitter.com/iamtrask).
-
-
-## Support
-For support in using this library, please join the **#lib_syfertext** Slack channel. If you’d like to follow along with any code changes to the library, please join the **#code_syfertext** Slack channel. [Click here to join our Slack community!](https://slack.openmined.org)
-
-
-## Contributors ✨
-[CONTRIBUTORS.md](https://github.com/OpenMined/SyferText/blob/master/CONTRIBUTORS.md)
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
+ 
+## License
+[Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
