@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft as sy
@@ -47,7 +49,7 @@ class SpanPointer(ObjectPointer):
         return length
 
     @type_hints
-    def __getitem__(self, item: Union[slice, int]) -> "Span":
+    def __getitem__(self, item: Union[slice, int]) -> "SpanPointer":
 
         # if item is int, so we are trying to access to token
         assert isinstance(

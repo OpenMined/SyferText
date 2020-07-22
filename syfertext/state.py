@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde

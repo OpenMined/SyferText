@@ -5,11 +5,6 @@ import mmh3
 import os
 import re
 
-from .state import State
-from .pointers.state_pointer import StatePointer
-from .language_model import LanguageModel
-from .pointers.language_model_pointer import LanguageModelPointer
-
 from typing import Pattern
 from typing import Match
 from typing import Tuple
@@ -145,7 +140,7 @@ def create_state_query(model_name: str, state_name: str) -> str:
 
     return query
 
-@type_hints
+# On @type_hints gives : State not defined, on importing leads to a circular import
 def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
     """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.

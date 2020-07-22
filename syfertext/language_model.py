@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .pointers.language_model_pointer import LanguageModelPointer
 from .utils import msgpack_code_generator
 from .utils import create_state_query
@@ -155,7 +157,7 @@ class LanguageModel(AbstractSendable):
         location: BaseWorker = None,
         id_at_location: str = None,
         tags: Set[str] = None,
-        ptr_id = None,
+        ptr_id: str = None,
         register: bool = True,
         garbage_collect_data: bool = False,
     ) -> LanguageModelPointer:

@@ -23,7 +23,7 @@ def test_addition_and_removal_of_pipeline_components():
     """Test the add_pipe and remove_pipe methods.
     """
 
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = syfertext.load(model_name="en_core_web_lg", owner=me)
 
     # Add the pipeline components to SyferText pipeline
     nlp.add_pipe(noun_tagger, name="noun tagger")

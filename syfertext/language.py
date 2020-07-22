@@ -126,7 +126,7 @@ class Language(AbstractObject):
         # Save the state in the object store
         self._save_state(state=state, name="vocab", access=access)
 
-    @type_hints
+    # Find argument type : pipeline_template and states
     def load_pipeline(self, pipeline_template, states) -> None:
 
         # Load the states
@@ -386,7 +386,7 @@ class Language(AbstractObject):
         self,
         template_index: int,
         location_id: str,
-        input=Union[str, String, StringPointer, Doc, DocPointer],
+        input:Union[str, String, StringPointer, Doc, DocPointer],
     ) -> Union[Doc, DocPointer]:
         """Creates a `subpipeline` object and sends it to the appropriate
         worker if `input` is remote. Then runs the subpipeline at position

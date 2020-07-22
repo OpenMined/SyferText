@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
@@ -44,7 +46,7 @@ class StatePointer(ObjectPointer):
             garbage_collect_data=False,
         )
 
-    @type_hints
+    # On @type_hints gives : State not defined, on importing leads to a circular import
     def get_copy(self) -> "State":
         """This method is used to download a copy of the remote 
         State object.

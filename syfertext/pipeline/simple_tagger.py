@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from syfertext.doc import Doc
 from syfertext.token import Token
 from ..utils import msgpack_code_generator

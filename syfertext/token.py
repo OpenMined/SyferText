@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .utils import hash_string
 from .typecheck.typecheck import type_hints
 
@@ -105,7 +107,7 @@ class Token(AbstractObject):
         return getattr(self._, name)
 
     @type_hints
-    def nbor(self, offset=1) -> Token:
+    def nbor(self, offset:int = 1) -> 'Token':
         """Gets the neighbouring token at `self.position + offset` if it exists
 
         Args:
@@ -186,7 +188,7 @@ class Token(AbstractObject):
         return norm
 
     @type_hints
-    def similarity(self, other) -> torch.Tensor:
+    def similarity(self, other:'Token') -> torch.Tensor:
         """Compute the cosine similarity between tokens' vectors.
         
         Args:
@@ -207,7 +209,7 @@ class Token(AbstractObject):
 
         return sim
 
-    @type_hints
+    # Find argument type : *workers
     def get_encrypted_vector(self, *workers, crypto_provider=None, requires_grad=True) -> torch.Tensor:
         """Get the mean of the vectors of each Token in this documents.
 

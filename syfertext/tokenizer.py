@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .doc import Doc
 from .vocab import Vocab
 from .state import State

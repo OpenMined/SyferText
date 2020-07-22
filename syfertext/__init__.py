@@ -60,7 +60,7 @@ def load(model_name: str) -> Language:
 
 @type_hints
 def create(
-    model_name, tags: Set[str] = None, description: str = None
+    model_name: str, tags: Set[str] = None, description: str = None
 ) -> Language:
     """Creates a new Language object. This function is used when a new language model
     is constructed from local files.

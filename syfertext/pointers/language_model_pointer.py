@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
 from ..utils import search_resource
 from ..utils import msgpack_code_generator
+from ..typecheck.typecheck import type_hints
 
 from typing import Union
 from typing import Tuple
@@ -43,6 +46,7 @@ class LanguageModelPointer(ObjectPointer):
             garbage_collect_data=False,
         )
 
+    # On @type_hints gives : Language not defined, on importing leads to a circular import
     def get_copy(self) -> "LanguageModel":
         """This method is used to download a copy of the remote 
         LanguageModel object.
@@ -66,6 +70,7 @@ class LanguageModelPointer(ObjectPointer):
 
         return language_model
 
+    @type_hints
     def deploy_states(self) -> None:
         """Forwards the call to the `deploy_states` method of the underlying
         `language_model` object which, in turn, searches for the State objects 
@@ -84,6 +89,7 @@ class LanguageModelPointer(ObjectPointer):
 
 
     @staticmethod
+    @type_hints
     def simplify(worker: BaseWorker, language_model_pointer: "LanguageModelPointer") -> Tuple[object]:
         """Simplifies a LanguageModelPointer object. This method is required by PySyft
         when a LanguageModelPointer object is sent to another worker. 
@@ -111,6 +117,7 @@ class LanguageModelPointer(ObjectPointer):
 
 
     @staticmethod
+    @type_hints
     def detail(worker: BaseWorker, language_model_pointer_simple: Tuple[object]) -> "LanguageModelPointer":
         """Takes a simplified LanguageModelPointer object, details it to create
         a new LanguageModelPointer object. This is usually done on a worker where
@@ -153,6 +160,7 @@ class LanguageModelPointer(ObjectPointer):
     
     
     @staticmethod
+    @type_hints
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
         method required by PySyft's SyftSerializable class.

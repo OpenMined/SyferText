@@ -12,7 +12,7 @@ from syfertext.pointers.span_pointer import SpanPointer
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = syfertext.load(model_name="en_core_web_lg", owner=me)
 
 
 def test_creation_of_basic_span():

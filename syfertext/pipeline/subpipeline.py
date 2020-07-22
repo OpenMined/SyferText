@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..doc import Doc
 from ..pointers.doc_pointer import DocPointer
 from .pointers import SubPipelinePointer

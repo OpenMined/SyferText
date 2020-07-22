@@ -22,10 +22,10 @@ class StringStore:
 
         if strings is not None:  # load strings
             for word in strings:
-                self.add(word)
+                self.add(string=word)
 
     @type_hints
-    def __contains__(self, string) -> bool:
+    def __contains__(self, string:str) -> bool:
         """Check whether string is in the store
 
         Args:
@@ -37,8 +37,8 @@ class StringStore:
 
         return string in self.str_to_key.keys()
 
-    @type_hints
-    def add(self, string: str) -> int:
+    # Some issue with add method
+    def add(self, string:str) -> int:
         """Add a sting to the StringStore
 
         Args:
@@ -59,7 +59,7 @@ class StringStore:
 
         else:
             # get corresponding hash value
-            key = hash_string(string)
+            key = hash_string(string=string)
 
             # add string to dictionaries
             self.str_to_key[string] = key
