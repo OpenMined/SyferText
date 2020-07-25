@@ -67,7 +67,7 @@ class SpanPointer(ObjectPointer):
         return span
 
     @type_hints
-    def as_doc(self) -> "Doc":
+    def as_doc(self) -> 'Doc':
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
         Returns:

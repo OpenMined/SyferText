@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from syft.workers.base import BaseWorker
 from .typecheck.typecheck import type_hints
 
@@ -141,7 +143,8 @@ def create_state_query(model_name: str, state_name: str) -> str:
     return query
 
 # On @type_hints gives : State not defined, on importing leads to a circular import
-def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
+@type_hints
+def search_resource(query: str, local_worker: BaseWorker) -> Union['State', 'StatePointer', 'LanguageModel', 'LanguageModelPointer',  None]:
     """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the

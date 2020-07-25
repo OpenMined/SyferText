@@ -440,17 +440,17 @@ class Doc(AbstractObject):
 
         return token_vectors
 
-    # Import inside: DocPointer
     @staticmethod
+    @type_hints
     def create_pointer(
-        doc,
+        doc: 'Doc',
         location: BaseWorker = None,
         id_at_location: (str or int) = None,
         register: bool = False,
         owner: BaseWorker = None,
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
-    ) -> "DocPointer":
+    ) -> 'DocPointer':
         """Creates a DocPointer object that points to a Doc object living in the the worker 'location'.
 
         Returns:

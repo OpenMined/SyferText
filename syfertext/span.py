@@ -243,8 +243,8 @@ class Span(AbstractObject):
 
         return span_vector
 
-    # Import inside: Doc
-    def as_doc(self):
+    @type_hints
+    def as_doc(self) -> 'Doc':
         """Create a `Doc` object with a copy of the `Span`'s tokens.
 
         Returns :
@@ -277,16 +277,16 @@ class Span(AbstractObject):
         return doc
 
     @staticmethod
-    # Import inside: SpanPointer
+    @type_hints
     def create_pointer(
-        span,
+        span: 'Span',
         location: BaseWorker = None,
         id_at_location: (str or int) = None,
         register: bool = False,
         owner: BaseWorker = None,
         ptr_id: (str or int) = None,
         garbage_collect_data: bool = True,
-    ):
+    ) -> 'SpanPointer':
         """Creates a SpanPointer object that points to a Span object living in the the worker 'location'.
 
         Returns:

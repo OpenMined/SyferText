@@ -47,7 +47,8 @@ class StatePointer(ObjectPointer):
         )
 
     # On @type_hints gives : State not defined, on importing leads to a circular import
-    def get_copy(self) -> "State":
+    @type_hints
+    def get_copy(self) -> 'State':
         """This method is used to download a copy of the remote 
         State object.
 

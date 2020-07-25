@@ -47,7 +47,8 @@ class LanguageModelPointer(ObjectPointer):
         )
 
     # On @type_hints gives : Language not defined, on importing leads to a circular import
-    def get_copy(self) -> "LanguageModel":
+    @type_hints
+    def get_copy(self) -> 'LanguageModel':
         """This method is used to download a copy of the remote 
         LanguageModel object.
 
