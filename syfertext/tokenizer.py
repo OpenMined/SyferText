@@ -74,11 +74,10 @@ class TokenMeta(object):
 
 
 class Tokenizer(AbstractSendable):
-
     def __init__(
         self,
         model_name: str = None,
-        owner: BaseWorker = None,            
+        owner: BaseWorker = None,
         exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
         prefixes: List[str] = TOKENIZER_PREFIXES,
         suffixes: List[str] = TOKENIZER_SUFFIXES,
@@ -124,7 +123,7 @@ class Tokenizer(AbstractSendable):
 
         # Set the owner
         self.owner = owner
-        
+
     def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
@@ -187,7 +186,6 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = {}
 
-
     def load_state(self) -> None:
         """Search for the state of this object on PyGrid.
 
@@ -197,16 +195,17 @@ class Tokenizer(AbstractSendable):
         """
 
         # Start by creating the vocab and loading its state
-        self.vocab = Vocab(model_name=self.model_name, owner = self.owner)
+        self.vocab = Vocab(model_name=self.model_name, owner=self.owner)
         self.vocab.load_state()
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(model_name = self.model_name,
-                                      state_name = self.__class__.__name__.lower())
+        state_id = create_state_query(
+            model_name=self.model_name, state_name=self.__class__.__name__.lower()
+        )
 
         # Search for the state
-        result = search_resource(query=state_id, local_worker = self.owner)
+        result = search_resource(query=state_id, local_worker=self.owner)
 
         # If no state is found, return
         if not result:
@@ -217,10 +216,9 @@ class Tokenizer(AbstractSendable):
         elif isinstance(result, StatePointer):
             # Get a copy of the state using its pointer
             state = result.get_copy()
-            
+
         elif isinstance(result, State):
             state = result
-        
 
         # Detail the simple object contained in the state
         exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
@@ -839,7 +837,7 @@ class Tokenizer(AbstractSendable):
         model_name = serde._detail(worker, model_name)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(model_name=model_name, owner = worker)
+        tokenizer = Tokenizer(model_name=model_name, owner=worker)
 
         return tokenizer
 
