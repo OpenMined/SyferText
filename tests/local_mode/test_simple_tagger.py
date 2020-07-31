@@ -3,6 +3,7 @@ import syft
 import torch
 import syfertext
 from syfertext.pipeline import SimpleTagger
+import utils
 
 # Create a torch hook for PySyft
 hook = syft.TorchHook(torch)
@@ -11,7 +12,7 @@ hook = syft.TorchHook(torch)
 me = hook.local_worker
 
 # Get a SyferText Language object
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = utils.get_test_language_model()
 
 # Define a text to tag
 text = "The quiCk broWn Fox jUmps over thE lazY Dog . I will tokenizE thiS phrase wiTh SyferText . I Will do it myselF"

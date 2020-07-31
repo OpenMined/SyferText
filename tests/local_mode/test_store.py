@@ -1,5 +1,6 @@
 import syft
 import torch
+import utils
 import syfertext
 from syfertext.string_store import StringStore
 
@@ -69,7 +70,7 @@ def test_dynamic_store_size():
     """Tests size of StringStore in vocab after creating doc"""
 
     me = hook.local_worker
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = utils.get_test_language_model()
 
     # Check that no string is present in store
     assert len(nlp.vocab.store) == 0

@@ -1,6 +1,7 @@
 import syft as sy
 import syfertext
 import torch
+import utils
 from syft.generic.string import String
 from syfertext.doc import Doc
 from syfertext.pointers import DocPointer
@@ -23,7 +24,7 @@ def test_addition_and_removal_of_pipeline_components():
     """Test the add_pipe and remove_pipe methods.
     """
 
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = utils.get_test_language_model()
 
     # Add the pipeline components to SyferText pipeline
     nlp.add_pipe(noun_tagger, name="noun tagger")
@@ -49,7 +50,7 @@ def test_number_of_subpipelines_created_with_pipes_of_different_remote_values():
     with different remote values.
     """
 
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = utils.get_test_language_model())
 
     # Add the pipeline components to SyferText pipeline
     nlp.add_pipe(noun_tagger, name="noun tagger", remote=True)
@@ -94,7 +95,7 @@ def test_subpipeline_is_not_recreated_in_remote_workers():
     has been initialized once. Each worker contains a single subpipeline, with multiple components.
     """
 
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = utils.get_test_language_model()
 
     alice = sy.VirtualWorker(hook, id="alice")
     bob = sy.VirtualWorker(hook, id="bob")
@@ -149,7 +150,7 @@ def test_subpipeline_is_not_recreated_in_remote_workers():
 
 def test_pipeline_output():
 
-    nlp = syfertext.load("en_core_web_lg", owner=me)
+    nlp = utils.get_test_language_model()
 
     james = sy.VirtualWorker(hook, id="james")
 

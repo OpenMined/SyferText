@@ -1,6 +1,7 @@
 import syft as sy
 import torch
 import syfertext
+import utils
 
 from syft.generic.string import String
 
@@ -12,7 +13,7 @@ from syfertext.pointers.span_pointer import SpanPointer
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = utils.get_test_language_model()
 
 
 def test_creation_of_basic_span():
