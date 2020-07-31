@@ -50,7 +50,7 @@ def test_number_of_subpipelines_created_with_pipes_of_different_remote_values():
     with different remote values.
     """
 
-    nlp = utils.get_test_language_model())
+    nlp = utils.get_test_language_model()
 
     # Add the pipeline components to SyferText pipeline
     nlp.add_pipe(noun_tagger, name="noun tagger", remote=True)
