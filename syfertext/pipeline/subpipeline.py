@@ -146,7 +146,8 @@ class SubPipeline(AbstractSendable):
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
+        for t in doc:
+            print(t.text)
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
