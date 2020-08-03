@@ -14,13 +14,13 @@ setup(
     description="A privacy preserving NLP framework",
     url="https://github.com/OpenMined/SyferText",
     keywords="nlp smpc secure multi-party computation federated learning deep learning artificial intelligence secure model sharin natural language processing spacy spaCy",
-    classifier=["Programming Language :: Python :: 3.6", "Operating System :: OS Independent"],
+    classifier=["Programming Language :: Python :: 3.7", "Operating System :: OS Independent"],
     license="Apache-2.0",
     version="0.0.1",
     packages=find_packages(),
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft", "requests==2.22.0",],
+    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft==0.2.8", "requests==2.22.0",],
     extras_require={
         "test": [
             "black>=19.10b0",
