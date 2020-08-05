@@ -7,8 +7,9 @@ from syfertext.vocab import Vocab
 from syfertext.utils import hash_string
 from syfertext.test_vocab import TEST_VOCAB
 
+
 def get_test_language_model():
-    nlp = syfertext.create(model_name = "syfertext_sentiment")
+    nlp = syfertext.create(model_name="syfertext_sentiment")
     # Create the tokenizer
     tokenizer = Tokenizer()
 
@@ -19,20 +20,18 @@ def get_test_language_model():
     # create hash2row empty dict
     hash2row = {}
     # create hash2row dict
-    for i in range (vocab_size):
+    for i in range(vocab_size):
         index = random.choice(indexes)
         indexes.remove(index)
-        hash2row[hash_string(TEST_VOCAB[index])]=index
+        hash2row[hash_string(TEST_VOCAB[index])] = index
 
     # create vectors from words taken
-    vectors= np.random.rand(vocab_size, 300)
+    vectors = np.random.rand(vocab_size, 300)
     # create vocab from hash2row and vectors
-    vocab = Vocab(hash2row = hash2row, vectors=vectors)
+    vocab = Vocab(hash2row=hash2row, vectors=vectors)
 
-    nlp.set_tokenizer(tokenizer, access = {'*'})
+    nlp.set_tokenizer(tokenizer, access={"*"})
 
-    nlp.set_vocab(vocab, access = {'*'})
+    nlp.set_vocab(vocab, access={"*"})
 
     return nlp
-
-

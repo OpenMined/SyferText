@@ -9,6 +9,7 @@ from typing import Union
 from typing import Tuple
 from typing import Dict
 
+
 class LanguageModelPointer(ObjectPointer):
     """This class defines a pointer to a LanguageModel object. Whenever a 
     LanguageModel object is searched on the grid and found on any of the 
@@ -18,10 +19,7 @@ class LanguageModelPointer(ObjectPointer):
     """
 
     def __init__(
-        self,
-        location: BaseWorker,
-        id_at_location: str,
-        owner: BaseWorker,
+        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
     ):
         """Initializes the LanguageModel object.
 
@@ -53,13 +51,13 @@ class LanguageModelPointer(ObjectPointer):
         """
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "send_copy",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {"destination": self.owner}
+        self.owner.send_command(
+            recipient=self.location,
+            cmd_name="send_copy",
+            target=self,
+            args_=tuple(),
+            kwargs_={"destination": self.owner},
         )
-
 
         # Get the language_model from the local object store
         language_model = self.owner.get_obj(self.id_at_location)
@@ -74,17 +72,18 @@ class LanguageModelPointer(ObjectPointer):
         """
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "deploy_states",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {}
+        self.owner.send_command(
+            recipient=self.location,
+            cmd_name="deploy_states",
+            target=self,
+            args_=tuple(),
+            kwargs_={},
         )
-        
-
 
     @staticmethod
-    def simplify(worker: BaseWorker, language_model_pointer: "LanguageModelPointer") -> Tuple[object]:
+    def simplify(
+        worker: BaseWorker, language_model_pointer: "LanguageModelPointer"
+    ) -> Tuple[object]:
         """Simplifies a LanguageModelPointer object. This method is required by PySyft
         when a LanguageModelPointer object is sent to another worker. 
 
@@ -102,16 +101,15 @@ class LanguageModelPointer(ObjectPointer):
         location_simple = serde._simplify(worker, language_model_pointer.location)
         id_at_location_simple = serde._simplify(worker, language_model_pointer.id_at_location)
 
-
         # create the simple LanguageModelPointer object
         language_model_pointer_simple = (location_simple, id_at_location_simple)
 
         return language_model_pointer_simple
 
-
-
     @staticmethod
-    def detail(worker: BaseWorker, language_model_pointer_simple: Tuple[object]) -> "LanguageModelPointer":
+    def detail(
+        worker: BaseWorker, language_model_pointer_simple: Tuple[object]
+    ) -> "LanguageModelPointer":
         """Takes a simplified LanguageModelPointer object, details it to create
         a new LanguageModelPointer object. This is usually done on a worker where
         the LanguageModelPointer object is sent.
@@ -125,14 +123,12 @@ class LanguageModelPointer(ObjectPointer):
             A LanguageModelPointer object.
         """
 
-        
         # Unpack the simple language_model
         location_simple, id_at_location_simple = language_model_pointer_simple
 
         # Detail the attributes
         location = serde._detail(worker, location_simple)
         id_at_location = serde._detail(worker, id_at_location_simple)
-
 
         # If the detailing is happening on the worker pointed
         # to by this pointer, there is no point in keeping a
@@ -141,17 +137,14 @@ class LanguageModelPointer(ObjectPointer):
         # of CommandMessages in PySyft.
         if worker.id == location.id:
             return worker.get_obj(id_at_location)
-        
+
         # Create a LanguageModel object
         language_model_pointer = LanguageModelPointer(
-            location = location,
-            id_at_location = id_at_location,
-            owner = worker
+            location=location, id_at_location=id_at_location, owner=worker
         )
 
         return language_model_pointer
-    
-    
+
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
@@ -177,4 +170,3 @@ class LanguageModelPointer(ObjectPointer):
         code_dict = dict(code=LanguageModelPointer.proto_id)
 
         return code_dict
-    

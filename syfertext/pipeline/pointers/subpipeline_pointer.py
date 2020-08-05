@@ -46,21 +46,16 @@ class SubPipelinePointer(ObjectPointer):
             garbage_collect_data=garbage_collect_data,
         )
 
-        
     def load_states(self) -> None:
         """Calls the `load_states()` method of the Subpipeline
         object referenced by this pointer object.
         """
 
         # Send the command
-        self.owner.send_command(recipient = self.location,
-                                cmd_name = "load_states",
-                                target = self,
-                                args_ = tuple(),
-                                kwargs_ = {})
+        self.owner.send_command(
+            recipient=self.location, cmd_name="load_states", target=self, args_=tuple(), kwargs_={}
+        )
 
-
-    
     def __call__(self, pointer: Union[StringPointer, DocPointer]):
         """Forwards the call to the `__call__` method of the
         `SubPipeline` object it points to. 
@@ -93,7 +88,6 @@ class SubPipelinePointer(ObjectPointer):
 
         return response
 
-
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
@@ -119,4 +113,3 @@ class SubPipelinePointer(ObjectPointer):
         code_dict = dict(code=SubPipelinePointer.proto_id)
 
         return code_dict
-    
