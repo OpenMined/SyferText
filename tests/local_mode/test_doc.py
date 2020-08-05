@@ -3,13 +3,14 @@ import torch
 import syfertext
 from syft.generic.string import String
 from syfertext.pointers.doc_pointer import DocPointer
+from syfertext.local_pipeline import get_test_language_model
 
 import numpy as np
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = get_test_language_model()
 
 
 def test_avg_vector_valid_token():

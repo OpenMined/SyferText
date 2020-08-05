@@ -8,11 +8,12 @@ from syfertext.doc import Doc
 from syfertext.span import Span
 from syfertext.pointers.doc_pointer import DocPointer
 from syfertext.pointers.span_pointer import SpanPointer
+from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = get_test_language_model()
 
 
 def test_creation_of_basic_span():

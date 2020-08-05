@@ -2,11 +2,12 @@ import syft as sy
 import torch
 import syfertext
 import numpy as np
+from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+nlp = get_test_language_model()
 
 
 def test_valid_token_norm_is_not_zero():
