@@ -45,15 +45,6 @@ class DocPointer(ObjectPointer):
             description=description,
         )
 
-    def __len__(self):
-
-        # Send the command
-        length = self.owner.send_command(
-            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={}
-        )
-
-        return length
-
     def __getitem__(self, item: Union[slice, int]) -> SpanPointer:
 
         # if item is int, so we are trying to access to token
