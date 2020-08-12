@@ -138,6 +138,40 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
 
 [![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/0)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/0)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/1)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/1)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/2)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/2)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/3)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/3)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/4)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/4)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/5)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/5)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/6)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/6)[![](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/images/7)](https://sourcerer.io/fame/Nilanshrajput/Nilanshrajput/SyferText/links/7)
 
+## Events
+
+- **(October 26th, 2019)** [DevFest2019, Reading, UK](https://www.meetup.com/GDG-Reading-Thames-Valley/events/262918960/).
+
+Demo on remote blind tokenization with SyferText.
+
+
+- **(March 19th, 2020)** [GDG Meetup, Reading, UK](https://www.meetup.com/GDG-Reading-Thames-Valley/events/268137223/). *(Cancelled due to COVID-19)*
+
+Demo on sentiment analysis with SyferText on multiple private datasets. 
+
+
+- **(May 13th, 2020)**: [OpenMined AMA](https://www.youtube.com/channel/UCzoUqDE_OzYo6lGXtsEbOxQ). *(Cancelled due to COVID-19)*
+
+
+- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s). 
+
+SyferText vision and encrypted sentiment analyzer demo.
+
+
+- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s). 
+
+SyferText vision and encrypted sentiment analyzer demo.
+
+
+- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo). 
+
+About SyferText and my Open Source Contribution Experience with OpenMined
+
+- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. 
+
+Introducing SyferText 0.1.0
+
+
 ## News
 
 To get news about feature and tutorial relseases:
