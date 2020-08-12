@@ -158,7 +158,7 @@ Demo on sentiment analysis with SyferText on multiple private datasets.
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(June 18th, 2020)**: [OpenMined AMA](https://federatedlearningconference.com/index.php/schedule-2/schedule-3). 
+- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3). 
 
 Introduction to SyferText.
 
