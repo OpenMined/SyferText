@@ -120,7 +120,7 @@ class MsgpackCodeGenerator:
     def __init__(self):
         pass
 
-    def __call__(self,cls_name) -> int:
+    def __call__(self, cls_name) -> int:
         """Generates and returns a unique msgpack code
 
         Returns:
