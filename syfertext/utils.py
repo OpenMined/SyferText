@@ -120,8 +120,10 @@ class MsgpackCodeGenerator:
     def __init__(self):
         pass
 
-    def __call__(self, cls_name) -> int:
-        """Generates and returns a unique msgpack code
+    def __call__(self, class_name: str) -> int:
+        """Generates and returns a unique msgpack code.
+        Args:
+        class_name: The name of class for which the msgpack code is required.
 
         Returns:
             An integer to serve as a msgpack serialization code.
