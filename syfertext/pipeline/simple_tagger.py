@@ -218,8 +218,9 @@ class SimpleTagger(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(SimpleTagger, "proto_id"):
-            SimpleTagger.proto_id = msgpack_code_generator()
+            SimpleTagger.proto_id = msgpack_code_generator(SimpleTagger.__qualname__)
 
         code_dict = dict(code=SimpleTagger.proto_id)
 

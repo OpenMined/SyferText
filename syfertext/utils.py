@@ -118,19 +118,17 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
 
 class MsgpackCodeGenerator:
     def __init__(self):
+        pass
 
-        self.code = 1999
-
-    def __call__(self) -> int:
+    def __call__(self,cls_name) -> int:
         """Generates and returns a unique msgpack code
 
         Returns:
             An integer to serve as a msgpack serialization code.
         """
 
-        self.code += 1
-
-        return self.code
+        # the code Msgpack is generated as the hash of class name
+        return hash_string(cls_name)
 
 
 msgpack_code_generator = MsgpackCodeGenerator()
