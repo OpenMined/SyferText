@@ -130,7 +130,7 @@ class MsgpackCodeGenerator:
         """
 
         # the code Msgpack is generated as the hash of class name
-        return hash_string(cls_name)
+        return hash_string(class_name)
 
 
 msgpack_code_generator = MsgpackCodeGenerator()
