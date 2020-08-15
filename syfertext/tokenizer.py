@@ -595,7 +595,7 @@ class Tokenizer(AbstractSendable):
 
         model_name = pickle.dumps(tokenizer.vocab.model_name)
 
-        return model_name
+        return (model_name,)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -610,8 +610,8 @@ class Tokenizer(AbstractSendable):
            tokenizer (Tokenizer) : a Tokenizer object
         """
 
-        # Get the tuple elements
-        model_name = simple_obj
+        # Get the model name from the tuple
+        model_name = simple_obj[0]
 
         # Unpickle
         model_name = pickle.loads(model_name)
@@ -640,8 +640,9 @@ class Tokenizer(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(Tokenizer, "proto_id"):
-            Tokenizer.proto_id = msgpack_code_generator()
+            Tokenizer.proto_id = msgpack_code_generator(Tokenizer.__qualname__)
 
         code_dict = dict(code=Tokenizer.proto_id)
 
