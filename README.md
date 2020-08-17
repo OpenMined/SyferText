@@ -16,13 +16,13 @@ SyferText is a library for privacy preserving Natural Language Processing in Pyt
 
 - :fire: **Secure plaintext pre-processing:** Enables pre-processing of  text located on a remote machine without breaking data privacy.
 - :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle the complete pipeline of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
-  
+
 To get a more detailed introduction about SyferText, watch :movie_camera: [OpenMined AMA with Alan Aboudib](https://youtu.be/gtwOPxxJ5F4)  available on YouTube.
-  
+
 
 ## Installation
 
-In order to install and start using SyferText, you first have to install `git-lfs` by following [this short guide](https://github.com/git-lfs/git-lfs/wiki/Installation). 
+In order to install and start using SyferText, you first have to install `git-lfs` by following [this short guide](https://github.com/git-lfs/git-lfs/wiki/Installation).
 
 Then go ahead and install our experimental language model that we adapted form spaCy's `en_core_web_lg` model. This should take a few minutes since the model size is >800M.
 
@@ -62,6 +62,8 @@ SyferText can be used to work with datasets residing on a local machine (or a lo
 </tr>
 <tr>
 <td>2. <a href= "https://bit.ly/37VEJ28">Tokenizing remote strings</a></td>
+
+<td>2. <a href= "https://github.com/OpenMined/SyferText/blob/master/tutorials/usecases/UC02%-%Medical%Text%Classification%(Secure%Training).ipynb">Training a medical text classifier on multiple private datasets</a></td>
 </tr>
 <tr>
 <td>3. <a href= "https://github.com/OpenMined/SyferText/blob/master/tutorials/Part%202%20-%20(Getting%20Started)%20Using%20SimpleTagger.ipynb">Using the SimpleTagger</a></td>
@@ -131,8 +133,8 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
       </a>
     </td>
   </tr>
-  
-  
+
+
 </table>
 <br>
 
@@ -147,31 +149,31 @@ Demo on remote blind tokenization with SyferText.
 
 - **(March 19th, 2020)** [GDG Meetup, Reading, UK](https://www.meetup.com/GDG-Reading-Thames-Valley/events/268137223/). *(Cancelled due to COVID-19)*
 
-Demo on sentiment analysis with SyferText on multiple private datasets. 
+Demo on sentiment analysis with SyferText on multiple private datasets.
 
 
 - **(May 13th, 2020)**: [OpenMined AMA](https://www.youtube.com/channel/UCzoUqDE_OzYo6lGXtsEbOxQ). *(Cancelled due to COVID-19)*
 
 
-- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s). 
+- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3). 
+- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3).
 
 Introduction to SyferText.
 
-- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s). 
+- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo). 
+- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo).
 
 About SyferText and my Open Source Contribution Experience with OpenMined
 
-- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. 
+- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA.
 
 Introducing SyferText 0.1.0
 
@@ -196,7 +198,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## Call for Partners
 
-We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built. 
+We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built.
 
 If you think that SyferText, in its current state or by adding more features, could be useful to your research or company, please contact us as indicated below in the **Contact Us** section, and let us discuss how we can help.
 
@@ -206,7 +208,7 @@ If you think that SyferText, in its current state or by adding more features, co
 You can reach out to us by contacting Alan on one of the following channels:
 
  [LinkedIn](https://www.linkedin.com/in/ala-aboudib/) | [Slack](https://app.slack.com/client/T6963A864/DDKH3SXKL/user_profile/UDKH3SH8S) | [Twitter](https://twitter.com/alan_aboudib)
- 
- 
+
+
 ## License
 [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
