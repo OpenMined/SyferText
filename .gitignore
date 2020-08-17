@@ -22,3 +22,4 @@ docs/_modules
 **/pip-wheel-metadata
 .env
 .envrc
+tutorials/usecases/runs
