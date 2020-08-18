@@ -1,5 +1,6 @@
 from syfertext.doc import Doc
 from syfertext.token import Token
+from ..state import State
 from ..utils import msgpack_code_generator
 
 from syft.workers.base import BaseWorker
@@ -224,3 +225,83 @@ class SimpleTagger(AbstractSendable):
         code_dict = dict(code=SimpleTagger.proto_id)
 
         return code_dict
+
+    def load_state(self) -> None:
+        """Search for the state of this object on PyGrid.
+
+        Modifies:
+            
+        """
+
+        # Create the query. This is the ID according to which the
+        # State object is searched on PyGrid
+        state_id = create_state_query(model_name=self.model_name, state_name="tagger")
+
+        # Search for the state
+        result = search_resource(query=state_id, local_worker=self.owner)
+
+        # If no state is found, return
+        if not result:
+            return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+
+        elif isinstance(result, State):
+            state = result
+
+        # Detail the simple object contained in the state
+        (
+            attribute_simple,
+            lookups_simple,
+            tag_simple,
+            default_tag_simple,
+            case_sensitive_simple,
+        ) = state.simple_obj
+
+        attribute = serde._detail(LOCAL_WORKER, attribute_simple)
+        lookups = serde._detail(LOCAL_WORKER, lookups_simple)
+        tag = serde._detail(LOCAL_WORKER, tag_simple)
+        default_tag = serde._detail(LOCAL_WORKER, default_tag_simple)
+        case_sensitive = serde._detail(LOCAL_WORKER, case_sensitive_simple)
+
+        # Load the state
+        attribute = attribute, lookups = lookups,
+        tag = tag, default_tag = default_tag, case_sensitive = case_sensitive
+
+    def dump_state(self) -> State:
+        """Returns a State object that holds the current state of this object.
+
+        Returns:
+            A State object that holds a simplified version of this object's state.
+        """
+
+        # Simply the state variables
+        attribute_simple = serde._simplify(LOCAL_WORKER, self.attribute)
+        lookups_simple = serde._simplify(LOCAL_WORKER, self.lookups)
+        tag_simple = serde._simplify(LOCAL_WORKER, self.tag)
+        default_tag_simple = serde._simplify(LOCAL_WORKER, self.default_tag)
+        case_sensitive_simple = serde._simplify(LOCAL_WORKER, self.case_sensitive)
+
+        # Create the query. This is the ID according to which the
+        # State object is searched for on across workers
+        state_name = self.__class__.__name__.lower()
+        state_id = f"{self.model_name}:{state_name}"
+
+        # Create the State object
+        state = State(
+            simple_obj=(
+                attribute_simple,
+                lookups_simple,
+                tag_simple,
+                default_tag_simple,
+                case_sensitive_simple,
+            ),
+            id=state_id,
+            access={"*"},
+        )
+
+        return state
