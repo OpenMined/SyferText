@@ -155,9 +155,9 @@ class LanguageModel(AbstractSendable):
         language_model: "LanguageModel" = None,
         owner: BaseWorker = None,
         location: BaseWorker = None,
-        id_at_location: str = None,
+        id_at_location: Union[str, int] = None,
         tags: Set[str] = None,
-        ptr_id: str = None,
+        ptr_id: Union[str, int] = None,
         register: bool = True,
         garbage_collect_data: bool = False,
     ) -> LanguageModelPointer:

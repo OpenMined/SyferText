@@ -127,7 +127,8 @@ class Language(AbstractObject):
         self._save_state(state=state, name="vocab", access=access)
 
     # Find argument type : pipeline_template and states
-    def load_pipeline(self, pipeline_template, states) -> None:
+    @type_hints
+    def load_pipeline(self, pipeline_template: List[dict], states: Dict[str, dict]) -> None:
 
         # Load the states
         self.states = states

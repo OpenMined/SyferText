@@ -51,7 +51,7 @@ def type_hints(decorated: typing.Callable) -> typing.Callable:
 
                 raise AttributeError(
                     f"'{param_name}' was passed into a function as an arg instead of a kwarg. "
-                    f"Please pass in all arguments as kwargs when coding/using PySyft."
+                    f"Please pass in all arguments as kwargs when coding/using SyferText."
                 )
 
     if (

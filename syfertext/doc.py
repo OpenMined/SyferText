@@ -16,6 +16,7 @@ from typing import Dict
 from typing import Set
 from typing import Union
 from typing import Iterator
+from typing import Any
 from .underscore import Underscore
 from .span import Span
 from .pointers.span_pointer import SpanPointer
@@ -102,7 +103,8 @@ class Doc(AbstractObject):
         delattr(self._, name)
 
     # Find return type
-    def get_attribute(self, name: str):
+    @type_hints
+    def get_attribute(self, name: str) -> Any:
         """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
 
         Args:

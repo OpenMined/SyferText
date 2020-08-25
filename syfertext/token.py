@@ -10,6 +10,7 @@ from syft.generic.string import String
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 
+from typing import Any
 
 hook = sy.TorchHook(torch)
 
@@ -94,7 +95,8 @@ class Token(AbstractObject):
         delattr(self._, name)
 
     # Find return type : custom attribute
-    def get_attribute(self, name: str):
+    @ type_hints
+    def get_attribute(self, name: str) -> object:
         """Returns value of custom attribute with the name `name` if it is present, else raises `AttributeError`.
 
         Args:
