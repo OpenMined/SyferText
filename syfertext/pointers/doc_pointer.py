@@ -77,6 +77,7 @@ class DocPointer(ObjectPointer):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
+        protocol: str = None,
     ) -> torch.tensor:
         """Get the mean of the vectors of each Token in this documents.
 
@@ -89,6 +90,7 @@ class DocPointer(ObjectPointer):
                 of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+            protocol (str): Protocol for SMPC.
 
         Returns:
             Tensor: A tensor representing the SMPC-encrypted vector of the Doc this pointer points to.
@@ -102,6 +104,7 @@ class DocPointer(ObjectPointer):
             crypto_provider=crypto_provider,
             requires_grad=requires_grad,
             excluded_tokens=excluded_tokens,
+            protocol=protocol,
         )
 
         # Send the command
@@ -124,6 +127,7 @@ class DocPointer(ObjectPointer):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
+        protocol: str = None,
     ) -> torch.tensor:
         """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
@@ -138,6 +142,7 @@ class DocPointer(ObjectPointer):
                 of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+            protocol (str): Protocol for SMPC.
 
         Returns:
             Tensor: A SMPC-encrypted tensor representing the array of all vectors in the document
@@ -152,6 +157,7 @@ class DocPointer(ObjectPointer):
             crypto_provider=crypto_provider,
             requires_grad=requires_grad,
             excluded_tokens=excluded_tokens,
+            protocol=protocol,
         )
 
         # Send the command
