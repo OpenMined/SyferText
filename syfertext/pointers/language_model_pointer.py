@@ -11,15 +11,18 @@ from typing import Dict
 
 
 class LanguageModelPointer(ObjectPointer):
-    """This class defines a pointer to a LanguageModel object. Whenever a 
-    LanguageModel object is searched on the grid and found on any of the 
-    remote workers, a pointer to it, represented by this object, is returned. 
-    Then, using this pointer, a copy of the LanguageModel object could be 
+    """This class defines a pointer to a LanguageModel object. Whenever a
+    LanguageModel object is searched on the grid and found on any of the
+    remote workers, a pointer to it, represented by this object, is returned.
+    Then, using this pointer, a copy of the LanguageModel object could be
     pulled to the worker that requested it.
     """
 
     def __init__(
-        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
+        self,
+        location: BaseWorker,
+        id_at_location: str,
+        owner: BaseWorker,
     ):
         """Initializes the LanguageModel object.
 
@@ -42,7 +45,7 @@ class LanguageModelPointer(ObjectPointer):
         )
 
     def get_copy(self) -> "LanguageModel":
-        """This method is used to download a copy of the remote 
+        """This method is used to download a copy of the remote
         LanguageModel object.
 
         Returns:
@@ -66,8 +69,8 @@ class LanguageModelPointer(ObjectPointer):
 
     def deploy_states(self) -> None:
         """Forwards the call to the `deploy_states` method of the underlying
-        `language_model` object which, in turn, searches for the State objects 
-        associated with this language model and deploys them on the 
+        `language_model` object which, in turn, searches for the State objects
+        associated with this language model and deploys them on the
         corresponding workers by sending copies of them.
         """
 
@@ -85,7 +88,7 @@ class LanguageModelPointer(ObjectPointer):
         worker: BaseWorker, language_model_pointer: "LanguageModelPointer"
     ) -> Tuple[object]:
         """Simplifies a LanguageModelPointer object. This method is required by PySyft
-        when a LanguageModelPointer object is sent to another worker. 
+        when a LanguageModelPointer object is sent to another worker.
 
         Args:
             worker: The worker on which the simplify operation is carried out.

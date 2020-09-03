@@ -10,6 +10,7 @@ hook = syft.TorchHook(torch)
 
 # Get a reference to the local worker
 me = hook.local_worker
+me.is_client_worker = False
 
 # Get a SyferText Language object
 nlp = get_test_language_model()

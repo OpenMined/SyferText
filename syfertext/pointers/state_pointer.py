@@ -18,7 +18,10 @@ class StatePointer(ObjectPointer):
     """
 
     def __init__(
-        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
+        self,
+        location: BaseWorker,
+        id_at_location: str,
+        owner: BaseWorker,
     ):
         """Initializes the State object.
 
@@ -41,7 +44,7 @@ class StatePointer(ObjectPointer):
         )
 
     def get_copy(self) -> "State":
-        """This method is used to download a copy of the remote 
+        """This method is used to download a copy of the remote
         State object.
 
         Returns:
@@ -64,8 +67,7 @@ class StatePointer(ObjectPointer):
         return state
 
     def send_copy(self, destination: Union[str, BaseWorker]) -> None:
-        """Calls the `send_copy` method of the underlying State object.
-        """
+        """Calls the `send_copy` method of the underlying State object."""
 
         # Send the command
         self.owner.send_command(
@@ -79,10 +81,10 @@ class StatePointer(ObjectPointer):
     @staticmethod
     def simplify(worker: BaseWorker, state_pointer: "StatePointer") -> Tuple[object]:
         """Simplifies a StatePointer object. This method is required by PySyft
-        when a StatePointer object is sent to another worker. 
+        when a StatePointer object is sent to another worker.
 
         Args:
-            worker: The worker on which the simplify operation 
+            worker: The worker on which the simplify operation
                 is carried out.
             state_pointer: the StatePointer object to simplify.
 

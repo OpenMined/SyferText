@@ -8,6 +8,7 @@ from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
+me.is_client_worker = False
 
 nlp = get_test_language_model()
 
@@ -38,7 +39,7 @@ def test_lazy_language_model_load():
 def test_vector_valid_token_is_not_zero():
     """Test that the vector of a valid token is not all zeros"""
 
-    doc = nlp("banana")
+    doc = nlp("possible")
     actual = doc[0].vector
     zeros = np.zeros(actual.shape)
 

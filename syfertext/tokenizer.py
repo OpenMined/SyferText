@@ -39,7 +39,7 @@ from typing import Dict
 
 class TokenMeta(object):
     """This class holds some meta data about a token from the text held by a Doc object.
-       This allows to create a Token object when needed.
+    This allows to create a Token object when needed.
     """
 
     def __init__(
@@ -84,16 +84,16 @@ class Tokenizer(AbstractSendable):
         infixes: List[str] = TOKENIZER_INFIXES,
     ):
         """Initializes the `Tokenizer` object
-           
+
         Args:
             model_name: The name of the language model to which this
                 tokenizer belongs.
             owner (optional): The worker on which the vocab object is located.
             exceptions: Exception cases for the tokenizer.
-                Example: "e.g.", "I'ma". The exception dict should 
+                Example: "e.g.", "I'ma". The exception dict should
                 specifiy how these exceptions are tokenized, e.g.,
-                exceptions = {"e.g." : [{"ORTH": "e.g."}], 
-                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"}, 
+                exceptions = {"e.g." : [{"ORTH": "e.g."}],
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"},
                                         {"ORTH": "a"}]
                              }
                 Other properties than "ORTH" can also be specified.
@@ -141,13 +141,13 @@ class Tokenizer(AbstractSendable):
         infixes: List[str] = TOKENIZER_INFIXES,
     ):
         """Sets/Resets the tokenization rules.
-           
+
         Args:
             exceptions: Exception cases for the tokenizer.
-                Example: "e.g.", "I'ma". The exception dict should 
+                Example: "e.g.", "I'ma". The exception dict should
                 specifiy how these exceptions are tokenized, e.g.,
-                exceptions = {"e.g." : [{"ORTH": "e.g."}], 
-                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"}, 
+                exceptions = {"e.g." : [{"ORTH": "e.g."}],
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"},
                                         {"ORTH": "a"}]
                              }
                 Other properties than "ORTH" can also be specified.
@@ -166,11 +166,11 @@ class Tokenizer(AbstractSendable):
                 an infix.
 
         Modifies:
-            properties `exceptions`, `prefix_search`, `suffix_search`, 
+            properties `exceptions`, `prefix_search`, `suffix_search`,
                `infix_finditer`, `prefixes`, `suffixes`, and `infixes`
                are created by this method.
-            
-                     
+
+
         """
 
         self.prefixes = prefixes
@@ -186,23 +186,24 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = {}
 
-    def load_state(self) -> None:
+    def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
 
         Modifies:
             self.vocab: The `vocab` property is initialized with the model
                  name. Its 'load_state()` method is also called.
         """
-
+        if name:
+            self.state_name = name
+        else:
+            self.state_name = self.__class__.__name__.lower()
         # Start by creating the vocab and loading its state
         self.vocab = Vocab(model_name=self.model_name, owner=self.owner)
         self.vocab.load_state()
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(
-            model_name=self.model_name, state_name=self.__class__.__name__.lower()
-        )
+        state_id = create_state_query(model_name=self.model_name, state_name=self.state_name)
 
         # Search for the state
         result = search_resource(query=state_id, local_worker=self.owner)
@@ -233,12 +234,17 @@ class Tokenizer(AbstractSendable):
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
 
-    def dump_state(self) -> State:
+    def dump_state(self, name: str = None) -> State:
         """Returns a State object that holds the current state of this object.
 
         Returns:
             A State object that holds a simplified version of this object's state.
         """
+
+        if name:
+            self.state_name = name
+        else:
+            self.state_name = self.__class__.__name__.lower()
 
         # Simply the state variables
         exceptions_simple = serde._simplify(LOCAL_WORKER, self.exceptions)
@@ -248,8 +254,7 @@ class Tokenizer(AbstractSendable):
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
-        state_name = self.__class__.__name__.lower()
-        state_id = f"{self.model_name}:{state_name}"
+        state_id = f"{self.model_name}:{self.state_name}"
 
         # Create the State object
         state = State(
@@ -262,7 +267,7 @@ class Tokenizer(AbstractSendable):
 
     def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
-        As in the spaCy library. This is not exactly equivalent to 
+        As in the spaCy library. This is not exactly equivalent to
         text.split(' '). Because tokens can be white spaces if two or
         more consecutive white spaces are found. Also, this tokenizer
         also takes affixes and exception cases into account.
@@ -272,7 +277,7 @@ class Tokenizer(AbstractSendable):
             'I  love apples ' gives four tokens: 'I', ' ', 'love', 'apples'
             ' I love ' gives three tokens: ' ', 'I', 'love' (yes a single white space
             at the beginning is considered a token)
-            'I love-apples' gives 4 tokens: 'I', 'love', '-', 'apples'(infix is 
+            'I love-apples' gives 4 tokens: 'I', 'love', '-', 'apples'(infix is
             tokenized seprately)
         Tokenizing this way helps reconstructing the original string
         without loss of white spaces.
@@ -388,17 +393,17 @@ class Tokenizer(AbstractSendable):
         return doc
 
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
-        """ Tokenize each substring formed after splitting affixes and processing 
+        """Tokenize each substring formed after splitting affixes and processing
             exceptions. Returns Doc object.
 
         Args:
             substring: The substring to tokenize.
             token_meta: The TokenMeta object of original substring
                 before splitting affixes and exceptions.
-            doc: Document object. 
+            doc: Document object.
 
-        Returns:    
-            doc: Document with all the TokenMeta objects of every token after splitting 
+        Returns:
+            doc: Document with all the TokenMeta objects of every token after splitting
                 affixes and exceptions.
         """
 
@@ -437,10 +442,10 @@ class Tokenizer(AbstractSendable):
             substring: The substring to tokenize.
             start_pos: A pointer to the start position of the substring in the text.
 
-        Returns:    
+        Returns:
             substring: The substring to tokenize.
             start_pos: A pointer to the start position of the substring in the text.
-            affixes: Dict holding TokenMeta lists of each affix 
+            affixes: Dict holding TokenMeta lists of each affix
                 types as a result of splitting affixes
             exception_tokens: The list of exception tokens TokenMeta objects.
         """
@@ -515,19 +520,19 @@ class Tokenizer(AbstractSendable):
     ) -> Doc:
         """Attach all the `TokenMeta` objects which are the result of splitting affixes
         in Doc object's container. Returns Doc object.
-       
+
         Args:
             doc: Original Document
             substring: The substring remaining after splitting all the affixes.
             start_pos: The pointer to location of start of substring in text.
-            space_after: If there is a space after the original substring before splitting any affixes 
+            space_after: If there is a space after the original substring before splitting any affixes
                 in the text.
-            affixes: Dict holding TokenMeta lists of each affix types(prefix, suffix, infix) 
+            affixes: Dict holding TokenMeta lists of each affix types(prefix, suffix, infix)
                 formed as the result of splitting affixes.
             exception_tokens: The list of TokenMeta object of exception tokens.
 
         Returns:
-            doc: Document with all the TokenMeta objects of every token after splitting 
+            doc: Document with all the TokenMeta objects of every token after splitting
                 affixes and exceptions.
         """
 
@@ -711,7 +716,7 @@ class Tokenizer(AbstractSendable):
             pos: The pointer to location of start of substring in text.
 
         Returns:
-            exception_token_metas : the list of exceptions TokenMeta 
+            exception_token_metas : the list of exceptions TokenMeta
                 objects.
             substring: The updated substring after processing the exceptions.
 
@@ -746,13 +751,13 @@ class Tokenizer(AbstractSendable):
 
     def infix_matches(self, substring: str) -> List[Match]:
         """Find internal split points of the string, such as hyphens.
-        
+
         Args:
             substring : The string to segment.
 
         Returns:
             A list of `re.MatchObject` objects that have `.start()`
-                and `.end()` methods, denoting the placement of internal 
+                and `.end()` methods, denoting the placement of internal
                 segment separators, e.g. hyphens.
         """
 
@@ -770,7 +775,7 @@ class Tokenizer(AbstractSendable):
 
         Args:
             substring: The string to segment.
-            
+
         Returns:
             The length of the prefix if present, otherwise 0.
         """
@@ -809,7 +814,7 @@ class Tokenizer(AbstractSendable):
     @staticmethod
     def simplify(worker, tokenizer: "Tokenizer"):
         """This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
-           serialized.
+        serialized.
         """
 
         # Simplify attributes

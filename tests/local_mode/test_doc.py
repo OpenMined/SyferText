@@ -6,9 +6,14 @@ from syfertext.pointers.doc_pointer import DocPointer
 from syfertext.local_pipeline import get_test_language_model
 
 import numpy as np
+import random
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
+me.is_client_worker = False
+
+# create a remote worker
+alice = sy.VirtualWorker(hook=hook, id=f"alice{random.randint(1,500)}")
 
 nlp = get_test_language_model()
 
@@ -242,11 +247,8 @@ def test_ownership_doc_local():
 def test_ownership_doc_remote():
     """Tests that the doc object pointed by doc pointer is owned by remote worker"""
 
-    # create a remote worker
-    bob = sy.VirtualWorker(hook=hook, id="bob")
-
     # get a String Pointer
-    text_ptr = String("we were on a break").send(bob)
+    text_ptr = String("we were on a break").send(alice)
 
     # create a doc pointer
     doc = nlp(text_ptr)
@@ -255,7 +257,7 @@ def test_ownership_doc_remote():
     assert doc.owner == me
 
     # check owner of doc object pointed by the `doc` DocPointer
-    assert bob._objects[doc.id_at_location].owner.id == bob.id
+    assert alice._objects[doc.id_at_location].owner.id == alice.id
 
 
 def test_nbor():

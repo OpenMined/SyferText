@@ -29,7 +29,6 @@ def get_test_language_model():
     vectors = np.random.rand(vocab_size, 300)
     # create vocab from hash2row and vectors
     vocab = Vocab(hash2row=hash2row, vectors=vectors)
-
     nlp.set_tokenizer(tokenizer, access={"*"})
 
     nlp.set_vocab(vocab, access={"*"})

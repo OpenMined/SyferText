@@ -165,7 +165,11 @@ class DocPointer(ObjectPointer):
 
         # Send the command
         length = self.owner.send_command(
-            recipient=self.location, cmd_name="__len__", target=self, args_=tuple(), kwargs_={},
+            recipient=self.location,
+            cmd_name="__len__",
+            target=self,
+            args_=tuple(),
+            kwargs_={},
         )
 
         return length

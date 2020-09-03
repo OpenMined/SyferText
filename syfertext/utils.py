@@ -12,7 +12,7 @@ from typing import Union
 
 
 def hash_string(string: str) -> int:
-    """Create a hash for a given string. 
+    """Create a hash for a given string.
     Hashes created by this functions will be used everywhere by
     SyferText to represent tokens.
     """
@@ -88,7 +88,7 @@ def compile_prefix_regex(entries: Tuple) -> Pattern:
 
 def compile_suffix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
-    
+
     Args:
         entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
 

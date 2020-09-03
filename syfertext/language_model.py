@@ -40,7 +40,7 @@ class LanguageModel(AbstractSendable):
             pipeline_template: A list of dictionaries each describing
                 a pipe component of the pipeline in order.
             states: a dictionary of dictionaries containing the
-                description of each state needed to reconstruct 
+                description of each state needed to reconstruct
                 the pipeline. Example:
                     {'tokenizer': {'location_id': 'bob',
                                    'access': {'*'},
@@ -51,9 +51,9 @@ class LanguageModel(AbstractSendable):
                      :
                      :
                     }
-            owner: The worker that owns this object. That is, the 
+            owner: The worker that owns this object. That is, the
                 syft worker on which this object is located.
-            tags: A set of PyGrid searchable tags that can be 
+            tags: A set of PyGrid searchable tags that can be
                 associated with the language model.
             description: A text that describes the language model,
                  its contents, and any other features.
@@ -72,7 +72,7 @@ class LanguageModel(AbstractSendable):
         super(LanguageModel, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     def deploy_states(self) -> None:
-        """Search for the State objects associated with this language model and 
+        """Search for the State objects associated with this language model and
         deploy them on the corresponding workers by sending copies of them.
         """
 
@@ -97,7 +97,7 @@ class LanguageModel(AbstractSendable):
             state = result.send_copy(destination=location_id)
 
     def send_copy(self, destination: Union[str, BaseWorker]) -> "LanguageModel":
-        """This method is called by a LanguageModelPointer using 
+        """This method is called by a LanguageModelPointer using
         LanguageModelPointer.get_copy(). It creates a copy of the current
         object and sends it to the pointer on `destination`
         which requested the copy.
@@ -121,7 +121,7 @@ class LanguageModel(AbstractSendable):
         self.owner.send_obj(language_model, destination)
 
     def send(self, location: BaseWorker) -> LanguageModelPointer:
-        """Sends this object to the worker specified by `location`. 
+        """Sends this object to the worker specified by `location`.
 
         Args:
             location (BaseWorker): The BaseWorker object to which the LanguageModel
@@ -149,26 +149,26 @@ class LanguageModel(AbstractSendable):
         LanguageModel object.
 
         Args:
-            language_model (LanguageModel): The LanguageModel object 
+            language_model (LanguageModel): The LanguageModel object
                 to which the pointer refers.
                 Although this is an instance method (As opposed to statics),
                 this argument is called `language_model` instead of `self` due
                 to the fact that PySyft calls this method, sometimes on
-                the class and sometimes on the object. 
+                the class and sometimes on the object.
             owner (BaseWorker): The worker that will own the pointer object.
             location (BaseWorker): The worker on which the LanguageModel
                 object pointed to by this object is located.
             id_at_location (str, int): The ID of the LanguageModel object
                 referenced by the pointer.
-            register (bool): Whether to register the pointer object 
-                in the object store or not. (it is required by the 
+            register (bool): Whether to register the pointer object
+                in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
-            garbage_collect_data (bool): Activate garbage collection or not. 
+            garbage_collect_data (bool): Activate garbage collection or not.
                 default to False meaning that the LanguageModel object shouldn't
                 be GCed once this pointer is removed.
 
-        
+
         Returns:
             A LanguageModelPointer object pointing to this LanguageModel object.
         """
@@ -181,7 +181,9 @@ class LanguageModel(AbstractSendable):
 
         # Create the pointer object
         language_model_pointer = LanguageModelPointer(
-            location=location, id_at_location=id_at_location, owner=owner,
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
         )
 
         return language_model_pointer
@@ -189,10 +191,10 @@ class LanguageModel(AbstractSendable):
     @staticmethod
     def simplify(worker: BaseWorker, language_model: "LanguageModel") -> Tuple[object]:
         """Simplifies a LanguageModel object. This method is required by PySyft
-        when a LanguageModel object is sent to another worker. 
+        when a LanguageModel object is sent to another worker.
 
         Args:
-            worker: The worker on which the simplify operation 
+            worker: The worker on which the simplify operation
                 is carried out.
             language_model: the LanguageModel object to simplify.
 

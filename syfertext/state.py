@@ -28,10 +28,10 @@ class State(AbstractSendable):
                 objects that define the state of a SyferText object.
 
             id: The id of the state. This should be a string that
-                uniquely identifies the state in terms of what 
+                uniquely identifies the state in terms of what
                 language model it belongs to, and what object it
                 saves the state for.
-                
+
                 Example: "syfertext_en_core_web_lg:vocab" means that
                     this object saves the state of a Vocab object.
 
@@ -39,7 +39,7 @@ class State(AbstractSendable):
                 sent. if the string '*' is included in the set,
                 then all workers are allowed to receive a copy of the state.
 
-            owner: The worker that owns this object. That is, the 
+            owner: The worker that owns this object. That is, the
                 syft worker on which this object is located.
 
             tags: Any set of other tags used to search for this state.
@@ -53,7 +53,7 @@ class State(AbstractSendable):
         super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     def send_copy(self, destination: Union[str, BaseWorker]) -> None:
-        """This method is called by a StatePointer using 
+        """This method is called by a StatePointer using
         StatePointer.get_copy(). It creates a copy of the current
         object and sends it to the pointer on `destination`
         which requested the copy.
@@ -86,10 +86,10 @@ class State(AbstractSendable):
         self.owner.send_obj(state, destination)
 
     def send(self, location: BaseWorker) -> StatePointer:
-        """Sends this object to the worker specified by `location`. 
+        """Sends this object to the worker specified by `location`.
 
         Args:
-            location (BaseWorker): The BaseWorker object to which the state object is 
+            location (BaseWorker): The BaseWorker object to which the state object is
                 to be sent.
 
             Returns:
@@ -121,21 +121,21 @@ class State(AbstractSendable):
                 Although this is an instance method (As opposed to statics),
                 this argument is called `state` instead of `self` due
                 to the fact that PySyft calls this method, sometimes on
-                the class and sometimes on the object. 
+                the class and sometimes on the object.
             owner (BaseWorker): The worker that will own the pointer object.
             location (BaseWorker): The worker on which the State
                 object pointed to by this object is located.
             id_at_location (str, int): The ID of the State object
                 referenced by the pointer.
-            register (bool): Whether to register the pointer object 
-                in the object store or not. (it is required by the 
+            register (bool): Whether to register the pointer object
+                in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
-            garbage_collect_data (bool): Activate garbage collection or not. 
+            garbage_collect_data (bool): Activate garbage collection or not.
                 default to False meaning that the State object shouldn't
                 be GCed once this pointer is removed.
 
-        
+
         Returns:
             A StatePointer object pointing to this state object.
         """
@@ -147,17 +147,21 @@ class State(AbstractSendable):
             id_at_location = state.id
 
         # Create the pointer object
-        state_pointer = StatePointer(location=location, id_at_location=id_at_location, owner=owner,)
+        state_pointer = StatePointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+        )
 
         return state_pointer
 
     @staticmethod
     def simplify(worker: BaseWorker, state: "State") -> Tuple[object]:
         """Simplifies a State object. This method is required by PySyft
-        when a State object is sent to another worker. 
+        when a State object is sent to another worker.
 
         Args:
-            worker: The worker on which the simplify operation 
+            worker: The worker on which the simplify operation
                 is carried out.
             state: the State object to simplify.
 
