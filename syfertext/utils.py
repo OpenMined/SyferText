@@ -135,7 +135,9 @@ def create_state_query(model_name: str, state_name: str) -> str:
     return query
 
 
-def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
+def search_resource(
+    query: str, local_worker: BaseWorker
+) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer", None]:
     """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
@@ -164,7 +166,6 @@ def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "Sta
 
         return result[0]
 
-
     # If no object is found on the local worker, search on all
     # workers connected to the local_worker
     for _, location in local_worker._known_workers.items():
@@ -183,8 +184,8 @@ def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "Sta
             # Get the pointer object returned
             object_ptr = result[0]
 
-
             return object_ptr
+
 
 class MsgpackCodeGenerator:
     def __init__(self):
@@ -204,4 +205,3 @@ class MsgpackCodeGenerator:
 
 
 msgpack_code_generator = MsgpackCodeGenerator()
-

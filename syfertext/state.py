@@ -12,7 +12,6 @@ from typing import Dict
 
 
 class State(AbstractSendable):
-    
     def __init__(
         self,
         simple_obj: Tuple[object],
@@ -53,7 +52,6 @@ class State(AbstractSendable):
 
         super(State, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
-        
     def send_copy(self, destination: Union[str, BaseWorker]) -> None:
         """This method is called by a StatePointer using 
         StatePointer.get_copy(). It creates a copy of the current
@@ -68,11 +66,12 @@ class State(AbstractSendable):
         # If `destination` is a worker ID, get the underlying worker
         if isinstance(destination, str):
             destination = self.owner._known_workers[destination]
-            
+
         # Make sure `destination` has access to the current state
-        assert (
-            {"*", destination.id} & self.access
-        ), f"Worker `{destination.id}` does not have the necessary permissions to access state `{self.id}`"
+        assert {
+            "*",
+            destination.id,
+        } & self.access, f"Worker `{destination.id}` does not have the necessary permissions to access state `{self.id}`"
 
         # Create the copy
         state = State(
@@ -85,7 +84,6 @@ class State(AbstractSendable):
 
         # Send the object
         self.owner.send_obj(state, destination)
-
 
     def send(self, location: BaseWorker) -> StatePointer:
         """Sends this object to the worker specified by `location`. 
@@ -105,7 +103,6 @@ class State(AbstractSendable):
         state_pointer = self.owner.send(self, location)
 
         return state_pointer
-
 
     def create_pointer(
         state: "State" = None,
@@ -142,7 +139,7 @@ class State(AbstractSendable):
         Returns:
             A StatePointer object pointing to this state object.
         """
-        
+
         if location is None:
             location = state.owner
 
@@ -150,14 +147,9 @@ class State(AbstractSendable):
             id_at_location = state.id
 
         # Create the pointer object
-        state_pointer = StatePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-        )
+        state_pointer = StatePointer(location=location, id_at_location=id_at_location, owner=owner,)
 
         return state_pointer
-
 
     @staticmethod
     def simplify(worker: BaseWorker, state: "State") -> Tuple[object]:
@@ -223,7 +215,6 @@ class State(AbstractSendable):
 
         return state
 
-
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
         """This is the implementation of the `get_msgpack_code()`
@@ -249,4 +240,3 @@ class State(AbstractSendable):
         code_dict = dict(code=State.proto_id)
 
         return code_dict
-    
