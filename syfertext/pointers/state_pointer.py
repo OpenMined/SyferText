@@ -17,9 +17,7 @@ class StatePointer(ObjectPointer):
     requested it.
     """
 
-    def __init__(
-        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
-    ):
+    def __init__(self, location: BaseWorker, id_at_location: str, owner: BaseWorker):
         """Initializes the State object.
 
         Args:

@@ -66,7 +66,7 @@ class SubPipelinePointer(ObjectPointer):
             pointer: A pointer to the PySyft `String` to be tokenized or
                 to the `Doc` object to by modified.
         """
-       
+
         # Make sure that the String of Doc to process is located on the
         # same worker as the SubPipeline object.
         assert (

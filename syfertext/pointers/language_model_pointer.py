@@ -18,9 +18,7 @@ class LanguageModelPointer(ObjectPointer):
     pulled to the worker that requested it.
     """
 
-    def __init__(
-        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
-    ):
+    def __init__(self, location: BaseWorker, id_at_location: str, owner: BaseWorker):
         """Initializes the LanguageModel object.
 
         Args:

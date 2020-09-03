@@ -186,7 +186,6 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = {}
 
-
     def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
 
