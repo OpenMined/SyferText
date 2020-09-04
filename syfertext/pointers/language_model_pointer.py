@@ -19,7 +19,10 @@ class LanguageModelPointer(ObjectPointer):
     """
 
     def __init__(
-        self, location: BaseWorker, id_at_location: str, owner: BaseWorker,
+        self,
+        location: BaseWorker,
+        id_at_location: str,
+        owner: BaseWorker,
     ):
         """Initializes the LanguageModel object.
 

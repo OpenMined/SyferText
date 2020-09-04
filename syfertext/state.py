@@ -147,7 +147,11 @@ class State(AbstractSendable):
             id_at_location = state.id
 
         # Create the pointer object
-        state_pointer = StatePointer(location=location, id_at_location=id_at_location, owner=owner,)
+        state_pointer = StatePointer(
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
+        )
 
         return state_pointer
 

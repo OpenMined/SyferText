@@ -181,7 +181,9 @@ class LanguageModel(AbstractSendable):
 
         # Create the pointer object
         language_model_pointer = LanguageModelPointer(
-            location=location, id_at_location=id_at_location, owner=owner,
+            location=location,
+            id_at_location=id_at_location,
+            owner=owner,
         )
 
         return language_model_pointer

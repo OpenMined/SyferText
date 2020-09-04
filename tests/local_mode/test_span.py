@@ -89,7 +89,7 @@ def test_span_of_span():
 
 def test_span_as_doc():
     """Test span is returned as Doc upon calling `as_doc()`
-     method of Span.
+    method of Span.
     """
     doc_ = nlp("the quick brown fox jumps over lazy dog")
 
@@ -110,8 +110,8 @@ def test_span_as_doc():
 
 def test_remote_span_as_remote_doc():
     """Test a pointer to Doc object with a copy of `Span`'s tokens
-     is returned upon calling `as_doc()` on a Span residing on a remote
-     machine.
+    is returned upon calling `as_doc()` on a Span residing on a remote
+    machine.
     """
 
     james = sy.VirtualWorker(hook, id="james")
