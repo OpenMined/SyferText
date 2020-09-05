@@ -23,41 +23,6 @@ from typing import Set
 from typing import Dict
 
 
-class BaseDefaults(object):
-    """A class that defines all the defaults of the Language class"""
-
-    @classmethod
-    def create_vocab(cls, model_name: str) -> Vocab:
-        """Creates the Vocab object that holds the vocabulary along with vocabulary meta data
-
-        Todo:
-            I started by a very simple Vocab class that
-            contains only a variable called 'vectors' of type DICT to hold word vectors
-            vocab.vectors['word'] = float. To be reviewed for more complex functionality.
-        """
-
-        # Instantiate the Vocab object
-        vocab = Vocab(model_name)
-
-        return vocab
-
-    @classmethod
-    def create_tokenizer(cls, vocab) -> Tokenizer:
-        """Creates a Tokenizer object that will be used to create the Doc object, which is the
-        main container for annotated tokens.
-
-        This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
-        infixes, suffixes, tokenization exceptions into account.
-        Of course, more features should be added later.
-
-        """
-
-        # Instantiate the Tokenizer object and return it
-        tokenizer = Tokenizer(vocab)
-
-        return tokenizer
-
-
 class Language(AbstractObject):
     """Inspired by spaCy Language class.
 

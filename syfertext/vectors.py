@@ -66,10 +66,10 @@ class Vectors:
         # Create the default vector return in case of
         # out-of-vocabulary
         self._create_default_vector()
-
+        
     def has_vector(self, key: Union[str, int]) -> bool:
         """Checks whether 'word' has a vector or not in self.data
-
+        
         Args:
             key: the word or its hash to which we wish to test whether a vector exists or not.
 
@@ -120,8 +120,5 @@ class Vectors:
 
         # Get the vector
         vector = self.vectors[row]
-
-        # Convert the vectors to torch Tensors
-        vector = torch.tensor(vector, dtype=torch.float32)
 
         return vector
