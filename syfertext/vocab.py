@@ -275,10 +275,10 @@ class Vocab:
 
         # id is the index of the corresponding vector
         # in self.vectors if we vectors are loaded.
-        if not self.vectors.loaded:
+        if self.vectors.vectors is None:
             lex_meta.id = None
         else:
-            lex_meta.id = self.vectors.key2row.get(lex_meta.orth)
+            lex_meta.id = self.vectors.hash2row.get(lex_meta.orth)
 
         # Traverse all the lexical attributes getters in the dict.
         for attr, func in self.lex_attr_getters.items():

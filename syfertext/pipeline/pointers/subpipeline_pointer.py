@@ -106,7 +106,7 @@ class SubPipelinePointer(ObjectPointer):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(SubPipelinePointer, "proto_id"):
-            SubPipelinePointer.proto_id = msgpack_code_generator()
+            SubPipelinePointer.proto_id = msgpack_code_generator(SubPipelinePointer.__qualname__)
 
         code_dict = dict(code=SubPipelinePointer.proto_id)
 

@@ -284,7 +284,7 @@ class LanguageModel(AbstractSendable):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(LanguageModel, "proto_id"):
-            LanguageModel.proto_id = msgpack_code_generator()
+            LanguageModel.proto_id = msgpack_code_generator(LanguageModel.__qualname__)
 
         code_dict = dict(code=LanguageModel.proto_id)
 

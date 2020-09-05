@@ -15,6 +15,7 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 import torch.nn as nn
 
+from collections import defaultdict
 from typing import List
 from typing import Union
 from typing import Tuple

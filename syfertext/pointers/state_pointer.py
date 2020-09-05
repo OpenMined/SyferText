@@ -154,7 +154,7 @@ class StatePointer(ObjectPointer):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(StatePointer, "proto_id"):
-            StatePointer.proto_id = msgpack_code_generator()
+            StatePointer.proto_id = msgpack_code_generator(StatePointer.__qualname__)
 
         code_dict = dict(code=StatePointer.proto_id)
 

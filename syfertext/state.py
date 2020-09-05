@@ -235,7 +235,7 @@ class State(AbstractSendable):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(State, "proto_id"):
-            State.proto_id = msgpack_code_generator()
+            State.proto_id = msgpack_code_generator(State.__qualname__)
 
         code_dict = dict(code=State.proto_id)
 

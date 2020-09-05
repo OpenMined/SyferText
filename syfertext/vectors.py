@@ -8,6 +8,7 @@ from typing import Union
 from .utils import hash_string
 
 from typing import Dict
+import numpy as np
 
 
 class Vectors:
@@ -22,7 +23,10 @@ class Vectors:
         """
 
         self.hash2row = hash2row
-        self.vectors = vectors
+        if vectors is not None:
+            self.vectors = torch.tensor(vectors)
+        else: 
+            self.vectors = vectors
 
         # Create a default vector that is returned
         # when an out-of-vocabulary token is encountered
@@ -41,9 +45,8 @@ class Vectors:
 
         # Create the default vector as a numpy array if the `vectors` property is
         # set.
-
-        if isinstance(self.vectors, np.ndarray):
-            self.default_vector = np.zeros(self.vectors.shape[1], dtype=self.vectors.dtype)
+        if self.vectors is not None:
+            self.default_vector = torch.zeros(self.vectors.shape[1], dtype=self.vectors.dtype)
 
     def load_data(self, hash2row: Dict[int, int], vectors: np.ndarray):
         """Loads the vector data. This is needed when the Vocab object loads its
@@ -57,7 +60,10 @@ class Vectors:
         """
 
         self.hash2row = hash2row
-        self.vectors = vectors
+        if vectors is not None:
+            self.vectors = torch.tensor(vectors)
+        else: 
+            self.vectors = vectors
 
         # Create the default vector return in case of
         # out-of-vocabulary
