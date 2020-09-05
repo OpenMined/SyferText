@@ -1,5 +1,5 @@
 import random
-import numpy as np
+import torch
 import syfertext
 
 from syfertext.tokenizer import Tokenizer
@@ -26,7 +26,7 @@ def get_test_language_model():
         hash2row[hash_string(TEST_VOCAB[index])] = index
 
     # create vectors from words taken
-    vectors = np.random.rand(vocab_size, 300)
+    vectors = torch.rand(vocab_size, 300, dtype=torch.float)
     # create vocab from hash2row and vectors
     vocab = Vocab(hash2row=hash2row, vectors=vectors)
     nlp.set_tokenizer(tokenizer, access={"*"})

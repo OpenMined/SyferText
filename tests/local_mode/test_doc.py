@@ -1,5 +1,7 @@
 import syft as sy
 import torch
+import random
+
 import syfertext
 from syft.generic.string import String
 from syfertext.pointers.doc_pointer import DocPointer

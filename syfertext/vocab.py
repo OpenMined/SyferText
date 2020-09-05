@@ -1,11 +1,11 @@
-import pickle
 import os
+import torch
 from pathlib import Path
 from typing import Union
 from typing import List
 from typing import Callable
+from typing import Dict
 import functools
-import warnings
 
 from .vectors import Vectors
 from .string_store import StringStore
@@ -18,9 +18,6 @@ from . import LOCAL_WORKER
 import syft.serde.msgpack.serde as serde
 from syft.workers.base import BaseWorker
 
-import numpy as np
-
-from typing import Dict
 from .lexeme import Lexeme
 from .lexeme import LexemeMeta
 from .attrs import Attributes
@@ -32,7 +29,7 @@ class Vocab:
     def __init__(
         self,
         hash2row: Dict[int, int] = None,
-        vectors: np.ndarray = None,
+        vectors: torch.tensor = None,
         model_name: str = None,
         owner: BaseWorker = None,
     ):
@@ -60,6 +57,7 @@ class Vocab:
         # Only strings that are encountered during tokenization will be stored here
         self.store = StringStore()
 
+        # Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
         self.lex_store = {}
 
         # Function to get the lexical attributes stored in a dict
@@ -145,17 +143,6 @@ class Vocab:
         state = State(simple_obj=(hash2row_simple, vectors_simple), id=state_id, access={"*"})
 
         return state
-        # Lookup table of Lexeme objects, the key is equal to orth value of lex(hash of string)
-
-    def load_strings(self) -> List[str]:
-        """load the pickled list of words that the Vocab object knows and has vectors for"""
-
-        words_path = os.path.join(self.model_path, "words")
-
-        with open(words_path, "rb") as word_file:
-            strings = pickle.load(word_file)
-
-        return strings
 
     def get_vector(self, key: Union[str, int]):
         """Retrieve a vector for a word in the vocabulary. Words can be looked

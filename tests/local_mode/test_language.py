@@ -3,7 +3,6 @@ import syft as sy
 import torch
 import syfertext
 from pathlib import Path
-import numpy as np
 from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
@@ -11,29 +10,6 @@ me = hook.local_worker
 me.is_client_worker = False
 
 nlp = get_test_language_model()
-
-
-def test_lazy_language_model_load():
-    """Test the the language model vectors are loaded only after
-    the first vector is requested
-    """
-
-    # Upon initialization of the language model, the vectors
-    # shouldn't be loaded
-    assert nlp.vocab.vectors.loaded == False
-    assert not hasattr(nlp.vocab.vectors, "data")
-
-    # Even when we tokenize a string, the language model should
-    # still be not loaded
-    doc = nlp("Language is lazy")
-    assert nlp.vocab.vectors.loaded == False
-    assert not hasattr(nlp.vocab.vectors, "data")
-
-    # Now, if an operation requiring that vectors be loaded is
-    # performed, vectors should become loaded.
-    doc[0].vector
-    assert nlp.vocab.vectors.loaded == True
-    assert hasattr(nlp.vocab.vectors, "data")
 
 
 def test_vector_valid_token_is_not_zero():

@@ -1,12 +1,14 @@
 import syft as sy
 import torch
 import syfertext
+from syfertext.local_pipeline import get_test_language_model
 
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang = "en_core_web_lg"
-nlp = syfertext.load(lang, owner=me)
+me.is_client_worker = False
+nlp = get_test_language_model()
+lang = nlp.model_name
 vocab = nlp.vocab
 
 
@@ -43,7 +45,7 @@ def test_token_whitespace():
 
 
 def test_token_rank():
-    text = "Apple outofvocabulary"
+    text = "apple outofvocabulary"
     doc = nlp(text)
 
     # Get the token object of text from doc

@@ -4,15 +4,13 @@ from pathlib import Path
 import importlib
 import torch
 from typing import Union
+from typing import Dict
 
 from .utils import hash_string
 
-from typing import Dict
-import numpy as np
-
 
 class Vectors:
-    def __init__(self, hash2row: Dict[int, int], vectors: np.ndarray):
+    def __init__(self, hash2row: Dict[int, int], vectors: torch.tensor):
         """Creates the Vectors object.
 
         Args:
@@ -24,7 +22,7 @@ class Vectors:
 
         self.hash2row = hash2row
         if vectors is not None:
-            self.vectors = torch.tensor(vectors)
+            self.vectors = torch.tensor(vectors, dtype=torch.float)
         else:
             self.vectors = vectors
 
@@ -46,9 +44,9 @@ class Vectors:
         # Create the default vector as a numpy array if the `vectors` property is
         # set.
         if self.vectors is not None:
-            self.default_vector = torch.zeros(self.vectors.shape[1], dtype=self.vectors.dtype)
+            self.default_vector = torch.zeros(self.vectors.shape[1], dtype=torch.float)
 
-    def load_data(self, hash2row: Dict[int, int], vectors: np.ndarray):
+    def load_data(self, hash2row: Dict[int, int], vectors: torch.tensor):
         """Loads the vector data. This is needed when the Vocab object loads its
         state, which might contain vector data.
 
@@ -61,7 +59,7 @@ class Vectors:
 
         self.hash2row = hash2row
         if vectors is not None:
-            self.vectors = torch.tensor(vectors)
+            self.vectors = torch.tensor(vectors, dtype=torch.float)
         else:
             self.vectors = vectors
 

@@ -2,15 +2,17 @@ import syft as sy
 import torch
 import syfertext
 from syfertext.attrs import Attributes
+from syfertext.local_pipeline import get_test_language_model
 
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang = "en_core_web_lg"
-nlp = syfertext.load(lang, owner=me)
+me.is_client_worker = False
+nlp = get_test_language_model()
 
 # Get the vocab instance
 vocab = nlp.vocab
+lang = nlp.model_name
 
 
 def test_check_flag():

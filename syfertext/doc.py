@@ -255,7 +255,7 @@ class Doc(AbstractObject):
         return doc_vector
 
     def get_token_vectors(self, excluded_tokens: Dict[str, Set[object]] = None) -> torch.tensor:
-        """Get the Numpy array of all the vectors corresponding to the tokens in the `Doc`,
+        """Get the torch Tenspr of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
 
         Args
