@@ -11,6 +11,7 @@ from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
+from typing import Generator
 
 from .underscore import Underscore
 from .utils import normalize_slice
@@ -152,32 +153,7 @@ class Span(AbstractObject):
         Returns:
             span_vector: span vector
         """
-
-        # Accumulate the vectors here
-        vectors = None
-
-        # Count the tokens that have vectors
-        vector_count = 0
-
-        for token in self:
-
-            # Get the vector of the token if one exists
-            if token.has_vector:
-
-                # Increment the vector counter
-                vector_count += 1
-
-                # Cumulate token's vector by summing them
-                vectors = token.vector if vectors is None else vectors + token.vector
-
-        # If no tokens with vectors were found, just get the default vector(zeros)
-        if vector_count == 0:
-            span_vector = self.doc.vocab.vectors.default_vector
-        else:
-            # Create the final span vector
-            span_vector = vectors / vector_count
-
-        return span_vector
+        return self.get_vector()
 
     def get_vector(self, excluded_tokens: Dict[str, Set[object]] = None):
         """Get Span vector as an average of in-vocabulary token's vectors,
@@ -192,49 +168,69 @@ class Span(AbstractObject):
             span_vector: Span vector ignoring excluded tokens
         """
 
-        # If the excluded_token dict in None then all token are included
-        if excluded_tokens is None:
-            return self.vector
-
-        # Enforcing that the values of the excluded_tokens dict are sets, not lists.
-        excluded_tokens = {
-            attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
-        }
+        # Get the valid tokens which are to be included
+        valid_tokens = self._get_valid_tokens(excluded_tokens)
 
         vectors = None
 
         # Count the tokens that have vectors
         vector_count = 0
 
-        for token in self:
+        for token in valid_tokens:
 
-            # Get the vector of the token if one exists and if token is not excluded
-
-            include_token = True
-
-            include_token = all(
-                [
-                    getattr(token._, key) not in excluded_tokens[key]
-                    for key in excluded_tokens.keys()
-                    if hasattr(token._, key)
-                ]
-            )
-
-            if token.has_vector and include_token:
+            if token.has_vector:
                 # Increment the vector counter
                 vector_count += 1
 
-                # Cumulate token's vector by summing them
+                # Accumulate token's vector by summing them
                 vectors = token.vector if vectors is None else vectors + token.vector
 
         # If no tokens with vectors were found, just get the default vector(zeros)
         if vector_count == 0:
             span_vector = self.doc.vocab.vectors.default_vector
         else:
-            # Create the final span vector
+            # The Doc vector, which is the average of all vectors
             span_vector = vectors / vector_count
 
         return span_vector
+
+    def _get_valid_tokens(
+        self, excluded_tokens: Dict[str, Set[object]] = None
+    ) -> Generator[Token, None, None]:
+        """Handy function to handle the logic of excluding tokens while performing operations on Doc.
+
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+                of their attributes.
+        Yields:
+            A generator with valid tokens, i.e. tokens which are `not` to be excluded.
+        """
+
+        if excluded_tokens:
+            # Enforcing that the values of the excluded_tokens dict are sets, not lists.
+            excluded_tokens = {
+                attribute: set(excluded_tokens[attribute]) for attribute in excluded_tokens
+            }
+
+            # Iterate over all tokens in doc
+            for token in self:
+
+                # Check if token can be included by comparing its attribute values
+                # to those in excluded_tokens dictionary.
+                include_token = all(
+                    [
+                        token.get_attribute(key) not in excluded_tokens[key]
+                        for key in excluded_tokens.keys()
+                        if token.has_attribute(key)
+                    ]
+                )
+
+                if include_token:
+                    yield token
+        else:
+            # All tokens are included
+            for token in self:
+                yield token
 
     def as_doc(self):
         """Create a `Doc` object with a copy of the `Span`'s tokens.
@@ -294,11 +290,7 @@ class Span(AbstractObject):
             owner = span.owner
 
         span_pointer = SpanPointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return span_pointer

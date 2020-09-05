@@ -5,9 +5,6 @@ from syft.generic.string import String
 from syfertext.pointers.doc_pointer import DocPointer
 from syfertext.local_pipeline import get_test_language_model
 
-import numpy as np
-import random
-
 hook = sy.TorchHook(torch)
 me = hook.local_worker
 me.is_client_worker = False
@@ -202,7 +199,7 @@ def test_exclude_tokens_on_attr_values_doc():
     excluded_tokens = {"attribute1_name": {"value1", "value2"}, "attribute2_name": {"v1", "v2"}}
 
     # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing,
-    # all() is needed because equals for numpy arrays returns an array of booleans.
+    # all() is needed because equals for tensor arrays returns an array of booleans.
     assert all(doc.get_vector(excluded_tokens) == doc_excluding_tokens.get_vector())
 
     # checks if get_vector without excluded_tokens returns a different vector for doc

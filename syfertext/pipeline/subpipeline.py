@@ -199,11 +199,7 @@ class SubPipeline(AbstractSendable):
 
         # Create the pointer object
         subpipeline_pointer = SubPipelinePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return subpipeline_pointer
@@ -325,8 +321,9 @@ class SubPipeline(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(SubPipeline, "proto_id"):
-            SubPipeline.proto_id = msgpack_code_generator()
+            SubPipeline.proto_id = msgpack_code_generator(SubPipeline.__qualname__)
 
         code_dict = dict(code=SubPipeline.proto_id)
 

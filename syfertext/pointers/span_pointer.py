@@ -22,9 +22,7 @@ class SpanPointer(ObjectPointer):
         Args:
             location (BaseWorker): the worker where the `Span` object resides that this
                 SpanPointer will point to.
-
             id_at_location (int or str): the id of the `Span` object at the `location` worker.
-
             owner (BaseWorker): the owner of the this object ie. `SpanPointer`
 
         Returns:
@@ -36,6 +34,7 @@ class SpanPointer(ObjectPointer):
             id_at_location=id_at_location,
             owner=owner,
             id=id,
+            garbage_collect_data=True,  # Always True
         )
 
     def __len__(self):

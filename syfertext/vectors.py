@@ -1,8 +1,9 @@
 import pickle
 import os
 from pathlib import Path
-import numpy as np
 import importlib
+import torch
+from typing import Union
 
 from .utils import hash_string
 
@@ -62,24 +63,28 @@ class Vectors:
         # out-of-vocabulary
         self._create_default_vector()
 
-    def has_vector(self, word: str):
-        """Checks whether 'word' has a vector or not in self.vectors
+    def has_vector(self, key: Union[str, int]) -> bool:
+        """Checks whether 'word' has a vector or not in self.data
 
         Args:
-            word (str): the word to which we wish to test whether a vector exists or not.
+            key: the word or its hash to which we wish to test whether a vector exists or not.
 
         Returns:
-            True if a vector for 'word' already exists in self.vectors.
+            True if a vector for 'word' already exists.
         """
 
         if self.vectors is None:
             return False
 
-        # Create the word hash
-        key = hash_string(word)
+        if isinstance(key, str):
+            # Create the word hash key
+            orth = hash_string(key)
+
+        else:
+            orth = key
 
         # if the key exists return True
-        if key in self.hash2row:
+        if orth in self.hash2row:
             return True
 
         else:
@@ -90,7 +95,6 @@ class Vectors:
 
         Args:
             word (str): the word to which we wish to return a vector.
-
 
         Returns:
             The vector embedding of the word.
@@ -112,5 +116,8 @@ class Vectors:
 
         # Get the vector
         vector = self.vectors[row]
+
+        # Convert the vectors to torch Tensors
+        vector = torch.tensor(vector, dtype=torch.float32)
 
         return vector
