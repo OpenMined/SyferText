@@ -77,7 +77,6 @@ class Vocab:
             is_stop, stops=self.stop_words
         )
 
-
     def set_model_name(self, model_name: str) -> None:
         """Set the language model name to which this object belongs.
 
@@ -160,7 +159,7 @@ class Vocab:
 
     def get_vector(self, key: Union[str, int]):
         """Retrieve a vector for a word in the vocabulary. Words can be looked
-        up by string or int ID. 
+        up by string or int ID.
 
         Args:
             key: The word hash, or its plaintext.
@@ -190,7 +189,7 @@ class Vocab:
         stored.
 
         Args:
-            key: The word hash, or its plaintext. 
+            key: The word hash, or its plaintext.
 
         Returns:
             Lexeme: The lexeme specified by the given key.
@@ -217,10 +216,10 @@ class Vocab:
 
     def has_vector(self, key: Union[str, int]) -> bool:
         """Check whether the given string has an entry in word vectors table
-        
+
         Args:
             key: The word or its hash for which the existence of a vector is to be checked out.
-        
+
         Returns :
             bool: True if a vector for 'word' already exists.
         """
@@ -230,7 +229,7 @@ class Vocab:
     def get_lex_meta(self, orth: int) -> Union[LexemeMeta]:
         """Get a LexemeMeta from the lexstore, creating a new
         Lexeme if necessary.
-        
+
         Args:
             orth: The word hash for which the LexemeMeta object is requested.
 
@@ -255,10 +254,10 @@ class Vocab:
 
     def _create_lex_meta(self, string: str) -> LexemeMeta:
         """Creates a LexemeMeta object corresponding to `string`.
-        
+
         Args:
             string: The plaintext string for which a LexemeMeta object is to be created.
-            
+
         Returns:
             A LexemeMeta object corresponding to `string`.
         """

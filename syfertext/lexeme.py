@@ -9,8 +9,7 @@ class LexemeMeta(object):
     """
 
     def __init__(self):
-        """Initializes a LexemeMeta object
-        """
+        """Initializes a LexemeMeta object"""
 
         self.flags = 0
         self.lang = 0
@@ -23,7 +22,7 @@ class LexemeMeta(object):
         self.suffix = 0
 
     def set_lexmeta_attr(self, attr_id: int, value: Union[int, bool]) -> None:
-        """ Sets all the attributes for given attribute id for LexemeMeta object 
+        """Sets all the attributes for given attribute id for LexemeMeta object
         according to the provided `value`.
 
         Args:
@@ -60,10 +59,10 @@ class LexemeMeta(object):
     # These 2 methods for checking and setting flags for
     # boolean attributes for Lexeme class are taken from Spacy.
     def check_flag(self, flag_id: int) -> bool:
-        """This method checks the value of flag corresponding to given flag_id. 
-        It check if bit at index corresponding to flag_id is 1 or 0. This method 
+        """This method checks the value of flag corresponding to given flag_id.
+        It check if bit at index corresponding to flag_id is 1 or 0. This method
         is inspired from Spacy.
-        
+
         Args:
             flag_id(int): The flag_id for corresponding attribute to check.
 
@@ -110,7 +109,7 @@ class LexemeMeta(object):
 
 class Lexeme:
     """Inspired by Spacy's Lexeme class. It is an entry in the vocabulary.
-    It holds various non-contextual attributes related to the corresponding string.  
+    It holds various non-contextual attributes related to the corresponding string.
     """
 
     def __init__(self, vocab: "Vocab", orth: int) -> None:
@@ -142,7 +141,7 @@ class Lexeme:
         return self.lex_meta.check_flag(flag_id)
 
     def set_flag(self, flag_id: int, value: bool) -> None:
-        """Set the sets the value of flag corresponding to flag_id to 1 or zero 
+        """Set the sets the value of flag corresponding to flag_id to 1 or zero
         according to provided attribute value. This method is inspired from Spacy.
 
         Args:
@@ -178,7 +177,7 @@ class Lexeme:
 
     @property
     def orth_(self):
-        """The original text of the lexeme (identical to `Lexeme.text`). 
+        """The original text of the lexeme (identical to `Lexeme.text`).
         This method is defined for consistency with the other attributes.
         """
         return self.vocab.store[self.lex_meta.orth]
@@ -198,7 +197,7 @@ class Lexeme:
     @property
     def flags(self):
         """Returns the flags Integer value.
-        One can get the value assigned to a specific flag_id by 
+        One can get the value assigned to a specific flag_id by
         looking at the bit corresponding to flag_id index of flags.
         """
 
@@ -265,8 +264,7 @@ class Lexeme:
 
     @property
     def is_stop(self):
-        """Whether the lexeme is a stop word.
-        """
+        """Whether the lexeme is a stop word."""
         return self.lex_meta.check_flag(Attributes.IS_STOP)
 
     @property
@@ -355,8 +353,7 @@ class Lexeme:
 
     @property
     def like_num(self) -> bool:
-        """Whether the lexeme resembles a number, e.g. "10.9", "10", etc.
-        """
+        """Whether the lexeme resembles a number, e.g. "10.9", "10", etc."""
 
         return self.lex_meta.check_flag(Attributes.LIKE_NUM)
 

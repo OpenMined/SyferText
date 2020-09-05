@@ -25,7 +25,7 @@ class Vectors:
         self.hash2row = hash2row
         if vectors is not None:
             self.vectors = torch.tensor(vectors)
-        else: 
+        else:
             self.vectors = vectors
 
         # Create a default vector that is returned
@@ -62,7 +62,7 @@ class Vectors:
         self.hash2row = hash2row
         if vectors is not None:
             self.vectors = torch.tensor(vectors)
-        else: 
+        else:
             self.vectors = vectors
 
         # Create the default vector return in case of

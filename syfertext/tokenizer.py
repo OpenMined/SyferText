@@ -414,10 +414,10 @@ class Tokenizer(AbstractSendable):
 
         Args:
             substring: The substring to tokenize.
-            
-        Returns:    
+
+        Returns:
             substring: The substring to tokenize.
-            affixes: Dict holding TokenMeta lists of each affix 
+            affixes: Dict holding TokenMeta lists of each affix
                 types as a result of splitting affixes
             exception_tokens: The list of exception tokens TokenMeta objects.
         """
@@ -491,7 +491,7 @@ class Tokenizer(AbstractSendable):
         Args:
             doc: Original Document
             substring: The substring remaining after splitting all the affixes.
-            space_after: If there is a space after the original substring before splitting any affixes 
+            space_after: If there is a space after the original substring before splitting any affixes
                 in the text.
             affixes: Dict holding TokenMeta lists of each affix types(prefix, suffix, infix)
                 formed as the result of splitting affixes.
@@ -536,10 +536,10 @@ class Tokenizer(AbstractSendable):
 
         Args:
             substring: The substring to tokenize.
-            
+
         Returns:
             token_meta: The TokenMeta object with TokenMeta data of prefix.
-            substring: The updated substring after removing prefix.           
+            substring: The updated substring after removing prefix.
         """
 
         # Get the length of prefix match in the substring.
@@ -565,7 +565,7 @@ class Tokenizer(AbstractSendable):
 
         Args:
             substring: The `substring` to tokenize.
-            
+
         Returns:
             token_meta: The TokenMeta object of the suffix.
             substring: The updated substring after removing the suffix.
@@ -646,7 +646,7 @@ class Tokenizer(AbstractSendable):
 
         Args:
             substring: The substring to tokenize.
-            
+
         Returns:
             exception_token_metas : the list of exceptions TokenMeta
                 objects.
