@@ -11,14 +11,6 @@ Subpackages
 Submodules
 -----------
 
-syfertext.char\_classes 
-------------------------------
-
-.. automodule:: syfertext.char_classes
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 syfertext.doc 
 --------------------
 
@@ -83,13 +75,6 @@ syfertext.token
    :undoc-members:
    :show-inheritance:
 
-syfertext.token\_exception 
----------------------------------
-
-.. automodule:: syfertext.token_exception
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 syfertext.tokenizer 
 --------------------------
