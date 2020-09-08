@@ -1,0 +1,53 @@
+{
+  "files": [
+    "CONTRIBUTORS.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "sachin-101",
+      "name": "Sachin Kumar",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/44168164?v=4",
+      "profile": "https://www.linkedin.com/in/sachin-kumar-837b2b17b/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "bicycleman15",
+      "name": "Jatin Prakash",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/47978882?v=4",
+      "profile": "https://github.com/bicycleman15",
+      "contributions": [
+        "ideas",
+        "code",
+        "design",
+        "doc"
+      ]
+    }
+      "login": "Nilanshrajput",
+      "name": "Nilansh Rajput",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/28673745?v=4",
+      "profile": "https://www.linkedin.com/in/nilansh-rajput-012a76155",
+       "contributions": [
+        "code"
+      ]
+     },
+     {
+      "login": "AlanAboudib",
+      "name": "Alan Aboudib",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/11991643?v=4",
+      "profile": "https://github.com/AlanAboudib",
+      "contributions": [
+        "code"
+      ]
+     }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "SyferText",
+  "projectOwner": "OpenMined",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

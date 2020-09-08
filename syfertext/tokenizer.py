@@ -42,30 +42,19 @@ class TokenMeta(object):
     This allows to create a Token object when needed.
     """
 
-    def __init__(
-        self, hash_key: int, start_pos: int, end_pos: int, space_after: bool, is_space: bool
-    ):
+    def __init__(self, hash_key: int, space_after: bool):
         """Initializes a TokenMeta object
 
         Args:
             hash_key(int): hash value of the string stored by the Token object
-            start_pos (int): The start index of the token in the Doc text.
-            end_pos (int): The end index of the token in the Doc text (the end index is
-                part of the token).
             space_after (bool): Whether the token is followed by a single white
                 space (True) or not (False).
-            is_space (bool): Whether the token itself is composed of only white
-                spaces (True) or not (false).
-
         """
 
         # stores the hash of the hash of the string
         self.orth = hash_key
 
-        self.start_pos = start_pos
-        self.end_pos = end_pos
         self.space_after = space_after
-        self.is_space = is_space
 
         # Initialize the Underscore object (inspired by spaCy)
         # This object will hold all the custom attributes set
@@ -186,23 +175,24 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = {}
 
-    def load_state(self) -> None:
+    def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
 
         Modifies:
             self.vocab: The `vocab` property is initialized with the model
                  name. Its 'load_state()` method is also called.
         """
-
+        if name:
+            self.state_name = name
+        else:
+            self.state_name = self.__class__.__name__.lower()
         # Start by creating the vocab and loading its state
         self.vocab = Vocab(model_name=self.model_name, owner=self.owner)
         self.vocab.load_state()
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(
-            model_name=self.model_name, state_name=self.__class__.__name__.lower()
-        )
+        state_id = create_state_query(model_name=self.model_name, state_name=self.state_name)
 
         # Search for the state
         result = search_resource(query=state_id, local_worker=self.owner)
@@ -233,12 +223,17 @@ class Tokenizer(AbstractSendable):
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
 
-    def dump_state(self) -> State:
+    def dump_state(self, name: str = None) -> State:
         """Returns a State object that holds the current state of this object.
 
         Returns:
             A State object that holds a simplified version of this object's state.
         """
+
+        if name:
+            self.state_name = name
+        else:
+            self.state_name = self.__class__.__name__.lower()
 
         # Simply the state variables
         exceptions_simple = serde._simplify(LOCAL_WORKER, self.exceptions)
@@ -248,8 +243,7 @@ class Tokenizer(AbstractSendable):
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
-        state_name = self.__class__.__name__.lower()
-        state_id = f"{self.model_name}:{state_name}"
+        state_id = f"{self.model_name}:{self.state_name}"
 
         # Create the State object
         state = State(
@@ -285,9 +279,8 @@ class Tokenizer(AbstractSendable):
         """
 
         # Create a document that will hold meta data of tokens
-        # By meta data I mean the start and end positions of each token
-        # in the original text, if the token is followed by a white space,
-        # if the token itself is composed of white spaces or not, etc ...
+        # By meta data I mean the hash value of the string stored by the Token object
+        # in the original text, and if the token is followed by a white space.
 
         # I do not assign the Doc here any owner, this will
         # be done by the SupPipeline object that operates
@@ -324,10 +317,7 @@ class Tokenizer(AbstractSendable):
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
                     hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
-                    start_pos=pos,
-                    end_pos=i - 1,
                     space_after=is_current_space,
-                    is_space=is_space,
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -367,10 +357,7 @@ class Tokenizer(AbstractSendable):
                     # Note: If the store doesn't contain string, then it is added to store
                     # and the corresponding key is returned back
                     hash_key=self.vocab.store[str(text[pos:])],
-                    start_pos=pos,
-                    end_pos=None,  # text[pos:None] ~ text[pos:]
                     space_after=is_current_space,
-                    is_space=is_space,
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -402,25 +389,19 @@ class Tokenizer(AbstractSendable):
                 affixes and exceptions.
         """
 
-        # Start position of substring in text to be tokenized.
-        pos = token_meta.start_pos
-
         # If there is trailing space after the substring in text.
         space_after = token_meta.space_after
 
-        # Get the remaining substring, it's start pos relative to original text,
-        # affixes containing list of TokenMeta for each type affix and
-        # list of TokenMeta of exceptions after splitting the affixes.
-        substring, pos, affixes, exception_tokens = self._split_affixes(
-            substring=substring, start_pos=pos
-        )
+        # Get the remaining substring,affixes containing list of
+        # TokenMeta for each type affix and list of TokenMeta of
+        # exceptions after splitting the affixes.
+        substring, affixes, exception_tokens = self._split_affixes(substring=substring)
 
         # Attach all the `TokenMeta` objects formed as result of splitting
         # the affixes and exception cases in the doc container.
         doc = self._attach_tokens(
             doc=doc,
             substring=substring,
-            start_pos=pos,
             space_after=space_after,
             affixes=affixes,
             exception_tokens=exception_tokens,
@@ -428,18 +409,14 @@ class Tokenizer(AbstractSendable):
 
         return doc
 
-    def _split_affixes(
-        self, substring: str, start_pos: int
-    ) -> Tuple[str, int, DefaultDict, List[TokenMeta]]:
+    def _split_affixes(self, substring: str) -> Tuple[str, DefaultDict, List[TokenMeta]]:
         """Process substring for tokenizing prefixes, infixes, suffixes and exceptions.
 
         Args:
             substring: The substring to tokenize.
-            start_pos: A pointer to the start position of the substring in the text.
 
         Returns:
             substring: The substring to tokenize.
-            start_pos: A pointer to the start position of the substring in the text.
             affixes: Dict holding TokenMeta lists of each affix
                 types as a result of splitting affixes
             exception_tokens: The list of exception tokens TokenMeta objects.
@@ -447,8 +424,6 @@ class Tokenizer(AbstractSendable):
 
         infixes = []
         exception_tokens = []
-        pos = start_pos
-        end_pos = pos
 
         next_affix = ["prefix", "suffix"]
 
@@ -474,7 +449,7 @@ class Tokenizer(AbstractSendable):
 
             if substring in self.exceptions:
                 # Get a list of exception  `TokenMeta` objects to be added in the Doc container
-                exception_tokens, substring = self._get_exception_token_metas(substring, pos)
+                exception_tokens, substring = self._get_exception_token_metas(substring)
 
                 break
 
@@ -485,10 +460,8 @@ class Tokenizer(AbstractSendable):
 
             if affix_finder(substring):
                 # Get the `TokenMeta` object of the affix along with updated
-                # substring and start pos pointer after removing the affix
-                token_meta, substring, pos = getattr(self, f"_get_{affix_type}_token_meta")(
-                    substring, pos
-                )
+                # substring after removing the affix
+                token_meta, substring = getattr(self, f"_get_{affix_type}_token_meta")(substring)
 
                 affixes[f"{affix_type}"].append(token_meta)
 
@@ -499,16 +472,15 @@ class Tokenizer(AbstractSendable):
 
         # Get infix TokenMeta objects if any.
         if self.infix_matches(substring):
-            infixes, substring, pos = self._get_infix_token_metas(substring, pos)
+            infixes, substring = self._get_infix_token_metas(substring)
             affixes["infix"].extend(infixes)
 
-        return substring, pos, affixes, exception_tokens
+        return substring, affixes, exception_tokens
 
     def _attach_tokens(
         self,
         doc: Doc,
         substring: str,
-        start_pos: int,
         space_after: bool,
         affixes: DefaultDict,
         exception_tokens: List[TokenMeta],
@@ -519,7 +491,6 @@ class Tokenizer(AbstractSendable):
         Args:
             doc: Original Document
             substring: The substring remaining after splitting all the affixes.
-            start_pos: The pointer to location of start of substring in text.
             space_after: If there is a space after the original substring before splitting any affixes
                 in the text.
             affixes: Dict holding TokenMeta lists of each affix types(prefix, suffix, infix)
@@ -539,14 +510,11 @@ class Tokenizer(AbstractSendable):
 
         # If subtring is remaining after splitting all the affixes.
         if substring:
+
             # Create the TokenMeta object
-            end_pos = start_pos + len(substring) - 1
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[(substring)],
-                start_pos=start_pos,
-                end_pos=end_pos,
                 space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
-                is_space=False,
             )
 
             # Append the token to the document
@@ -563,17 +531,15 @@ class Tokenizer(AbstractSendable):
 
         return doc
 
-    def _get_prefix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
+    def _get_prefix_token_meta(self, substring: str) -> Tuple[TokenMeta, str]:
         """Makes TokenMeta data for substring which are prefixes.
 
         Args:
             substring: The substring to tokenize.
-            pos: The pointer to the start position of substring in the text.
 
         Returns:
             token_meta: The TokenMeta object with TokenMeta data of prefix.
             substring: The updated substring after removing prefix.
-            pos: The pointer to the start position of new substring in the text.
         """
 
         # Get the length of prefix match in the substring.
@@ -581,37 +547,28 @@ class Tokenizer(AbstractSendable):
 
         # break if pattern matches the empty string
         if pre_len == 0:
-            return None, substring, pos
-
-        end_pos = pos + pre_len - 1
+            return None, substring
 
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[:pre_len])],
-            start_pos=pos,
-            end_pos=end_pos,
             space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
-            is_space=False,
         )
-
-        pos = end_pos + 1
 
         # Update the remaining substring after removing the prefix.
         substring = substring[pre_len:]
 
-        return token_meta, substring, pos
+        return token_meta, substring
 
-    def _get_suffix_token_meta(self, substring: str, pos: int) -> Tuple[TokenMeta, str, int]:
+    def _get_suffix_token_meta(self, substring: str) -> Tuple[TokenMeta, str]:
         """Makes TokenMeta data for substring suffixes.
 
         Args:
             substring: The `substring` to tokenize.
-            pos: The pointer to the start position of substring in the text.
 
         Returns:
             token_meta: The TokenMeta object of the suffix.
             substring: The updated substring after removing the suffix.
-            pos: The pointer to the start position of new `substring` in the text.
         """
 
         # Get the length of suffix match in the substring.
@@ -621,38 +578,27 @@ class Tokenizer(AbstractSendable):
         if suff_len == 0:
             return None, substring
 
-        # A pointer to the start of the suffix in the substring relative to the original text.
-        pos_suffix = pos + len(substring) - suff_len
-
-        # A pointer to the end of the suffix in the substring relative to the original text.
-        end_pos_suffix = pos_suffix + suff_len - 1
-
         # Create the TokenMeta object
         token_meta = TokenMeta(
             hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
-            start_pos=pos_suffix,
-            end_pos=end_pos_suffix,
             space_after=False,  # for the last token space_after will be updated explicitly in end.
-            is_space=False,
         )
 
         # Update the remaining substring after removing the suffix.
         substring = substring[:-suff_len]
 
-        return token_meta, substring, pos
+        return token_meta, substring
 
-    def _get_infix_token_metas(self, substring: str, pos: int) -> Tuple[List[TokenMeta], str, int]:
+    def _get_infix_token_metas(self, substring: str) -> Tuple[List[TokenMeta], str]:
         """Makes list of TokenMeta data for substring which are infixes.
 
         Args:
             substring: The substring to tokenize.
-            pos: The pointer to location of start of substring in text.
 
         Returns:
             infix_tokens_metas: the list of TokenMeta objects of infixes
                 found in `substring`.
             substring: The updated substring after processing for all infixes.
-            pos: The pointer to the start position of new `substring` in text.
         """
 
         # Get all the infix matches in list
@@ -682,33 +628,24 @@ class Tokenizer(AbstractSendable):
 
             else:
                 # Create the TokenMeta object
-                # pos added to make `start_pos` and `end_pos` relative to orginal text.
                 token_meta = TokenMeta(
                     hash_key=self.vocab.store[str(substring[start_pos:end_pos])],
-                    start_pos=start_pos + pos,
-                    end_pos=end_pos + pos,
                     space_after=False,  #  For this token space_after will be updated explicitly in end.
-                    is_space=False,
                 )
 
                 # Append the token to the infix_list
                 infix_tokens_metas.append(token_meta)
 
-        # We have already proccesed the full substring so updating
-        # pos just to have similar structure to other _get_affix_meta.
-        pos = len(substring) + 1
-
         # There is no remaining substring
         substring = ""
 
-        return infix_tokens_metas, substring, pos
+        return infix_tokens_metas, substring
 
-    def _get_exception_token_metas(self, substring: str, pos: int) -> Tuple[List[TokenMeta], str]:
+    def _get_exception_token_metas(self, substring: str) -> Tuple[List[TokenMeta], str]:
         """Make a list of TokenMeta objects of exceptions found in `substring`.
 
         Args:
             substring: The substring to tokenize.
-            pos: The pointer to location of start of substring in text.
 
         Returns:
             exception_token_metas : the list of exceptions TokenMeta
@@ -722,22 +659,15 @@ class Tokenizer(AbstractSendable):
 
         for e in self.exceptions[substring]:
             ORTH = e["ORTH"]
-            end_pos = pos + len(ORTH) - 1
 
             # Create the TokenMeta object
             token_meta = TokenMeta(
                 hash_key=self.vocab.store[ORTH],
-                start_pos=pos,
-                end_pos=end_pos,
                 space_after=False,  # for the last token space_after will be updated explicitly in end.
-                is_space=False,
             )
 
             # Append the token to the  exception tokens list
             exception_token_metas.append(token_meta)
-
-            # update start_pos for next orth
-            pos = end_pos + 1
 
         # There is no remaining substring.
         substring = ""
@@ -815,7 +745,7 @@ class Tokenizer(AbstractSendable):
         # Simplify attributes
         model_name = serde._simplify(worker, tokenizer.model_name)
 
-        return model_name
+        return (model_name,)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -830,8 +760,8 @@ class Tokenizer(AbstractSendable):
            tokenizer (Tokenizer) : a Tokenizer object
         """
 
-        # Get the tuple elements
-        model_name = simple_obj
+        # Get the model name from the tuple
+        model_name = simple_obj[0]
 
         # Detail
         model_name = serde._detail(worker, model_name)
@@ -860,8 +790,9 @@ class Tokenizer(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(Tokenizer, "proto_id"):
-            Tokenizer.proto_id = msgpack_code_generator()
+            Tokenizer.proto_id = msgpack_code_generator(Tokenizer.__qualname__)
 
         code_dict = dict(code=Tokenizer.proto_id)
 

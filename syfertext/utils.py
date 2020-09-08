@@ -189,19 +189,20 @@ def search_resource(
 
 class MsgpackCodeGenerator:
     def __init__(self):
+        pass
 
-        self.code = 1999
+    def __call__(self, class_name: str) -> int:
+        """Generates and returns a unique msgpack code.
 
-    def __call__(self) -> int:
-        """Generates and returns a unique msgpack code
+        Args:
+            class_name: The name of class for which the msgpack code is required.
 
         Returns:
             An integer to serve as a msgpack serialization code.
         """
 
-        self.code += 1
-
-        return self.code
+        # the code Msgpack is generated as the hash of class name
+        return hash_string(class_name)
 
 
 msgpack_code_generator = MsgpackCodeGenerator()

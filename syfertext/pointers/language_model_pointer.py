@@ -18,12 +18,7 @@ class LanguageModelPointer(ObjectPointer):
     pulled to the worker that requested it.
     """
 
-    def __init__(
-        self,
-        location: BaseWorker,
-        id_at_location: str,
-        owner: BaseWorker,
-    ):
+    def __init__(self, location: BaseWorker, id_at_location: str, owner: BaseWorker):
         """Initializes the LanguageModel object.
 
         Args:
@@ -168,7 +163,9 @@ class LanguageModelPointer(ObjectPointer):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(LanguageModelPointer, "proto_id"):
-            LanguageModelPointer.proto_id = msgpack_code_generator()
+            LanguageModelPointer.proto_id = msgpack_code_generator(
+                LanguageModelPointer.__qualname__
+            )
 
         code_dict = dict(code=LanguageModelPointer.proto_id)
 

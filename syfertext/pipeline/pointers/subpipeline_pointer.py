@@ -22,7 +22,6 @@ class SubPipelinePointer(ObjectPointer):
         id_at_location: Union[str, int],
         owner: BaseWorker,
         id: Union[str, int],
-        garbage_collect_data: bool = True,
     ):
         """Initializes the object.
 
@@ -34,7 +33,6 @@ class SubPipelinePointer(ObjectPointer):
             owner (BaseWorker): The worker that owns this pointer
                 object.
             id (str, int): The ID of the pointer object.
-            garbage_collect_data (bool): Activate garbage collection or not.
         """
 
         # Initialize the parent object
@@ -43,7 +41,7 @@ class SubPipelinePointer(ObjectPointer):
             id_at_location=id_at_location,
             owner=owner,
             id=id,
-            garbage_collect_data=garbage_collect_data,
+            garbage_collect_data=True,  # Always True
         )
 
     def load_states(self) -> None:
@@ -108,7 +106,7 @@ class SubPipelinePointer(ObjectPointer):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(SubPipelinePointer, "proto_id"):
-            SubPipelinePointer.proto_id = msgpack_code_generator()
+            SubPipelinePointer.proto_id = msgpack_code_generator(SubPipelinePointer.__qualname__)
 
         code_dict = dict(code=SubPipelinePointer.proto_id)
 
