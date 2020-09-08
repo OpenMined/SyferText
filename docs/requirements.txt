@@ -1,0 +1,14 @@
+black>=10.3b0
+bumpversion>=0.5.3
+coverage>=4.5.3
+interrogate>=1.1.4
+ipykernel>=5.1.0
+matplotlib~=3.1.1
+pytest-randomly~=3.2.1
+pytest>=5.4.1
+setuptools>=41.0.0
+sphinx-autoapi
+sphinx-markdown-builder>=0.4.1
+sphinx-rtd-theme
+Sphinx>=2.1.1
+-e git+https://github.com/OpenMined/PySyft@1eb369ae3a1865789f5809bec59f066ac1cbe58d
