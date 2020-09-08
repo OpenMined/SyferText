@@ -249,8 +249,8 @@ class SimpleTagger(AbstractSendable):
     def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
 
-        Modifies:
-
+        Args:
+            name: The name of the state.
         """
         if name:
             self.state_name = name
@@ -292,13 +292,11 @@ class SimpleTagger(AbstractSendable):
         self.default_tag = serde._detail(LOCAL_WORKER, default_tag_simple)
         self.case_sensitive = serde._detail(LOCAL_WORKER, case_sensitive_simple)
 
-        """# Load the state
-        self.attribute = attribute, self.lookups = lookups,
-        self.tag = self.tag, self.default_tag = self.default_tag, self.case_sensitive = case_sensitive
-        """
-
     def dump_state(self, name=None) -> State:
         """Returns a State object that holds the current state of this object.
+
+        Args:
+            name: The name of the state.
 
         Returns:
             A State object that holds a simplified version of this object's state.
@@ -309,11 +307,11 @@ class SimpleTagger(AbstractSendable):
             self, state_name = self.__class__.__name__.lower()
 
         # Simply the state variables
-        attribute_simple = serde._simplify(LOCAL_WORKER, self.attribute)
-        lookups_simple = serde._simplify(LOCAL_WORKER, self.lookups)
-        tag_simple = serde._simplify(LOCAL_WORKER, self.tag)
-        default_tag_simple = serde._simplify(LOCAL_WORKER, self.default_tag)
-        case_sensitive_simple = serde._simplify(LOCAL_WORKER, self.case_sensitive)
+        attribute_simple = serde._simplify(self.owner, self.attribute)
+        lookups_simple = serde._simplify(self.owner, self.lookups)
+        tag_simple = serde._simplify(self.owner, self.tag)
+        default_tag_simple = serde._simplify(self.owner, self.default_tag)
+        case_sensitive_simple = serde._simplify(self.owner, self.case_sensitive)
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
