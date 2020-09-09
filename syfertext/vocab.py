@@ -25,7 +25,6 @@ from .lex_attrs import LEX_ATTRS
 from .stop_words import STOP_WORDS
 
 
-
 class Vocab:
     def __init__(
         self,
