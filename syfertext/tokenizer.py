@@ -161,7 +161,7 @@ class Tokenizer(AbstractSendable):
 
 
         """
-        
+
         # To solve the defult value error in the docs
         if prefixes:
             self.prefixes = prefixes
