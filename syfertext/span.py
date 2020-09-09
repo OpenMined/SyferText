@@ -21,7 +21,12 @@ class Span(AbstractObject):
     """A slice from a Doc object."""
 
     def __init__(
-        self, doc: "Doc", start: int, end: int, id: int = None, owner: BaseWorker = None,
+        self,
+        doc: "Doc",
+        start: int,
+        end: int,
+        id: int = None,
+        owner: BaseWorker = None,
     ):
         """Create a `Span` object from the slice `doc[start : end]`.
 
