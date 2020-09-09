@@ -163,17 +163,17 @@ class Tokenizer(AbstractSendable):
         """
 
         # To solve the defult value error in the docs
-        if prefixes:
+        if prefixes is not None:
             self.prefixes = prefixes
         else:
             self.prefixes = TOKENIZER_PREFIXES
 
-        if suffixes:
+        if suffixes is not None:
             self.suffixes = suffixes
         else:
             self.suffixes = TOKENIZER_SUFFIXES
 
-        if infixes:
+        if infixes is not None:
             self.infixes = infixes
         else:
             self.infixes = TOKENIZER_INFIXES
@@ -182,7 +182,7 @@ class Tokenizer(AbstractSendable):
         self.suffix_search = compile_suffix_regex(suffixes).search if suffixes else None
         self.infix_finditer = compile_infix_regex(infixes).finditer if infixes else None
 
-        if exceptions:
+        if exceptions is not None:
             self.exceptions = exceptions
         else:
             self.exceptions = TOKENIZER_EXCEPTIONS
