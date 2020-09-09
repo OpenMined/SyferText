@@ -9,7 +9,7 @@ Welcome to Syfertext's Documentation!
 .. toctree::
    :maxdepth: 4
 
-   syfertext
+   modules
 
 
 Indices and tables

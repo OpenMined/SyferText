@@ -27,11 +27,3 @@ syfertext.pipeline.subpipeline module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: syfertext.pipeline
-   :members:
-   :undoc-members:
-   :show-inheritance:

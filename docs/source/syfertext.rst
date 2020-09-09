@@ -1,3 +1,5 @@
+syfertext package
+=================
 
 Subpackages
 -----------
@@ -9,9 +11,17 @@ Subpackages
    syfertext.pointers
 
 Submodules
------------
+----------
 
-syfertext.doc 
+syfertext.attrs module
+----------------------
+
+.. automodule:: syfertext.attrs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+syfertext.doc module
 --------------------
 
 .. automodule:: syfertext.doc
@@ -19,7 +29,7 @@ syfertext.doc
    :undoc-members:
    :show-inheritance:
 
-syfertext.language 
+syfertext.language module
 -------------------------
 
 .. automodule:: syfertext.language
@@ -27,7 +37,7 @@ syfertext.language
    :undoc-members:
    :show-inheritance:
 
-syfertext.language\_model 
+syfertext.language\_model module
 --------------------------------
 
 .. automodule:: syfertext.language_model
@@ -35,15 +45,32 @@ syfertext.language\_model
    :undoc-members:
    :show-inheritance:
 
-syfertext.punctuations
------------------------------
+syfertext.lex\_attrs module
+---------------------------
 
-.. automodule:: syfertext.punctuations
+.. automodule:: syfertext.lex_attrs
    :members:
    :undoc-members:
    :show-inheritance:
 
-syfertext.span 
+syfertext.lexeme module
+-----------------------
+
+.. automodule:: syfertext.lexeme
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+syfertext.local\_pipeline module
+--------------------------------
+
+.. automodule:: syfertext.local_pipeline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+syfertext.span module
 ---------------------
 
 .. automodule:: syfertext.span
@@ -51,7 +78,7 @@ syfertext.span
    :undoc-members:
    :show-inheritance:
 
-syfertext.state 
+syfertext.state module
 ----------------------
 
 .. automodule:: syfertext.state
@@ -59,7 +86,15 @@ syfertext.state
    :undoc-members:
    :show-inheritance:
 
-syfertext.string\_store 
+syfertext.stop\_words module
+----------------------------
+
+.. automodule:: syfertext.stop_words
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+syfertext.string\_store module
 ------------------------------
 
 .. automodule:: syfertext.string_store
@@ -67,7 +102,7 @@ syfertext.string\_store
    :undoc-members:
    :show-inheritance:
 
-syfertext.token 
+syfertext.token module
 ----------------------
 
 .. automodule:: syfertext.token
@@ -76,7 +111,7 @@ syfertext.token
    :show-inheritance:
 
 
-syfertext.tokenizer 
+syfertext.tokenizer module
 --------------------------
 
 .. automodule:: syfertext.tokenizer
@@ -84,7 +119,7 @@ syfertext.tokenizer
    :undoc-members:
    :show-inheritance:
 
-syfertext.underscore 
+syfertext.underscore module
 ---------------------------
 
 .. automodule:: syfertext.underscore
@@ -92,7 +127,7 @@ syfertext.underscore
    :undoc-members:
    :show-inheritance:
 
-syfertext.utils 
+syfertext.utils module
 ----------------------
 
 .. automodule:: syfertext.utils
@@ -100,7 +135,7 @@ syfertext.utils
    :undoc-members:
    :show-inheritance:
 
-syfertext.vectors 
+syfertext.vectors module
 ------------------------
 
 .. automodule:: syfertext.vectors
@@ -108,7 +143,7 @@ syfertext.vectors
    :undoc-members:
    :show-inheritance:
 
-syfertext.vocab 
+syfertext.vocab module
 ----------------------
 
 .. automodule:: syfertext.vocab
@@ -116,7 +151,7 @@ syfertext.vocab
    :undoc-members:
    :show-inheritance:
 
-SyferText Module
+Module contents
 ---------------
 
 .. automodule:: syfertext

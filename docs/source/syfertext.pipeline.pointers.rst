@@ -11,11 +11,3 @@ syfertext.pipeline.pointers.subpipeline\_pointer module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: syfertext.pipeline.pointers
-   :members:
-   :undoc-members:
-   :show-inheritance:

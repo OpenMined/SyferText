@@ -36,10 +36,3 @@ syfertext.pointers.state\_pointer module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: syfertext.pointers
-   :members:
-   :undoc-members:
-   :show-inheritance:
