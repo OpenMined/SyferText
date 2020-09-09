@@ -72,7 +72,9 @@ class Tokenizer(AbstractSendable):
         suffixes: List[str] = None,
         infixes: List[str] = None,
     ):
-        """Initializes the `Tokenizer` object
+        """Initializes the `Tokenizer` object. Pass in empty lists for suffix, prefix and infix
+        if you don't want any suffix, prefix and infix rules and empty dict for no exception rules.
+        If None(default value), is passed, we use pre-configured rules.
 
         Args:
             model_name: The name of the language model to which this
