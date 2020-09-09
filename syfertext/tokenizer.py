@@ -67,10 +67,10 @@ class Tokenizer(AbstractSendable):
         self,
         model_name: str = None,
         owner: BaseWorker = None,
-        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
-        prefixes: List[str] = TOKENIZER_PREFIXES,
-        suffixes: List[str] = TOKENIZER_SUFFIXES,
-        infixes: List[str] = TOKENIZER_INFIXES,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
     ):
         """Initializes the `Tokenizer` object
 
@@ -124,10 +124,10 @@ class Tokenizer(AbstractSendable):
 
     def load_rules(
         self,
-        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
-        prefixes: List[str] = TOKENIZER_PREFIXES,
-        suffixes: List[str] = TOKENIZER_SUFFIXES,
-        infixes: List[str] = TOKENIZER_INFIXES,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
     ):
         """Sets/Resets the tokenization rules.
 
@@ -161,10 +161,22 @@ class Tokenizer(AbstractSendable):
 
 
         """
+        
+        # To solve the defult value error in the docs
+        if prefixes:
+            self.prefixes = prefixes
+        else:
+            self.prefixes = TOKENIZER_PREFIXES
 
-        self.prefixes = prefixes
-        self.suffixes = suffixes
-        self.infixes = infixes
+        if suffixes:
+            self.suffixes = suffixes
+        else:
+            self.suffixes = TOKENIZER_SUFFIXES
+
+        if infixes:
+            self.infixes = infixes
+        else:
+            self.infixes = TOKENIZER_INFIXES
 
         self.prefix_search = compile_prefix_regex(prefixes).search if prefixes else None
         self.suffix_search = compile_suffix_regex(suffixes).search if suffixes else None
@@ -173,7 +185,7 @@ class Tokenizer(AbstractSendable):
         if exceptions:
             self.exceptions = exceptions
         else:
-            self.exceptions = {}
+            self.exceptions = TOKENIZER_EXCEPTIONS
 
     def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
