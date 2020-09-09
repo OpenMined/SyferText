@@ -1,6 +1,11 @@
 from syfertext.doc import Doc
 from syfertext.token import Token
+from ..state import State
+from ..pointers import StatePointer
 from ..utils import msgpack_code_generator
+from ..utils import create_state_query
+from ..utils import search_resource
+from .. import LOCAL_WORKER
 
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
@@ -12,19 +17,21 @@ from typing import Dict
 
 class SimpleTagger(AbstractSendable):
     """This is a very simple token-level tagger. It enables to tag specified
-       tokens in a `Doc` object. By tagging a token, we mean setting a new
-       attribute to that token which holds the desired tag as its value.
-       The attribute becomes accessible then through the Underscore attribute
-       of the `Token` object.
+    tokens in a `Doc` object. By tagging a token, we mean setting a new
+    attribute to that token which holds the desired tag as its value.
+    The attribute becomes accessible then through the Underscore attribute
+    of the `Token` object.
     """
 
     def __init__(
         self,
-        attribute: str,
-        lookups: Union[set, list, dict],
+        attribute: str = None,
+        lookups: Union[set, list, dict] = None,
         tag: object = None,
         default_tag: object = None,
         case_sensitive: bool = True,
+        owner=None,
+        model_name=None,
     ):
         """Initialize the SimpleTagger object.
 
@@ -34,13 +41,13 @@ class SimpleTagger(AbstractSendable):
                 this attribute will be accessible through the attribute
                 `._` of Token objects. Example `token_object._.<attribute>
             lookups (set, list or dict): If of type `list` of `set`, it should contain
-                the tokens that are to be searched for and tagged in the Doc 
+                the tokens that are to be searched for and tagged in the Doc
                 object's text. Example: ['the', 'myself', ...]
                 If of type `dict`, the keys should be the tokens texts to be
                 tagged, and values should hold a single tag for each such token.
                 Example: tagging stop words {'the': True, 'myself' : True}.
             tag (object, optional): If `lookups` is of type `list`, then this
-                will be the tag assigned to all matched tokens. It will be 
+                will be the tag assigned to all matched tokens. It will be
                 ignored if `lookups` if of type `dict`.
             default_tag: (object, optional): The default tag to be assigned
                 in case the token text maches no entry in `lookups`.
@@ -48,7 +55,8 @@ class SimpleTagger(AbstractSendable):
                 token texts to `lookups` will become case sensitive.
                 Defaults to True.
         """
-
+        self.model_name = model_name
+        self.owner = owner
         self.attribute = attribute
 
         # Desensitize tokens in lookups if `case_sensitive` is False
@@ -100,9 +108,9 @@ class SimpleTagger(AbstractSendable):
 
 
         Returns:
-            A transformed version  of `lookup` where all token texts are in 
+            A transformed version  of `lookup` where all token texts are in
             lower case.
- 
+
         """
 
         # Replace dict keys with lower-case versions
@@ -138,12 +146,11 @@ class SimpleTagger(AbstractSendable):
         elif isinstance(self.lookups, set):
 
             tag = self.tag if token_text in self.lookups else self.default_tag
-
         return tag
 
     @staticmethod
     def simplify(worker: BaseWorker, simple_tagger: "SimpleTagger"):
-        """Simplifies a SimpleTagger object. 
+        """Simplifies a SimpleTagger object.
 
         Args:
             worker (BaseWorker): The worker on which the
@@ -153,7 +160,7 @@ class SimpleTagger(AbstractSendable):
 
         Returns:
             (tuple): The simplified SimpleTagger object.
-        
+
         """
 
         # Simplify the object properties
@@ -162,12 +169,13 @@ class SimpleTagger(AbstractSendable):
         tag = serde._simplify(worker, simple_tagger.tag)
         default_tag = serde._simplify(worker, simple_tagger.default_tag)
         case_sensitive = serde._simplify(worker, simple_tagger.case_sensitive)
+        model_name = serde._simplify(worker, simple_tagger.model_name)
 
-        return (attribute, lookups, tag, default_tag, case_sensitive)
+        return (attribute, lookups, tag, default_tag, case_sensitive, model_name)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
-        """Takes a simplified SimpleTagger object, details it 
+        """Takes a simplified SimpleTagger object, details it
            and returns a SimpleTagger object.
 
         Args:
@@ -179,7 +187,7 @@ class SimpleTagger(AbstractSendable):
         """
 
         # Unpack the simplified object
-        attribute, lookups, tag, default_tag, case_sensitive = simple_obj
+        attribute, lookups, tag, default_tag, case_sensitive, model_name = simple_obj
 
         # Detail each property
         attribute = serde._detail(worker, attribute)
@@ -187,6 +195,7 @@ class SimpleTagger(AbstractSendable):
         tag = serde._detail(worker, tag)
         default_tag = serde._detail(worker, default_tag)
         case_sensitive = serde._detail(worker, case_sensitive)
+        model_name = serde._detail(worker, model_name)
 
         # Instantiate a SimpleTagger object
         simple_tagger = SimpleTagger(
@@ -195,6 +204,8 @@ class SimpleTagger(AbstractSendable):
             tag=tag,
             default_tag=default_tag,
             case_sensitive=case_sensitive,
+            model_name=model_name,
+            owner=worker,
         )
 
         return simple_tagger
@@ -218,9 +229,105 @@ class SimpleTagger(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(SimpleTagger, "proto_id"):
-            SimpleTagger.proto_id = msgpack_code_generator()
+            SimpleTagger.proto_id = msgpack_code_generator(SimpleTagger.__qualname__)
 
         code_dict = dict(code=SimpleTagger.proto_id)
 
         return code_dict
+
+    def set_model_name(self, model_name: str) -> None:
+        """Set the language model name to which this object belongs.
+
+        Args:
+            name: The name of the language model.
+        """
+
+        self.model_name = model_name
+
+    def load_state(self, name=None) -> None:
+        """Search for the state of this object on PyGrid.
+
+        Args:
+            name: The name of the state.
+        """
+        if name:
+            self.state_name = name
+        else:
+            self, state_name = self.__class__.__name__.lower()
+
+        # Create the query. This is the ID according to which the
+        # State object is searched on PyGrid
+        state_id = create_state_query(model_name=self.model_name, state_name=self.state_name)
+
+        # Search for the state
+        result = search_resource(query=state_id, local_worker=self.owner)
+
+        # If no state is found, return
+        if not result:
+            return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+
+        elif isinstance(result, State):
+            state = result
+
+        # Detail the simple object contained in the state
+        (
+            attribute_simple,
+            lookups_simple,
+            tag_simple,
+            default_tag_simple,
+            case_sensitive_simple,
+        ) = state.simple_obj
+
+        self.attribute = serde._detail(LOCAL_WORKER, attribute_simple)
+        self.lookups = serde._detail(LOCAL_WORKER, lookups_simple)
+        self.tag = serde._detail(LOCAL_WORKER, tag_simple)
+        self.default_tag = serde._detail(LOCAL_WORKER, default_tag_simple)
+        self.case_sensitive = serde._detail(LOCAL_WORKER, case_sensitive_simple)
+
+    def dump_state(self, name=None) -> State:
+        """Returns a State object that holds the current state of this object.
+
+        Args:
+            name: The name of the state.
+
+        Returns:
+            A State object that holds a simplified version of this object's state.
+        """
+        if name:
+            self.state_name = name
+        else:
+            self, state_name = self.__class__.__name__.lower()
+
+        # Simply the state variables
+        attribute_simple = serde._simplify(self.owner, self.attribute)
+        lookups_simple = serde._simplify(self.owner, self.lookups)
+        tag_simple = serde._simplify(self.owner, self.tag)
+        default_tag_simple = serde._simplify(self.owner, self.default_tag)
+        case_sensitive_simple = serde._simplify(self.owner, self.case_sensitive)
+
+        # Create the query. This is the ID according to which the
+        # State object is searched for on across workers
+        state_id = f"{self.model_name}:{self.state_name}"
+
+        # Create the State object
+        state = State(
+            simple_obj=(
+                attribute_simple,
+                lookups_simple,
+                tag_simple,
+                default_tag_simple,
+                case_sensitive_simple,
+            ),
+            id=state_id,
+            access={"*"},
+        )
+
+        return state

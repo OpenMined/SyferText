@@ -12,7 +12,7 @@ from typing import Union
 
 
 def hash_string(string: str) -> int:
-    """Create a hash for a given string. 
+    """Create a hash for a given string.
     Hashes created by this functions will be used everywhere by
     SyferText to represent tokens.
     """
@@ -88,7 +88,7 @@ def compile_prefix_regex(entries: Tuple) -> Pattern:
 
 def compile_suffix_regex(entries: Tuple) -> Pattern:
     """Compile a sequence of suffix rules into a regex object.
-    
+
     Args:
         entries (tuple): The suffix rules, e.g. syfertext.punctuation.TOKENIZER_SUFFIXES.
 
@@ -135,7 +135,9 @@ def create_state_query(model_name: str, state_name: str) -> str:
     return query
 
 
-def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer",  None]:
+def search_resource(
+    query: str, local_worker: BaseWorker
+) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer", None]:
     """Searches for a resource (State or LanguageModel object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
@@ -164,7 +166,6 @@ def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "Sta
 
         return result[0]
 
-
     # If no object is found on the local worker, search on all
     # workers connected to the local_worker
     for _, location in local_worker._known_workers.items():
@@ -183,25 +184,25 @@ def search_resource(query: str, local_worker: BaseWorker) -> Union["State", "Sta
             # Get the pointer object returned
             object_ptr = result[0]
 
-
             return object_ptr
+
 
 class MsgpackCodeGenerator:
     def __init__(self):
+        pass
 
-        self.code = 1999
+    def __call__(self, class_name: str) -> int:
+        """Generates and returns a unique msgpack code.
 
-    def __call__(self) -> int:
-        """Generates and returns a unique msgpack code
+        Args:
+            class_name: The name of class for which the msgpack code is required.
 
         Returns:
             An integer to serve as a msgpack serialization code.
         """
 
-        self.code += 1
-
-        return self.code
+        # the code Msgpack is generated as the hash of class name
+        return hash_string(class_name)
 
 
 msgpack_code_generator = MsgpackCodeGenerator()
-

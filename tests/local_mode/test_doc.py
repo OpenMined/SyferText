@@ -1,15 +1,20 @@
 import syft as sy
 import torch
+import random
+
 import syfertext
 from syft.generic.string import String
 from syfertext.pointers.doc_pointer import DocPointer
-
-import numpy as np
+from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
+me.is_client_worker = False
 
-nlp = syfertext.load("en_core_web_lg", owner=me)
+# create a remote worker
+alice = sy.VirtualWorker(hook=hook, id=f"alice{random.randint(1,500)}")
+
+nlp = get_test_language_model()
 
 
 def test_avg_vector_valid_token():
@@ -196,7 +201,7 @@ def test_exclude_tokens_on_attr_values_doc():
     excluded_tokens = {"attribute1_name": {"value1", "value2"}, "attribute2_name": {"v1", "v2"}}
 
     # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing,
-    # all() is needed because equals for numpy arrays returns an array of booleans.
+    # all() is needed because equals for tensor arrays returns an array of booleans.
     assert all(doc.get_vector(excluded_tokens) == doc_excluding_tokens.get_vector())
 
     # checks if get_vector without excluded_tokens returns a different vector for doc
@@ -241,11 +246,8 @@ def test_ownership_doc_local():
 def test_ownership_doc_remote():
     """Tests that the doc object pointed by doc pointer is owned by remote worker"""
 
-    # create a remote worker
-    bob = sy.VirtualWorker(hook=hook, id="bob")
-
     # get a String Pointer
-    text_ptr = String("we were on a break").send(bob)
+    text_ptr = String("we were on a break").send(alice)
 
     # create a doc pointer
     doc = nlp(text_ptr)
@@ -254,7 +256,7 @@ def test_ownership_doc_remote():
     assert doc.owner == me
 
     # check owner of doc object pointed by the `doc` DocPointer
-    assert bob._objects[doc.id_at_location].owner.id == bob.id
+    assert alice._objects[doc.id_at_location].owner.id == alice.id
 
 
 def test_nbor():

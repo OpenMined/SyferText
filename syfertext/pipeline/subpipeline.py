@@ -70,8 +70,8 @@ class SubPipeline(AbstractSendable):
         self.subpipeline.
         """
 
-        for pipe in self.subpipeline:
-            pipe.load_state()
+        for pipe, name in zip(self.subpipeline, self.pipe_names):
+            pipe.load_state(name=name)
 
     def load_template(self, template: dict, factories: Dict[str, type]):
         """Loads the subpipeline template.
@@ -87,7 +87,6 @@ class SubPipeline(AbstractSendable):
 
         # set the pipe names property
         self.pipe_names = template["names"]
-
         # Create the subpipeline property
         self.subpipeline = [
             factories[name](model_name=self.model_name, owner=self.owner)
@@ -200,11 +199,7 @@ class SubPipeline(AbstractSendable):
 
         # Create the pointer object
         subpipeline_pointer = SubPipelinePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return subpipeline_pointer
@@ -326,8 +321,9 @@ class SubPipeline(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(SubPipeline, "proto_id"):
-            SubPipeline.proto_id = msgpack_code_generator()
+            SubPipeline.proto_id = msgpack_code_generator(SubPipeline.__qualname__)
 
         code_dict = dict(code=SubPipeline.proto_id)
 

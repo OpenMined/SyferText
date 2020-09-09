@@ -6,6 +6,7 @@ from .pipeline import SubPipeline
 from .pipeline import SimpleTagger
 from .state import State
 from .language_model import LanguageModel
+from .attrs import Attributes
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -14,14 +15,12 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 import torch.nn as nn
 
+from collections import defaultdict
 from typing import List
 from typing import Union
 from typing import Tuple
 from typing import Set
 from typing import Dict
-
-from collections import defaultdict
-import numpy as np
 
 
 class Language(AbstractObject):
@@ -94,6 +93,7 @@ class Language(AbstractObject):
         # The name of the tokenizer component is set to the class name
         # for the moment
         name = tokenizer.__class__.__name__.lower()
+        self.tokenizer = tokenizer
 
         # Add the tokenizer to the pipeline
         self.add_pipe(component=tokenizer, name=name, access=access)
@@ -118,7 +118,7 @@ class Language(AbstractObject):
 
         # Get the state of the vocab object
         state = vocab.dump_state()
-
+        self.vocab = vocab
         # Save the state in the object store
         self._save_state(state=state, name="vocab", access=access)
 
@@ -230,8 +230,7 @@ class Language(AbstractObject):
             subpipeline.load_states()
 
     def _reset_pipeline(self):
-        """Reset the `pipeline` class property.
-        """
+        """Reset the `pipeline` class property."""
 
         # Initialize a new empty pipeline with as an empty dict
         self.pipeline = {}
@@ -305,7 +304,7 @@ class Language(AbstractObject):
         component.set_model_name(model_name=self.model_name)
 
         # Get the component's state
-        state = component.dump_state()
+        state = component.dump_state(name=name)
 
         # Save the component's state
         self._save_state(state=state, name=name, access=access)

@@ -1,16 +1,16 @@
 import pickle
 import os
 from pathlib import Path
-import numpy as np
 import importlib
+import torch
+from typing import Union
+from typing import Dict
 
 from .utils import hash_string
 
-from typing import Dict
-
 
 class Vectors:
-    def __init__(self, hash2row: Dict[int, int], vectors: np.ndarray):
+    def __init__(self, hash2row: Dict[int, int], vectors: torch.tensor):
         """Creates the Vectors object.
 
         Args:
@@ -21,7 +21,10 @@ class Vectors:
         """
 
         self.hash2row = hash2row
-        self.vectors = vectors
+        if vectors is not None:
+            self.vectors = torch.tensor(vectors, dtype=torch.float)
+        else:
+            self.vectors = vectors
 
         # Create a default vector that is returned
         # when an out-of-vocabulary token is encountered
@@ -40,11 +43,10 @@ class Vectors:
 
         # Create the default vector as a numpy array if the `vectors` property is
         # set.
+        if self.vectors is not None:
+            self.default_vector = torch.zeros(self.vectors.shape[1], dtype=torch.float)
 
-        if isinstance(self.vectors, np.ndarray):
-            self.default_vector = np.zeros(self.vectors.shape[1], dtype=self.vectors.dtype)
-
-    def load_data(self, hash2row: Dict[int, int], vectors: np.ndarray):
+    def load_data(self, hash2row: Dict[int, int], vectors: torch.tensor):
         """Loads the vector data. This is needed when the Vocab object loads its
         state, which might contain vector data.
 
@@ -56,30 +58,37 @@ class Vectors:
         """
 
         self.hash2row = hash2row
-        self.vectors = vectors
+        if vectors is not None:
+            self.vectors = torch.tensor(vectors, dtype=torch.float)
+        else:
+            self.vectors = vectors
 
         # Create the default vector return in case of
         # out-of-vocabulary
         self._create_default_vector()
 
-    def has_vector(self, word: str):
-        """Checks whether 'word' has a vector or not in self.vectors
+    def has_vector(self, key: Union[str, int]) -> bool:
+        """Checks whether 'word' has a vector or not in self.data
 
         Args:
-            word (str): the word to which we wish to test whether a vector exists or not.
+            key: the word or its hash to which we wish to test whether a vector exists or not.
 
         Returns:
-            True if a vector for 'word' already exists in self.vectors.
+            True if a vector for 'word' already exists.
         """
 
         if self.vectors is None:
             return False
 
-        # Create the word hash
-        key = hash_string(word)
+        if isinstance(key, str):
+            # Create the word hash key
+            orth = hash_string(key)
+
+        else:
+            orth = key
 
         # if the key exists return True
-        if key in self.hash2row:
+        if orth in self.hash2row:
             return True
 
         else:
@@ -90,7 +99,6 @@ class Vectors:
 
         Args:
             word (str): the word to which we wish to return a vector.
-
 
         Returns:
             The vector embedding of the word.
