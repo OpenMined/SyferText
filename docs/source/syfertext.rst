@@ -86,13 +86,6 @@ syfertext.state module
    :undoc-members:
    :show-inheritance:
 
-syfertext.stop\_words module
-----------------------------
-
-.. automodule:: syfertext.stop_words
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 syfertext.string\_store module
 ------------------------------
