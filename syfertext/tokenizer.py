@@ -164,7 +164,7 @@ class Tokenizer(AbstractSendable):
 
         """
 
-        # If affixes are set to None, they should take the default 
+        # If affixes are set to None, they should take the default
         # values
         if prefixes is not None:
             self.prefixes = prefixes

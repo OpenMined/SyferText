@@ -19,7 +19,7 @@ sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
 
-project = "SyferText"
+project = "SyferText 0.1.0"
 copyright = "2020, Alan Aboudib"
 author = "Alan Aboudib"
 
