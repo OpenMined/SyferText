@@ -164,7 +164,8 @@ class Tokenizer(AbstractSendable):
 
         """
 
-        # To solve the defult value error in the docs
+        # If affixes are set to None, they should take the default 
+        # values
         if prefixes is not None:
             self.prefixes = prefixes
         else:
