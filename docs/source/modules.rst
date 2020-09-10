@@ -1,4 +1,4 @@
-Syfertext
+syfertext
 =========
 
 .. toctree::

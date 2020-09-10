@@ -39,6 +39,18 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 numpydoc_show_class_members = False
+autodoc_member_order = "bysource"
+autodoc_default_options = {
+    "members": True,
+    "member-order": "bysource",
+    "undoc-members": True,
+    "private-members": True,
+    "special-members": True,
+    "undoc-members": True,
+    "inherited-members": True,
+    "show-inheritance": True,
+    "exclude-members": "__dict__",
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
