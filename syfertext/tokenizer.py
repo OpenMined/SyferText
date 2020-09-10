@@ -67,12 +67,14 @@ class Tokenizer(AbstractSendable):
         self,
         model_name: str = None,
         owner: BaseWorker = None,
-        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
-        prefixes: List[str] = TOKENIZER_PREFIXES,
-        suffixes: List[str] = TOKENIZER_SUFFIXES,
-        infixes: List[str] = TOKENIZER_INFIXES,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
     ):
-        """Initializes the `Tokenizer` object
+        """Initializes the `Tokenizer` object. Pass in empty lists for suffix, prefix and infix
+        if you don't want any suffix, prefix and infix rules and empty dict for no exception rules.
+        If None(default value), is passed, we use pre-configured rules.
 
         Args:
             model_name: The name of the language model to which this
@@ -124,10 +126,10 @@ class Tokenizer(AbstractSendable):
 
     def load_rules(
         self,
-        exceptions: Dict[str, List[dict]] = TOKENIZER_EXCEPTIONS,
-        prefixes: List[str] = TOKENIZER_PREFIXES,
-        suffixes: List[str] = TOKENIZER_SUFFIXES,
-        infixes: List[str] = TOKENIZER_INFIXES,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
     ):
         """Sets/Resets the tokenization rules.
 
@@ -162,18 +164,31 @@ class Tokenizer(AbstractSendable):
 
         """
 
-        self.prefixes = prefixes
-        self.suffixes = suffixes
-        self.infixes = infixes
+        # If affixes are set to None, they should take the default
+        # values
+        if prefixes is not None:
+            self.prefixes = prefixes
+        else:
+            self.prefixes = TOKENIZER_PREFIXES
+
+        if suffixes is not None:
+            self.suffixes = suffixes
+        else:
+            self.suffixes = TOKENIZER_SUFFIXES
+
+        if infixes is not None:
+            self.infixes = infixes
+        else:
+            self.infixes = TOKENIZER_INFIXES
 
         self.prefix_search = compile_prefix_regex(prefixes).search if prefixes else None
         self.suffix_search = compile_suffix_regex(suffixes).search if suffixes else None
         self.infix_finditer = compile_infix_regex(infixes).finditer if infixes else None
 
-        if exceptions:
+        if exceptions is not None:
             self.exceptions = exceptions
         else:
-            self.exceptions = {}
+            self.exceptions = TOKENIZER_EXCEPTIONS
 
     def load_state(self, name=None) -> None:
         """Search for the state of this object on PyGrid.
