@@ -319,7 +319,7 @@ class Language(AbstractObject):
         component.access = access
 
         # Get the component's state
-        state = component.dump_state(name=name)
+        state = component.dump_state()
 
         # Save the component's state
         self._save_state(state=state, name=name, access=access)

@@ -13,6 +13,7 @@ from syft.generic.abstract.sendable import AbstractSendable
 
 from typing import Union
 from typing import Dict
+from typing import Set
 
 
 class SimpleTagger(AbstractSendable):

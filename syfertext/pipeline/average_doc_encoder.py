@@ -181,7 +181,7 @@ class AverageDocEncoder(AbstractSendable):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(AverageDocEncoder, "proto_id"):
-            AverageDocEncoder.proto_id = msgpack_code_generator()
+            AverageDocEncoder.proto_id = msgpack_code_generator(AverageDocEncoder.__qualname__)
 
         code_dict = dict(code=AverageDocEncoder.proto_id)
 

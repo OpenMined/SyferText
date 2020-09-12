@@ -1,11 +1,8 @@
-import os
-import torch
-from pathlib import Path
-from typing import Union
-from typing import List
-from typing import Callable
-from typing import Dict
 import functools
+
+import torch
+
+import numpy as np
 
 from .vectors import Vectors
 from .string_store import StringStore
@@ -14,23 +11,25 @@ from .utils import create_state_query
 from .state import State
 from .pointers import StatePointer
 from . import LOCAL_WORKER
-
-import syft.serde.msgpack.serde as serde
-from syft.workers.base import BaseWorker
-
-import numpy as np
-
 from .lexeme import Lexeme
 from .lexeme import LexemeMeta
 from .attrs import Attributes
 from .lex_attrs import LEX_ATTRS
 from .stop_words import STOP_WORDS
 
-from typing import Dict
+import syft.serde.msgpack.serde as serde
+from syft.workers.base import BaseWorker
+from syft.generic.abstract.object import AbstractObject
+
+
 from typing import Set
+from typing import Union
+from typing import List
+from typing import Callable
+from typing import Dict
 
 
-class Vocab:
+class Vocab(AbstractObject):
     def __init__(self, hash2row: Dict[int, int] = None, vectors: torch.tensor = None):
         """Initializes the Vocab object.
 
@@ -321,8 +320,8 @@ class Vocab:
         lex_meta.orth = self.store.add(string)
         lex_meta.length = len(string)
 
-        # The language model name of parent vocabulary
-        lex_meta.lang = self.store.add(self.model_name)
+        # The pipeline name of parent vocabulary
+        lex_meta.lang = self.store.add(self.pipeline_name)
 
         # id is the index of the corresponding vector
         # in self.vectors if we vectors are loaded.

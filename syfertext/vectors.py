@@ -1,6 +1,6 @@
 import torch
 
-import np
+import numpy as np
 
 from typing import Union
 from typing import Dict
