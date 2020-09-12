@@ -15,8 +15,7 @@ from typing import List, Union, Tuple
 
 
 class BaseDefaults(object):
-    """A class that defines all the defaults of the Language class
-    """
+    """A class that defines all the defaults of the Language class"""
 
     @classmethod
     def create_vocab(cls, model_name: str) -> Vocab:
@@ -37,7 +36,7 @@ class BaseDefaults(object):
     def create_tokenizer(cls, vocab) -> Tokenizer:
         """Creates a Tokenizer object that will be used to create the Doc object, which is the
         main container for annotated tokens.
-        
+
         This Tokenizer object uses spaCy's tokenization rules. It takes prefixes,
         infixes, suffixes, tokenization exceptions into account.
         Of course, more features should be added later.
@@ -132,8 +131,7 @@ class Language(AbstractObject):
                 self.subpipeline_templates.append(subpipeline_template)
 
     def _reset_pipeline(self):
-        """Reset the `pipeline` class property.
-        """
+        """Reset the `pipeline` class property."""
 
         # Read the pipeline components from the template and aggregate them into
         # a list of subpipline templates.
@@ -159,7 +157,7 @@ class Language(AbstractObject):
         last: bool = True,
     ):
 
-        """Adds a pipe template to the pipeline template. 
+        """Adds a pipe template to the pipeline template.
 
         A pipe template is a dict of the form `{'remote': remote, 'name': name}`.
         Few main steps are carried out here:
