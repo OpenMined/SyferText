@@ -9,7 +9,7 @@ from syfertext.test_vocab import TEST_VOCAB
 
 
 def get_test_language_model():
-    nlp = syfertext.create(model_name="syfertext_sentiment")
+    nlp = syfertext.create(pipeline_name="syfertext_sentiment")
     # Create the tokenizer
     tokenizer = Tokenizer()
 
