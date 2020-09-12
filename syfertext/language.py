@@ -24,7 +24,6 @@ from typing import Set
 from typing import Dict
 
 from collections import defaultdict
-import numpy as np
 
 
 class Language(AbstractObject):
