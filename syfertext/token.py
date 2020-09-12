@@ -121,10 +121,10 @@ class Token(AbstractObject):
 
     def check_flag(self, flag_id: int) -> bool:
         """Checks the attribute corresponding to given `flag_id` flag value.
-        
+
         Args:
             flag_id(int): The attribute ID of the flag to check.
-    
+
         Returns:
             bool: Returns True if the value of flag corresponding to flag_id is 1 else False.
         """
@@ -175,7 +175,7 @@ class Token(AbstractObject):
     def vector_norm(self) -> torch.Tensor:
         """The L2 norm of the token's vector representation.
 
-        Returns: 
+        Returns:
             Tensor: The L2 norm of the vector representation.
         """
 
@@ -183,10 +183,10 @@ class Token(AbstractObject):
 
     def similarity(self, other):
         """Compute the cosine similarity between tokens vectors.
-        
+
         Args:
             other (Token): The Token to compare with.
-        
+
         Returns:
             Tensor: A cosine similarity score. Higher is more similar.
         """
@@ -260,7 +260,7 @@ class Token(AbstractObject):
     @property
     def shape(self):
         """Orth id of the token's shape, a transform of the
-            tokens's string, to show orthographic features (e.g. "Xxxx", "dd").
+        tokens's string, to show orthographic features (e.g. "Xxxx", "dd").
         """
         return self.lex_meta.shape
 
@@ -287,8 +287,8 @@ class Token(AbstractObject):
     @property
     def orth_(self):
         """Text content (identical to `Token.text`).
-            Exists mostly for consistency with the other
-            attributes.
+        Exists mostly for consistency with the other
+        attributes.
         """
         return self.doc.vocab.store[self.lex_meta.orth]
 
@@ -317,7 +317,7 @@ class Token(AbstractObject):
     @property
     def lang_(self):
         """Language of the parent document's vocabulary,
-            e.g. 'en_web_core_lm'.
+        e.g. 'en_web_core_lm'.
         """
         return self.doc.vocab.store[self.lex_meta.lang]
 
@@ -329,7 +329,7 @@ class Token(AbstractObject):
     @property
     def is_stop(self):
         """Whether the token is a stop word, i.e. part of a
-            stop list defined by the language data.
+        stop list defined by the language data.
         """
         return self.lex_meta.check_flag(Attributes.IS_STOP)
 
