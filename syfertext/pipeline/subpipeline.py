@@ -28,7 +28,9 @@ class SubPipeline(AbstractSendable):
     local worker as the default owner.
     """
 
-    def __init__(self, model_name: str, id: Union[str, int] = None, pipes: List[callable] = None):
+    def __init__(
+        self, pipeline_name: str, id: Union[str, int] = None, pipes: List[callable] = None
+    ):
         """Initializes the object from a list of pipes.
 
         Initialization from a list of pipes is optional. This is
@@ -40,7 +42,7 @@ class SubPipeline(AbstractSendable):
         template that is loaded using the method `load_template`.
 
         Args:
-            model_name: The name of the language model to which this
+            pipeline_name: The name of the pipeline to which this
                 subpipeline belongs
             id: The id of the object. Defaults to `None`. If it is
                 `None`, then it will be assigned an automatically
@@ -56,9 +58,9 @@ class SubPipeline(AbstractSendable):
         # the client of all subpipelines.
         self.client_id = self.owner.id
 
-        # Set the name of the language model to which this
+        # Set the name of the pipeline to which this
         # subpipeline belongs
-        self.model_name = model_name
+        self.pipeline_name = pipeline_name
 
         # Create the subpipeline
         self.subpipeline = pipes
@@ -89,10 +91,20 @@ class SubPipeline(AbstractSendable):
         self.pipe_names = template["names"]
 
         # Create the subpipeline property
-        self.subpipeline = [
-            factories[name](model_name=self.model_name, owner=self.owner)
-            for name in template["names"]
-        ]
+        self.subpipeline = []
+
+        for name in template["names"]:
+
+            # Create a component object
+            component = factories[name]()
+
+            # Add the pipeline name, the component name
+            # and the access rules to the component
+            component.pipeline_name = self.pipeline_name
+            component.name = name
+
+            # Add the component to the subpipeline
+            self.subpipeline.append(component)
 
     def __call__(
         self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
@@ -147,6 +159,8 @@ class SubPipeline(AbstractSendable):
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
 
+        if doc.has_attribute("syfertext_sentiment__sentiment_classifier"):
+            print(doc._.syfertext_sentiment__sentiment_classifier)
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
@@ -230,7 +244,7 @@ class SubPipeline(AbstractSendable):
         # Simplify the attributes and pipe components
         id_simple = serde._simplify(worker, subpipeline.id)
         client_id_simple = serde._simplify(worker, subpipeline.client_id)
-        model_name_simple = serde._simplify(worker, subpipeline.model_name)
+        pipeline_name_simple = serde._simplify(worker, subpipeline.pipeline_name)
         pipe_names_simple = serde._simplify(worker, subpipeline.pipe_names)
 
         # A list to store the simplified pipes
@@ -244,7 +258,7 @@ class SubPipeline(AbstractSendable):
 
             pipes_simple.append((proto_id, pipe.simplify(worker, pipe)))
 
-        return (id_simple, client_id_simple, model_name_simple, pipe_names_simple, pipes_simple)
+        return (id_simple, client_id_simple, pipeline_name_simple, pipe_names_simple, pipes_simple)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple) -> "SubPipeline":
@@ -260,12 +274,14 @@ class SubPipeline(AbstractSendable):
         """
 
         # Unpack the simplified object
-        id_simple, client_id_simple, model_name_simple, pipe_names_simple, pipes_simple = simple_obj
+        id_simple, client_id_simple, pipeline_name_simple, pipe_names_simple, pipes_simple = (
+            simple_obj
+        )
 
         # Detail the client ID and the pipe names
         id = serde._detail(worker, id_simple)
         client_id = serde._detail(worker, client_id_simple)
-        model_name = serde._detail(worker, model_name_simple)
+        pipeline_name = serde._detail(worker, pipeline_name_simple)
         pipe_names = serde._detail(worker, pipe_names_simple)
 
         # Initialize a list of pipes
@@ -284,7 +300,7 @@ class SubPipeline(AbstractSendable):
             pipes.append(pipe)
 
         # Create the subpipeline object and set the client ID
-        subpipeline = SubPipeline(id=id, model_name=model_name, pipes=pipes)
+        subpipeline = SubPipeline(id=id, pipeline_name=pipeline_name, pipes=pipes)
 
         # Set some key properties
         subpipeline.client_id = client_id

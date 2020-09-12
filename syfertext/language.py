@@ -3,9 +3,10 @@ from .vocab import Vocab
 from .doc import Doc
 from .pointers.doc_pointer import DocPointer
 from .pipeline import SubPipeline
+from .pipeline import SingleLabelClassifier
 from .pipeline import SimpleTagger
 from .state import State
-from .language_model import LanguageModel
+from .pipeline import Pipeline
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -36,14 +37,14 @@ class Language(AbstractObject):
 
     def __init__(
         self,
-        model_name: str,
+        pipeline_name: str,
         owner: BaseWorker = None,
         tags: List[str] = None,
         description: str = None,
     ):
 
         # Set the model name
-        self.model_name = model_name
+        self.pipeline_name = pipeline_name
 
         # Initialize the subpipeline template
         self.pipeline_template = []
@@ -76,11 +77,13 @@ class Language(AbstractObject):
 
         return [pipe_template["name"] for pipe_template in self.pipeline_template]
 
-    def set_tokenizer(self, tokenizer: Tokenizer, access: Set[str] = None):
+    def set_tokenizer(self, tokenizer: Tokenizer, name: str = None, access: Set[str] = None):
         """Set the tokenizer object.
 
         Args:
             tokenizer: the Tokenizer object.
+            name: The name of the Tokenizer. This argument is optional. If it is left
+                to its default None value, it will take the 'tokenizer' value.
             access: The set of worker ids where this tokenizer's state could be sent.
                 if the string '*' is included in the set,  then all workers are allowed
                 to receive a copy of the state. If set to None, then only the worker where this
@@ -93,7 +96,7 @@ class Language(AbstractObject):
 
         # The name of the tokenizer component is set to the class name
         # for the moment
-        name = tokenizer.__class__.__name__.lower()
+        name = tokenizer.__class__.__name__.lower() if name is None else name
 
         # Add the tokenizer to the pipeline
         self.add_pipe(component=tokenizer, name=name, access=access)
@@ -103,6 +106,7 @@ class Language(AbstractObject):
         `vocab` propery.
 
         Args:
+            vocab: The Vocab object.
             access: The set of worker ids where this Vocab's state could be sent.
                 if the string '*' is included in the set,  then all workers are allowed
                 to receive a copy of the state. If set to None, then only the worker where this
@@ -113,22 +117,25 @@ class Language(AbstractObject):
         if access is None:
             access = {self.owner.id}
 
-        # Set the language model name to which this vocab object belongs.
-        vocab.set_model_name(model_name=self.model_name)
+        # Set the pipeline name to which this vocab object belongs.
+        name = "vocab"
+        vocab.pipeline_name = self.pipeline_name
+        vocab.access = access
+        vocab.name = name
 
         # Get the state of the vocab object
         state = vocab.dump_state()
 
         # Save the state in the object store
-        self._save_state(state=state, name="vocab", access=access)
+        self._save_state(state=state, name=name, access=access)
 
-    def load_pipeline(self, pipeline_template, states):
+    def load_pipeline(self, template, states):
 
         # Load the states
         self.states = states
 
         # Load the pipeline template
-        self.pipeline_template = pipeline_template
+        self.pipeline_template = template
 
         # Create the factories;
         # Create and entry for each pipe component
@@ -192,6 +199,7 @@ class Language(AbstractObject):
             # Notice that PySyft models should never be sent to a
             # remote worker even if their `access` property of the corresponding
             # state allows for this
+            # The reason I use .get() here is just for better code lisibility
             access = self.states.get(pipe_template["name"]).get("access")
 
             if {"*", location_id} & access and pipe_template["class_name"] != nn.Module.__name__:
@@ -209,7 +217,7 @@ class Language(AbstractObject):
         for subpipeline_template in self.subpipeline_templates[location_id]:
 
             # Instantiate a subpipeline and load the subpipeline template
-            subpipeline = SubPipeline(model_name=self.model_name)
+            subpipeline = SubPipeline(pipeline_name=self.pipeline_name)
 
             subpipeline.load_template(template=subpipeline_template, factories=self.factories)
 
@@ -301,8 +309,14 @@ class Language(AbstractObject):
         # Add the new pipe component to the list of factories
         self.factories[name] = globals()[component.__class__.__name__]
 
-        # Set the language model name to which this tokenizer belongs.
-        component.set_model_name(model_name=self.model_name)
+        # Set the pipeline name to which this tokenizer belongs.
+        component.pipeline_name = self.pipeline_name
+
+        # Set the component name
+        component.name = name
+
+        # Set the component access rules
+        component.access = access
 
         # Get the component's state
         state = component.dump_state()
@@ -530,18 +544,18 @@ class Language(AbstractObject):
             # Change the pipe's location
             states[pipe_name]["location_id"] = worker.id
 
-        # Create a LanguageModel object
-        language_model = LanguageModel(
-            name=self.model_name,
-            pipeline_template=self.pipeline_template,
+        # Create a Pipeline object
+        pipeline = Pipeline(
+            name=self.pipeline_name,
+            template=self.pipeline_template,
             states=states,
             owner=self.owner,
             tags=self.tags,
             description=self.description,
         )
 
-        # Send the language model object to the destination worker
-        language_model_pointer = language_model.send(location=worker)
+        # Send the Pipeline object to the destination worker
+        pipeline_pointer = pipeline.send(location=worker)
 
-        # Tell the LanguageModel object to deploy all State objects
-        language_model_pointer.deploy_states()
+        # Tell the Pipelin object to deploy all State objects
+        pipeline_pointer.deploy_states()

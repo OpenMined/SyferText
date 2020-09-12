@@ -32,15 +32,15 @@ class SimpleTagger(AbstractSendable):
         Args:
             attribute (str): The name of the attribute that will hold the tag.
                 this attribute will be accessible through the attribute
-                `._` of Token objects. Example `token_object._.<attribute>
+                `._` of Token objects. Example `token._.<attribute>
             lookups (set, list or dict): If of type `list` of `set`, it should contain
-                the tokens that are to be searched for and tagged in the Doc 
+                the tokens that are to be searched for and tagged in the Doc
                 object's text. Example: ['the', 'myself', ...]
                 If of type `dict`, the keys should be the tokens texts to be
                 tagged, and values should hold a single tag for each such token.
                 Example: tagging stop words {'the': True, 'myself' : True}.
             tag (object, optional): If `lookups` is of type `list`, then this
-                will be the tag assigned to all matched tokens. It will be 
+                will be the tag assigned to all matched tokens. It will be
                 ignored if `lookups` if of type `dict`.
             default_tag: (object, optional): The default tag to be assigned
                 in case the token text maches no entry in `lookups`.
@@ -78,7 +78,18 @@ class SimpleTagger(AbstractSendable):
             case_sensitive=self.case_sensitive,
         )
 
-    def __call__(self, doc: Doc):
+    def __call__(self, doc: Doc) -> Doc:
+        """Performs the tagging.
+
+        Args:
+            doc: The Doc object containing the Token objects to
+                be tagged.
+
+        Returns:
+            A Doc object containing the tagged tokens. In order to
+            access a given tag, the `underscore` attribute of the
+            Token object should be used: token._.<attribute>
+        """
 
         # Start tagging
         for token in doc:
@@ -100,9 +111,9 @@ class SimpleTagger(AbstractSendable):
 
 
         Returns:
-            A transformed version  of `lookup` where all token texts are in 
+            A transformed version  of `lookup` where all token texts are in
             lower case.
- 
+
         """
 
         # Replace dict keys with lower-case versions
@@ -143,7 +154,7 @@ class SimpleTagger(AbstractSendable):
 
     @staticmethod
     def simplify(worker: BaseWorker, simple_tagger: "SimpleTagger"):
-        """Simplifies a SimpleTagger object. 
+        """Simplifies a SimpleTagger object.
 
         Args:
             worker (BaseWorker): The worker on which the
@@ -153,7 +164,7 @@ class SimpleTagger(AbstractSendable):
 
         Returns:
             (tuple): The simplified SimpleTagger object.
-        
+
         """
 
         # Simplify the object properties
@@ -167,18 +178,19 @@ class SimpleTagger(AbstractSendable):
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
-        """Takes a simplified SimpleTagger object, details it 
+        """Takes a simplified SimpleTagger object, details it
            and returns a SimpleTagger object.
 
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
-            simple_obj (tuple): the simplified SubPipeline object.
+            simple_obj (tuple): the simplified SimpleTagger object.
+
         Returns:
             (SimpleTagger): The SimpleTagger object.
         """
 
-        # Unpack the simplified object
+        # Unpack the simplified objects
         attribute, lookups, tag, default_tag, case_sensitive = simple_obj
 
         # Detail each property

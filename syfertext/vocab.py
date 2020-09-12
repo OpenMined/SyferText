@@ -16,16 +16,11 @@ from syft.workers.base import BaseWorker
 import numpy as np
 
 from typing import Dict
+from typing import Set
 
 
-class Vocab:
-    def __init__(
-        self,
-        hash2row: Dict[int, int] = None,
-        vectors: np.ndarray = None,
-        model_name: str = None,
-        owner: BaseWorker = None,
-    ):
+class Vocab(object):
+    def __init__(self, hash2row: Dict[int, int] = None, vectors: np.ndarray = None):
         """Initializes the Vocab object.
 
         Args:
@@ -33,15 +28,12 @@ class Vocab:
                 points to the embedding vector of that token in `vectors`.
                 This index can also be used as an input a an embedding layer.
             vectors (optional): A 2D numpy array that contains the word embeddings of tokens.
-            model_name (optional): The name of the language model the owns this vocab.
-            owner (optional): The worker on which the vocab object is located.
         """
+
+        super(Vocab, self).__init__()
 
         # Create the Vectors object
         self.vectors = Vectors(hash2row, vectors)
-
-        self.model_name = model_name
-        self.owner = owner
 
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
@@ -50,14 +42,83 @@ class Vocab:
         # Only strings that are encountered during tokenization will be stored here
         self.store = StringStore()
 
-    def set_model_name(self, model_name: str) -> None:
-        """Set the language model name to which this object belongs.
+    @property
+    def pipeline_name(self) -> str:
+        """A getter for the `_pipeline_name` property.
 
-        Args:
-            name: The name of the language model.
+        Returns:
+           The lower cased `_pipeline_name` property.
         """
 
-        self.model_name = model_name
+        return self._pipeline_name.lower()
+
+    @pipeline_name.setter
+    def pipeline_name(self, name: str) -> None:
+        """Set the pipeline name to which this object belongs.
+
+        Args:
+            name: The name of the pipeline.
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._pipeline_name = name
+
+    @property
+    def name(self) -> str:
+        """A getter for the `_name` property.
+
+        Returns:
+           The lower cased `_name` property.
+        """
+
+        return self._name.lower()
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """Set the component name.
+
+        Args:
+            name: The name of the component
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._name = name
+
+    @property
+    def access(self) -> Set[str]:
+        """Get the access rules for this component.
+
+        Returns:
+            The set of worker ids where this component's state
+            could be sent.
+            If the string '*' is included in the set,  then all workers are
+            allowed to receive a copy of the state. If set to None, then
+            only the worker where this component is saved will be allowed
+            to get a copy of the state.
+        """
+
+        return self._access_rules
+
+    @access.setter
+    def access(self, rules: Set[str]) -> None:
+        """Set the access rules of this object.
+
+        Args:
+            rules: The set of worker ids where this component's state
+                could be sent.
+                If the string '*' is included in the set,  then all workers are
+                allowed to receive a copy of the state. If set to None, then
+                only the worker where this component is saved will be allowed
+                to get a copy of the state.
+        """
+
+        self._access_rules = rules
 
     def load_state(self) -> None:
         """Search for the state of this Vocab object on PyGrid.
@@ -70,7 +131,7 @@ class Vocab:
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(model_name=self.model_name, state_name="vocab")
+        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
 
         # Search for the state
         result = search_resource(query=state_id, local_worker=self.owner)
@@ -91,8 +152,8 @@ class Vocab:
         # Detail the simple object contained in the state
         hash2row_simple, vectors_simple = state.simple_obj
 
-        hash2row = serde._detail(LOCAL_WORKER, hash2row_simple)
-        vectors = serde._detail(LOCAL_WORKER, vectors_simple)
+        hash2row = serde._detail(self.owner, hash2row_simple)
+        vectors = serde._detail(self.owner, vectors_simple)
 
         # Load the state
         self.vectors.load_data(vectors=vectors, hash2row=hash2row)
@@ -112,9 +173,9 @@ class Vocab:
 
         # Create the query. This is the ID according to which the
         # State object is searched for on PyGrid1
-        state_id = f"{self.model_name}:vocab"
+        state_id = f"{self.pipeline_name}:vocab"
 
         # Create the State object
-        state = State(simple_obj=(hash2row_simple, vectors_simple), id=state_id, access={"*"})
+        state = State(simple_obj=(hash2row_simple, vectors_simple), id=state_id, access=self.access)
 
         return state
