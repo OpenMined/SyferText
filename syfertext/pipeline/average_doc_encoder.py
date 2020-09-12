@@ -151,7 +151,7 @@ class AverageDocEncoder(AbstractSendable):
         """
 
         # Unpack the simplified objects
-        excluded_tokens_simple, = simple_obj
+        (excluded_tokens_simple,) = simple_obj
 
         # Detail the pipeline name
         excluded_tokens = serde._detail(worker, excluded_tokens_simple)

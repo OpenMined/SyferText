@@ -352,10 +352,10 @@ class SingleLabelClassifier(AbstractSendable):
         doc_encoder_simple = (proto_id, encoder.simplify(LOCAL_WORKER, encoder))
 
         # Simplify the remaining the properties
-        classifier_simple = serde._simplify(LOCAL_WORKER, self.classifier)
-        encryption_simple = serde._simplify(LOCAL_WORKER, self.encryption)
-        labels_simple = serde._simplify(LOCAL_WORKER, self.labels)
-        logits_index_simple = serde._simplify(LOCAL_WORKER, self.logits_index)
+        classifier_simple = serde._simplify(self.owner, self.classifier)
+        encryption_simple = serde._simplify(self.owner, self.encryption)
+        labels_simple = serde._simplify(self.owner, self.labels)
+        logits_index_simple = serde._simplify(self.owner, self.logits_index)
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
@@ -408,9 +408,13 @@ class SingleLabelClassifier(AbstractSendable):
             state = result
 
         # Get the simplified objects contained in the state
-        doc_encoder_simple, classifier_simple, encryption_simple, labels_simple, logits_index_simple = (
-            state.simple_obj
-        )
+        (
+            doc_encoder_simple,
+            classifier_simple,
+            encryption_simple,
+            labels_simple,
+            logits_index_simple,
+        ) = state.simple_obj
 
         # Detail the document encoder
         proto_id, doc_encoder_simple = doc_encoder_simple
@@ -501,7 +505,9 @@ class SingleLabelClassifier(AbstractSendable):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(SingleLabelClassifier, "proto_id"):
-            SingleLabelClassifier.proto_id = msgpack_code_generator()
+            SingleLabelClassifier.proto_id = msgpack_code_generator(
+                SingleLabelClassifier.__qualname__
+            )
 
         code_dict = dict(code=SingleLabelClassifier.proto_id)
 

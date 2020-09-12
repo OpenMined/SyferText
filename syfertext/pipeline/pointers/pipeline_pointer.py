@@ -159,7 +159,7 @@ class PipelinePointer(ObjectPointer):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(PipelinePointer, "proto_id"):
-            PipelinePointer.proto_id = msgpack_code_generator()
+            PipelinePointer.proto_id = msgpack_code_generator(PipelinePointer.__qualname__)
 
         code_dict = dict(code=PipelinePointer.proto_id)
 

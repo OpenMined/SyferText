@@ -8,6 +8,7 @@ from .pipeline import SimpleTagger
 from .state import State
 from .pipeline import Pipeline
 
+
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
@@ -15,6 +16,7 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
 import torch.nn as nn
 
+from collections import defaultdict
 from typing import List
 from typing import Union
 from typing import Tuple
@@ -43,7 +45,7 @@ class Language(AbstractObject):
         description: str = None,
     ):
 
-        # Set the model name
+        # Set the pipeline name
         self.pipeline_name = pipeline_name
 
         # Initialize the subpipeline template
@@ -94,8 +96,7 @@ class Language(AbstractObject):
         if access is None:
             access = {self.owner.id}
 
-        # The name of the tokenizer component is set to the class name
-        # for the moment
+        # Set the name of the tokenizer
         name = tokenizer.__class__.__name__.lower() if name is None else name
 
         # Add the tokenizer to the pipeline
@@ -117,17 +118,17 @@ class Language(AbstractObject):
         if access is None:
             access = {self.owner.id}
 
-        # Set the pipeline name to which this vocab object belongs.
-        name = "vocab"
+        # Set some properties
         vocab.pipeline_name = self.pipeline_name
         vocab.access = access
-        vocab.name = name
+        vocab.name = "vocab"
 
         # Get the state of the vocab object
         state = vocab.dump_state()
 
         # Save the state in the object store
-        self._save_state(state=state, name=name, access=access)
+
+        self._save_state(state=state, name=vocab.name, access=access)
 
     def load_pipeline(self, template, states):
 
@@ -238,8 +239,7 @@ class Language(AbstractObject):
             subpipeline.load_states()
 
     def _reset_pipeline(self):
-        """Reset the `pipeline` class property.
-        """
+        """Reset the `pipeline` class property."""
 
         # Initialize a new empty pipeline with as an empty dict
         self.pipeline = {}
@@ -319,7 +319,7 @@ class Language(AbstractObject):
         component.access = access
 
         # Get the component's state
-        state = component.dump_state()
+        state = component.dump_state(name=name)
 
         # Save the component's state
         self._save_state(state=state, name=name, access=access)

@@ -89,8 +89,8 @@ class SubPipeline(AbstractSendable):
 
         # set the pipe names property
         self.pipe_names = template["names"]
-
         # Create the subpipeline property
+
         self.subpipeline = []
 
         for name in template["names"]:
@@ -161,6 +161,7 @@ class SubPipeline(AbstractSendable):
 
         if doc.has_attribute("syfertext_sentiment__sentiment_classifier"):
             print(doc._.syfertext_sentiment__sentiment_classifier)
+
         # If the Language object using this subpipeline
         # is located on a different worker, then
         # return the id of the Doc object, not the Doc
@@ -214,11 +215,7 @@ class SubPipeline(AbstractSendable):
 
         # Create the pointer object
         subpipeline_pointer = SubPipelinePointer(
-            location=location,
-            id_at_location=id_at_location,
-            owner=owner,
-            id=ptr_id,
-            garbage_collect_data=garbage_collect_data,
+            location=location, id_at_location=id_at_location, owner=owner, id=ptr_id
         )
 
         return subpipeline_pointer
@@ -274,9 +271,13 @@ class SubPipeline(AbstractSendable):
         """
 
         # Unpack the simplified object
-        id_simple, client_id_simple, pipeline_name_simple, pipe_names_simple, pipes_simple = (
-            simple_obj
-        )
+        (
+            id_simple,
+            client_id_simple,
+            pipeline_name_simple,
+            pipe_names_simple,
+            pipes_simple,
+        ) = simple_obj
 
         # Detail the client ID and the pipe names
         id = serde._detail(worker, id_simple)
@@ -342,8 +343,9 @@ class SubPipeline(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
+        # the code is hash of class name
         if not hasattr(SubPipeline, "proto_id"):
-            SubPipeline.proto_id = msgpack_code_generator()
+            SubPipeline.proto_id = msgpack_code_generator(SubPipeline.__qualname__)
 
         code_dict = dict(code=SubPipeline.proto_id)
 

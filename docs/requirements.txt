@@ -1,0 +1,7 @@
+sphinx-autoapi
+sphinx-markdown-builder>=0.4.1
+sphinx-rtd-theme
+Sphinx>=2.1.1
+mmh3==2.5.1
+sphinx-autodoc-typehints
+-e git://github.com/OpenMined/PySyft@1eb369ae3a1865789f5809bec59f066ac1cbe58d#egg=pysyft

@@ -237,9 +237,13 @@ class Pipeline(AbstractSendable):
         """
 
         # Unpack the simple pipeline object
-        name_simple, template_simple, states_simple, tags_simple, description_simple = (
-            pipeline_simple
-        )
+        (
+            name_simple,
+            template_simple,
+            states_simple,
+            tags_simple,
+            description_simple,
+        ) = pipeline_simple
 
         # Detail the attributes
         name = serde._detail(worker, name_simple)
@@ -280,7 +284,7 @@ class Pipeline(AbstractSendable):
 
         # If a msgpack code is not already generated, then generate one
         if not hasattr(Pipeline, "proto_id"):
-            Pipeline.proto_id = msgpack_code_generator()
+            Pipeline.proto_id = msgpack_code_generator(Pipeline.__qualname__)
 
         code_dict = dict(code=Pipeline.proto_id)
 
