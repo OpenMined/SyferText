@@ -170,7 +170,7 @@ SyferText vision and encrypted sentiment analyzer demo.
 
 About SyferText and my Open Source Contribution Experience with OpenMined
 
-- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. 
+- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. *(Cancelled)*
 
 Introducing SyferText 0.1.0
 
