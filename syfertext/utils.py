@@ -1,14 +1,16 @@
 from syft.workers.base import BaseWorker
 
+import numpy as np
+
 import mmh3
 import os
 import re
-
 
 from typing import Pattern
 from typing import Match
 from typing import Tuple
 from typing import Union
+from typing import Dict
 
 
 def hash_string(string: str) -> int:
@@ -116,12 +118,12 @@ def compile_infix_regex(entries: Tuple) -> Pattern:
     return re.compile(expression)
 
 
-def create_state_query(model_name: str, state_name: str) -> str:
+def create_state_query(pipeline_name: str, state_name: str) -> str:
     """Construct an ID that will be used to search for a State object
     on PyGrid.
 
     Args:
-        model_name: The name of the language model to which the State
+        pipeline_name: The name of the pipeline to which the State
             object belongs.
         state_name: The name of the State object.
 
@@ -130,15 +132,15 @@ def create_state_query(model_name: str, state_name: str) -> str:
             a search query.
     """
 
-    query = f"{model_name}:{state_name}"
+    query = f"{pipeline_name}:{state_name}"
 
     return query
 
 
 def search_resource(
     query: str, local_worker: BaseWorker
-) -> Union["State", "StatePointer", "LanguageModel", "LanguageModelPointer", None]:
-    """Searches for a resource (State or LanguageModel object) on PyGrid.
+) -> Union["State", "StatePointer", "Pipeline", "PipelinePointer", None]:
+    """Searches for a resource (State or Pipeline object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
     If not, search is triggered across all workers known to the
     local worker.
@@ -206,3 +208,68 @@ class MsgpackCodeGenerator:
 
 
 msgpack_code_generator = MsgpackCodeGenerator()
+
+
+def create_mpc_config(worker: BaseWorker) -> Dict[str, object]:
+    """Create basic configurations for performing SMPC. This includes
+    choosing the workers that will hold the shares and the crypto provider.
+
+    Args:
+        worker: The worker on which encryption is performed.
+
+    returns:
+        a dictionary that holds configuration for performing SMPC encryption.
+        Here is an example
+        - config['node_0'] for the first node to hold
+          the shares.
+        - config['node_1'] for the second node to hold
+          the shares.
+        - config['crypto_provider'] for the node that
+          provides crypto primitives.
+        - etc
+
+
+    TODO:
+        The workers' choice is currently done at random.
+            It should be done in a more informed way in future versions
+            depending on the use cases we encounter.
+    """
+
+    # Get a dictionary containing all known workers except 'me', the
+    # local workers. It seems that using 'me' is causing problems in
+    # SMPC mode.
+    known_workers = {
+        worker_id: worker
+        for worker_id, worker in worker._known_workers.items()
+        if worker_id != "me"
+    }
+
+    # If only one worker (the owner) is present on the network. No config
+    # is created
+    if len(known_workers) == 1:
+        return None
+
+    # Initialize the configuration dict as an empy dictionary
+    mpc_config = {}
+
+    # If only two nodes are available, choose them to hold shares.
+    if len(known_workers) == 2:
+        for i, node_id in enumerate(known_workers):
+            mpc_config[f"node_{i}"] = known_workers[node_id]
+
+        # Set the crypto provider
+        mpc_config["node_2"] = mpc_config["node_1"]
+
+    # Randomly chose three different workers:
+    # two for holding the shares
+    # and one as a crypto provider.
+    if len(known_workers) >= 3:
+
+        # Randomly choose nodes without replacement
+        selected_node_ids = np.random.choice(a=list(known_workers.keys()), size=3, replace=False)
+
+        # Use the nodes in the config
+        for i, node_id in enumerate(selected_node_ids):
+            mpc_config[f"node_{i}"] = known_workers[node_id]
+
+    return mpc_config

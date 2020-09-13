@@ -11,8 +11,8 @@ me.is_client_worker = False
 nlp = get_test_language_model()
 
 # Get the vocab instance
-vocab = nlp.vocab
-lang = nlp.model_name
+vocab = nlp("").vocab
+lang = nlp.pipeline_name
 
 
 def test_check_flag():
@@ -92,7 +92,7 @@ def test_lang_name():
     # Get the Lexeme object of text from Vocab
     lexeme = vocab[text]
 
-    # test the language model name of lexeme
+    # test the language pipeline name of lexeme
     assert lexeme.lang_ == lang
 
 

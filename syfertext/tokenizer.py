@@ -35,6 +35,7 @@ from typing import Tuple
 from typing import Match
 from typing import DefaultDict
 from typing import Dict
+from typing import Set
 
 
 class TokenMeta(object):
@@ -65,8 +66,6 @@ class TokenMeta(object):
 class Tokenizer(AbstractSendable):
     def __init__(
         self,
-        model_name: str = None,
-        owner: BaseWorker = None,
         exceptions: Dict[str, List[dict]] = None,
         prefixes: List[str] = None,
         suffixes: List[str] = None,
@@ -77,9 +76,6 @@ class Tokenizer(AbstractSendable):
         If None(default value), is passed, we use pre-configured rules.
 
         Args:
-            model_name: The name of the language model to which this
-                tokenizer belongs.
-            owner (optional): The worker on which the vocab object is located.
             exceptions: Exception cases for the tokenizer.
                 Example: "e.g.", "I'ma". The exception dict should
                 specifiy how these exceptions are tokenized, e.g.,
@@ -103,26 +99,90 @@ class Tokenizer(AbstractSendable):
                 an infix.
         """
 
+        super(Tokenizer, self).__init__()
+
         # Set the tokenization rules
         self.load_rules(
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
 
-        # Set the name of the language model to which the tokenizer
-        # belongs.
-        self.model_name = model_name
+    @property
+    def pipeline_name(self) -> str:
+        """A getter for the `_pipeline_name` property.
 
-        # Set the owner
-        self.owner = owner
-
-    def set_model_name(self, model_name: str) -> None:
-        """Set the language model name to which this object belongs.
-
-        Args:
-            name: The name of the language model.
+        Returns:
+           The lower cased `_pipeline_name` property.
         """
 
-        self.model_name = model_name
+        return self._pipeline_name.lower()
+
+    @pipeline_name.setter
+    def pipeline_name(self, name: str) -> None:
+        """Set the pipeline name to which this object belongs.
+
+        Args:
+            name: The name of the pipeline.
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._pipeline_name = name
+
+    @property
+    def name(self) -> str:
+        """A getter for the `_name` property.
+
+        Returns:
+           The lower cased `_name` property.
+        """
+
+        return self._name.lower()
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """Set the component name.
+
+        Args:
+            name: The name of the component
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._name = name
+
+    @property
+    def access(self) -> Set[str]:
+        """Get the access rules for this component.
+
+        Returns:
+            The set of worker ids where this component's state
+            could be sent.
+            If the string '*' is included in the set,  then all workers are
+            allowed to receive a copy of the state. If set to None, then
+            only the worker where this component is saved will be allowed
+            to get a copy of the state.
+        """
+
+        return self._access_rules
+
+    @access.setter
+    def access(self, rules: Set[str]) -> None:
+        """Set the access rules of this object.
+
+        Args:
+            rules: The set of worker ids where this component's state
+                could be sent.
+                If the string '*' is included in the set,  then all workers are
+                allowed to receive a copy of the state. If set to None, then
+                only the worker where this component is saved will be allowed
+                to get a copy of the state.
+        """
+
+        self._access_rules = rules
 
     def load_rules(
         self,
@@ -190,24 +250,24 @@ class Tokenizer(AbstractSendable):
         else:
             self.exceptions = TOKENIZER_EXCEPTIONS
 
-    def load_state(self, name=None) -> None:
+    def load_state(self) -> None:
         """Search for the state of this object on PyGrid.
 
         Modifies:
             self.vocab: The `vocab` property is initialized with the model
                  name. Its 'load_state()` method is also called.
         """
-        if name:
-            self.state_name = name
-        else:
-            self.state_name = self.__class__.__name__.lower()
+
         # Start by creating the vocab and loading its state
-        self.vocab = Vocab(model_name=self.model_name, owner=self.owner)
+        self.vocab = Vocab()
+        self.vocab.pipeline_name = self.pipeline_name
+        self.vocab.name = "vocab"
+        self.vocab.owner = self.owner
         self.vocab.load_state()
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(model_name=self.model_name, state_name=self.state_name)
+        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
 
         # Search for the state
         result = search_resource(query=state_id, local_worker=self.owner)
@@ -228,43 +288,38 @@ class Tokenizer(AbstractSendable):
         # Detail the simple object contained in the state
         exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
 
-        exceptions = serde._detail(LOCAL_WORKER, exceptions_simple)
-        prefixes = serde._detail(LOCAL_WORKER, prefixes_simple)
-        suffixes = serde._detail(LOCAL_WORKER, suffixes_simple)
-        infixes = serde._detail(LOCAL_WORKER, infixes_simple)
+        exceptions = serde._detail(self.owner, exceptions_simple)
+        prefixes = serde._detail(self.owner, prefixes_simple)
+        suffixes = serde._detail(self.owner, suffixes_simple)
+        infixes = serde._detail(self.owner, infixes_simple)
 
         # Load the state
         self.load_rules(
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
 
-    def dump_state(self, name: str = None) -> State:
+    def dump_state(self) -> State:
         """Returns a State object that holds the current state of this object.
 
         Returns:
             A State object that holds a simplified version of this object's state.
         """
 
-        if name:
-            self.state_name = name
-        else:
-            self.state_name = self.__class__.__name__.lower()
-
-        # Simply the state variables
-        exceptions_simple = serde._simplify(LOCAL_WORKER, self.exceptions)
-        prefixes_simple = serde._simplify(LOCAL_WORKER, self.prefixes)
-        suffixes_simple = serde._simplify(LOCAL_WORKER, self.suffixes)
-        infixes_simple = serde._simplify(LOCAL_WORKER, self.infixes)
+        # Simplify the state variables
+        exceptions_simple = serde._simplify(self.owner, self.exceptions)
+        prefixes_simple = serde._simplify(self.owner, self.prefixes)
+        suffixes_simple = serde._simplify(self.owner, self.suffixes)
+        infixes_simple = serde._simplify(self.owner, self.infixes)
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
-        state_id = f"{self.model_name}:{self.state_name}"
+        state_id = f"{self.pipeline_name}:{self.name}"
 
         # Create the State object
         state = State(
             simple_obj=(exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple),
             id=state_id,
-            access={"*"},
+            access=self.access,
         )
 
         return state
@@ -391,7 +446,7 @@ class Tokenizer(AbstractSendable):
 
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """Tokenize each substring formed after splitting affixes and processing
-            exceptions. Returns Doc object.
+        exceptions. Returns Doc object.
 
         Args:
             substring: The substring to tokenize.
@@ -758,9 +813,10 @@ class Tokenizer(AbstractSendable):
         """
 
         # Simplify attributes
-        model_name = serde._simplify(worker, tokenizer.model_name)
+        name_simple = serde._simplify(worker, tokenizer.name)
+        pipeline_name_simple = serde._simplify(worker, tokenizer.pipeline_name)
 
-        return (model_name,)
+        return (name_simple, pipeline_name_simple)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -775,14 +831,18 @@ class Tokenizer(AbstractSendable):
            tokenizer (Tokenizer) : a Tokenizer object
         """
 
-        # Get the model name from the tuple
-        model_name = simple_obj[0]
+        # Get the tuple elements
+        name_simple, pipeline_name_simple = simple_obj
 
         # Detail
-        model_name = serde._detail(worker, model_name)
+        name = serde._detail(worker, name_simple)
+        pipeline_name = serde._detail(worker, pipeline_name_simple)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(model_name=model_name, owner=worker)
+        tokenizer = Tokenizer()
+        tokenizer.pipeline_name = pipeline_name
+        tokenizer.name = name
+        tokenizer.owner = worker
 
         return tokenizer
 

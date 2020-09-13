@@ -1,7 +1,7 @@
-from .pointers.language_model_pointer import LanguageModelPointer
-from .utils import msgpack_code_generator
-from .utils import create_state_query
-from .utils import search_resource
+from .pointers.pipeline_pointer import PipelinePointer
+from ..utils import msgpack_code_generator
+from ..utils import create_state_query
+from ..utils import search_resource
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
@@ -15,16 +15,16 @@ from typing import Dict
 from typing import List
 
 
-class LanguageModel(AbstractSendable):
-    """This class is responsible of serving the pipeline template
-    of a language model that allows the Language object to recreate
-    the pipeline and distribute it over workers.
+class Pipeline(AbstractSendable):
+    """This class is responsible of serving the template
+    of a pipeline. This allows the pipeline to be reconstructed
+    and distributed it over workers.
     """
 
     def __init__(
         self,
         name: str,
-        pipeline_template: List[dict],
+        template: List[dict],
         states: Dict[str, dict],
         owner: BaseWorker = None,
         tags: Set[str] = None,
@@ -33,11 +33,11 @@ class LanguageModel(AbstractSendable):
         """Initializes the object.
 
         Args:
-            name: The name of the language model. This name will
-                be also used as the ID of the language model. This
-                ID is used to search of the language model over
+            name: The name of the pipeline. This name will
+                be also used as the ID of the pipeline. This
+                ID is used to search of the pipeline over
                 PyGrid.
-            pipeline_template: A list of dictionaries each describing
+            template: A list of dictionaries each describing
                 a pipe component of the pipeline in order.
             states: a dictionary of dictionaries containing the
                 description of each state needed to reconstruct
@@ -54,25 +54,25 @@ class LanguageModel(AbstractSendable):
             owner: The worker that owns this object. That is, the
                 syft worker on which this object is located.
             tags: A set of PyGrid searchable tags that can be
-                associated with the language model.
-            description: A text that describes the language model,
+                associated with the pipeline.
+            description: A text that describes the pipeline,
                  its contents, and any other features.
         """
 
         self.name = name
 
-        # Set the id to the same as the language model name
+        # Set the id to the same as the pipeline name
         id = name
 
         # Create properties
-        self.pipeline_template = pipeline_template
+        self.template = template
         self.states = states
 
         # Initialize the parent class
-        super(LanguageModel, self).__init__(id=id, owner=owner, tags=tags, description=description)
+        super(Pipeline, self).__init__(id=id, owner=owner, tags=tags, description=description)
 
     def deploy_states(self) -> None:
-        """Search for the State objects associated with this language model and
+        """Search for the State objects associated with this pipeline and
         deploy them on the corresponding workers by sending copies of them.
         """
 
@@ -83,7 +83,7 @@ class LanguageModel(AbstractSendable):
             location_id = self.states[state_name]["location_id"]
 
             # Construct the state ID that will be used as the search query
-            state_id = create_state_query(model_name=self.name, state_name=state_name)
+            state_id = create_state_query(pipeline_name=self.name, state_name=state_name)
 
             # Search for the state
             result = search_resource(query=state_id, local_worker=self.owner)
@@ -96,21 +96,21 @@ class LanguageModel(AbstractSendable):
             # using its pointer
             state = result.send_copy(destination=location_id)
 
-    def send_copy(self, destination: Union[str, BaseWorker]) -> "LanguageModel":
-        """This method is called by a LanguageModelPointer using
-        LanguageModelPointer.get_copy(). It creates a copy of the current
+    def send_copy(self, destination: Union[str, BaseWorker]) -> "Pipeline":
+        """This method is called by a PipelinePointer using
+        PipelinePointer.get_copy(). It creates a copy of the current
         object and sends it to the pointer on `destination`
         which requested the copy.
 
         Args:
-            location: The worker (or its id) on which the LanguageModelPointer object
+            location: The worker (or its id) on which the PipelinePointer object
                 which requested the copy is located.
         """
 
         # Create the copy
-        language_model = LanguageModel(
+        pipeline = Pipeline(
             name=self.name,
-            pipeline_template=self.pipeline_template,
+            template=self.template,
             states=self.states,
             owner=self.owner,
             tags=self.tags,
@@ -118,25 +118,25 @@ class LanguageModel(AbstractSendable):
         )
 
         # Send the object
-        self.owner.send_obj(language_model, destination)
+        self.owner.send_obj(pipeline, destination)
 
-    def send(self, location: BaseWorker) -> LanguageModelPointer:
+    def send(self, location: BaseWorker) -> PipelinePointer:
         """Sends this object to the worker specified by `location`.
 
         Args:
-            location (BaseWorker): The BaseWorker object to which the LanguageModel
+            location (BaseWorker): The BaseWorker object to which the Pipeline
                 object is to be sent.
 
             Returns:
-                (LanguageModelPointer): A pointer to this object.
+                (PipelinePointer): A pointer to this object.
         """
 
-        language_model_pointer = self.owner.send(self, location)
+        pipeline_pointer = self.owner.send(self, location)
 
-        return language_model_pointer
+        return pipeline_pointer
 
     def create_pointer(
-        language_model: "LanguageModel" = None,
+        pipeline: "Pipeline" = None,
         owner: BaseWorker = None,
         location: BaseWorker = None,
         id_at_location: str = None,
@@ -144,125 +144,125 @@ class LanguageModel(AbstractSendable):
         ptr_id=None,
         register: bool = True,
         garbage_collect_data: bool = False,
-    ) -> LanguageModelPointer:
-        """Creates a LanguageModelPointer object that points to a given
-        LanguageModel object.
+    ) -> PipelinePointer:
+        """Creates a PipelinePointer object that points to a given
+        Pipeline object.
 
         Args:
-            language_model (LanguageModel): The LanguageModel object
+            pipeline (Pipeline): The Pipeline object
                 to which the pointer refers.
                 Although this is an instance method (As opposed to statics),
-                this argument is called `language_model` instead of `self` due
+                this argument is called `pipeline` instead of `self` due
                 to the fact that PySyft calls this method, sometimes on
                 the class and sometimes on the object.
             owner (BaseWorker): The worker that will own the pointer object.
-            location (BaseWorker): The worker on which the LanguageModel
+            location (BaseWorker): The worker on which the Pipeline
                 object pointed to by this object is located.
-            id_at_location (str, int): The ID of the LanguageModel object
+            id_at_location (str, int): The ID of the Pipeline object
                 referenced by the pointer.
             register (bool): Whether to register the pointer object
                 in the object store or not. (it is required by the
                 the BaseWorker's object send() method in PySyft, but
                 not used for the moment in this method).
             garbage_collect_data (bool): Activate garbage collection or not.
-                default to False meaning that the LanguageModel object shouldn't
+                default to False meaning that the Pipeline object shouldn't
                 be GCed once this pointer is removed.
 
 
         Returns:
-            A LanguageModelPointer object pointing to this LanguageModel object.
+            A PipelinePointer object pointing to this Pipeline object.
         """
 
         if location is None:
-            location = language_model.owner
+            location = pipeline.owner
 
         if id_at_location is None:
-            id_at_location = language_model.id
+            id_at_location = pipeline.id
 
         # Create the pointer object
-        language_model_pointer = LanguageModelPointer(
+        pipeline_pointer = PipelinePointer(
             location=location, id_at_location=id_at_location, owner=owner
         )
 
-        return language_model_pointer
+        return pipeline_pointer
 
     @staticmethod
-    def simplify(worker: BaseWorker, language_model: "LanguageModel") -> Tuple[object]:
-        """Simplifies a LanguageModel object. This method is required by PySyft
-        when a LanguageModel object is sent to another worker.
+    def simplify(worker: BaseWorker, pipeline: "Pipeline") -> Tuple[object]:
+        """Simplifies a Pipeline object. This method is required by PySyft
+        when a Pipeline object is sent to another worker.
 
         Args:
             worker: The worker on which the simplify operation
                 is carried out.
-            language_model: the LanguageModel object to simplify.
+            pipeline: the Pipeline object to simplify.
 
         Returns:
-            The simplified LanguageModel object as a tuple of serialized LanguageModel
+            The simplified Pipeline object as a tuple of serialized Pipeline
             attributes.
 
         """
 
-        # Simplify the LanguageModel object attributes
-        name_simple = serde._simplify(worker, language_model.name)
-        pipeline_template_simple = serde._simplify(worker, language_model.pipeline_template)
-        states_simple = serde._simplify(worker, language_model.states)
-        tags_simple = serde._simplify(worker, language_model.tags)
-        description_simple = serde._simplify(worker, language_model.description)
+        # Simplify the Pipeline object attributes
+        name_simple = serde._simplify(worker, pipeline.name)
+        template_simple = serde._simplify(worker, pipeline.template)
+        states_simple = serde._simplify(worker, pipeline.states)
+        tags_simple = serde._simplify(worker, pipeline.tags)
+        description_simple = serde._simplify(worker, pipeline.description)
 
-        # create the simple LanguageModel object
-        language_model_simple = (
+        # create the simple Pipeline object
+        pipeline_simple = (
             name_simple,
-            pipeline_template_simple,
+            template_simple,
             states_simple,
             tags_simple,
             description_simple,
         )
 
-        return language_model_simple
+        return pipeline_simple
 
     @staticmethod
-    def detail(worker: BaseWorker, language_model_simple: Tuple[object]) -> "LanguageModel":
-        """Takes a simplified language_model object, details it to create
-        a new LanguageModel object. This is usually done on a worker where
-        the LanguageModel object is sent.
+    def detail(worker: BaseWorker, pipeline_simple: Tuple[object]) -> "Pipeline":
+        """Takes a simplified pipeline object, details it to create
+        a new Pipeline object. This is usually done on a worker where
+        the Pipeline object is sent.
 
 
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
-            language_model_simple: The simplified LanguageModel object.
+            pipeline_simple: The simplified Pipeline object.
 
         Returns:
-            A LanguageModel object.
+            A Pipeline object.
         """
 
-        # Unpack the simple language model object
+        # Unpack the simple pipeline object
         (
             name_simple,
-            pipeline_template_simple,
+            template_simple,
             states_simple,
             tags_simple,
             description_simple,
-        ) = language_model_simple
+        ) = pipeline_simple
 
         # Detail the attributes
         name = serde._detail(worker, name_simple)
-        pipeline_template = serde._detail(worker, pipeline_template_simple)
+        template = serde._detail(worker, template_simple)
         states = serde._detail(worker, states_simple)
         tags = serde._detail(worker, tags_simple)
         description = serde._detail(worker, description_simple)
 
-        # Create a LanguageModel object
-        language_model = LanguageModel(
+        # Create a Pipeline object
+        pipeline = Pipeline(
             name=name,
-            pipeline_template=pipeline_template,
+            template=template,
             states=states,
             owner=worker,
             tags=tags,
             description=description,
         )
 
-        return language_model
+        return pipeline
 
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
@@ -283,9 +283,9 @@ class LanguageModel(AbstractSendable):
         """
 
         # If a msgpack code is not already generated, then generate one
-        if not hasattr(LanguageModel, "proto_id"):
-            LanguageModel.proto_id = msgpack_code_generator(LanguageModel.__qualname__)
+        if not hasattr(Pipeline, "proto_id"):
+            Pipeline.proto_id = msgpack_code_generator(Pipeline.__qualname__)
 
-        code_dict = dict(code=LanguageModel.proto_id)
+        code_dict = dict(code=Pipeline.proto_id)
 
         return code_dict

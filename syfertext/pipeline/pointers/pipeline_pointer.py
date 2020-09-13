@@ -2,36 +2,36 @@ from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
 import syft.serde.msgpack.serde as serde
 
-from ..utils import search_resource
-from ..utils import msgpack_code_generator
+from ...utils import search_resource
+from ...utils import msgpack_code_generator
 
 from typing import Union
 from typing import Tuple
 from typing import Dict
 
 
-class LanguageModelPointer(ObjectPointer):
-    """This class defines a pointer to a LanguageModel object. Whenever a
-    LanguageModel object is searched on the grid and found on any of the
+class PipelinePointer(ObjectPointer):
+    """This class defines a pointer to a Pipeline object. Whenever a
+    Pipeline object is searched on the grid and found on any of the
     remote workers, a pointer to it, represented by this object, is returned.
-    Then, using this pointer, a copy of the LanguageModel object could be
+    Then, using this pointer, a copy of the Pipeline object could be
     pulled to the worker that requested it.
     """
 
     def __init__(self, location: BaseWorker, id_at_location: str, owner: BaseWorker):
-        """Initializes the LanguageModel object.
+        """Initializes the Pipeline object.
 
         Args:
-            location (BaseWorker): The worker on which the LanguageModel
+            location (BaseWorker): The worker on which the Pipeline
                 object pointed to by this object is located.
-            id_at_location (str, int): The ID of the LanguageModel object
+            id_at_location (str, int): The ID of the Pipeline object
                 referenced by this pointer.
             owner (BaseWorker): The worker that owns this pointer object.
             id (str, int): The ID of the pointer object.
         """
 
         # Initialize the parent object
-        super(LanguageModelPointer, self).__init__(
+        super(PipelinePointer, self).__init__(
             location=location,
             id_at_location=id_at_location,
             owner=owner,
@@ -39,12 +39,12 @@ class LanguageModelPointer(ObjectPointer):
             garbage_collect_data=False,
         )
 
-    def get_copy(self) -> "LanguageModel":
+    def get_copy(self) -> "Pipeline":
         """This method is used to download a copy of the remote
-        LanguageModel object.
+        Pipeline object.
 
         Returns:
-            A LanguageModel object that is an exact copy of the remote LanguageModel
+            A Pipeline object that is an exact copy of the remote Pipeline
                 object referenced by this pointer.
         """
 
@@ -57,15 +57,15 @@ class LanguageModelPointer(ObjectPointer):
             kwargs_={"destination": self.owner},
         )
 
-        # Get the language_model from the local object store
-        language_model = self.owner.get_obj(self.id_at_location)
+        # Get the pipeline from the local object store
+        pipeline = self.owner.get_obj(self.id_at_location)
 
-        return language_model
+        return pipeline
 
     def deploy_states(self) -> None:
         """Forwards the call to the `deploy_states` method of the underlying
-        `language_model` object which, in turn, searches for the State objects
-        associated with this language model and deploys them on the
+        `pipeline` object which, in turn, searches for the State objects
+        associated with this pipeline and deploys them on the
         corresponding workers by sending copies of them.
         """
 
@@ -79,50 +79,46 @@ class LanguageModelPointer(ObjectPointer):
         )
 
     @staticmethod
-    def simplify(
-        worker: BaseWorker, language_model_pointer: "LanguageModelPointer"
-    ) -> Tuple[object]:
-        """Simplifies a LanguageModelPointer object. This method is required by PySyft
-        when a LanguageModelPointer object is sent to another worker.
+    def simplify(worker: BaseWorker, pipeline_pointer: "PipelinePointer") -> Tuple[object]:
+        """Simplifies a PipelinePointer object. This method is required by PySyft
+        when a PipelinePointer object is sent to another worker.
 
         Args:
             worker: The worker on which the simplify operation is carried out.
-            language_model_pointer: the LanguageModelPointer object to simplify.
+            pipeline_pointer: the PipelinePointer object to simplify.
 
         Returns:
-            The simplified LanguageModelPointer object as a tuple of serialized LanguageModel
+            The simplified PipelinePointer object as a tuple of serialized Pipeline
             attributes.
 
         """
 
-        # Simplify the LanguageModelPointer object attributes
-        location_simple = serde._simplify(worker, language_model_pointer.location)
-        id_at_location_simple = serde._simplify(worker, language_model_pointer.id_at_location)
+        # Simplify the PipelinePointer object attributes
+        location_simple = serde._simplify(worker, pipeline_pointer.location)
+        id_at_location_simple = serde._simplify(worker, pipeline_pointer.id_at_location)
 
-        # create the simple LanguageModelPointer object
-        language_model_pointer_simple = (location_simple, id_at_location_simple)
+        # create the simple PipelinePointer object
+        pipeline_pointer_simple = (location_simple, id_at_location_simple)
 
-        return language_model_pointer_simple
+        return pipeline_pointer_simple
 
     @staticmethod
-    def detail(
-        worker: BaseWorker, language_model_pointer_simple: Tuple[object]
-    ) -> "LanguageModelPointer":
-        """Takes a simplified LanguageModelPointer object, details it to create
-        a new LanguageModelPointer object. This is usually done on a worker where
-        the LanguageModelPointer object is sent.
+    def detail(worker: BaseWorker, pipeline_pointer_simple: Tuple[object]) -> "PipelinePointer":
+        """Takes a simplified PipelinePointer object, details it to create
+        a new PipelinePointer object. This is usually done on a worker where
+        the PipelinePointer object is sent.
 
 
         Args:
             worker (BaseWorker): The worker on which the detail operation is carried out.
-            language_model_pointer_simple: The simplified LanguageModelPointer object.
+            pipeline_pointer_simple: The simplified PipelinePointer object.
 
         Returns:
-            A LanguageModelPointer object.
+            A PipelinePointer object.
         """
 
-        # Unpack the simple language_model
-        location_simple, id_at_location_simple = language_model_pointer_simple
+        # Unpack the simple pipeline
+        location_simple, id_at_location_simple = pipeline_pointer_simple
 
         # Detail the attributes
         location = serde._detail(worker, location_simple)
@@ -136,12 +132,12 @@ class LanguageModelPointer(ObjectPointer):
         if worker.id == location.id:
             return worker.get_obj(id_at_location)
 
-        # Create a LanguageModel object
-        language_model_pointer = LanguageModelPointer(
+        # Create a Pipeline object
+        pipeline_pointer = PipelinePointer(
             location=location, id_at_location=id_at_location, owner=worker
         )
 
-        return language_model_pointer
+        return pipeline_pointer
 
     @staticmethod
     def get_msgpack_code() -> Dict[str, int]:
@@ -162,11 +158,9 @@ class LanguageModelPointer(ObjectPointer):
         """
 
         # If a msgpack code is not already generated, then generate one
-        if not hasattr(LanguageModelPointer, "proto_id"):
-            LanguageModelPointer.proto_id = msgpack_code_generator(
-                LanguageModelPointer.__qualname__
-            )
+        if not hasattr(PipelinePointer, "proto_id"):
+            PipelinePointer.proto_id = msgpack_code_generator(PipelinePointer.__qualname__)
 
-        code_dict = dict(code=LanguageModelPointer.proto_id)
+        code_dict = dict(code=PipelinePointer.proto_id)
 
         return code_dict

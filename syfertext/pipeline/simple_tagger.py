@@ -13,6 +13,7 @@ from syft.generic.abstract.sendable import AbstractSendable
 
 from typing import Union
 from typing import Dict
+from typing import Set
 
 
 class SimpleTagger(AbstractSendable):
@@ -30,8 +31,6 @@ class SimpleTagger(AbstractSendable):
         tag: object = None,
         default_tag: object = None,
         case_sensitive: bool = True,
-        owner=None,
-        model_name=None,
     ):
         """Initialize the SimpleTagger object.
 
@@ -39,7 +38,7 @@ class SimpleTagger(AbstractSendable):
         Args:
             attribute (str): The name of the attribute that will hold the tag.
                 this attribute will be accessible through the attribute
-                `._` of Token objects. Example `token_object._.<attribute>
+                `._` of Token objects. Example `token._.<attribute>
             lookups (set, list or dict): If of type `list` of `set`, it should contain
                 the tokens that are to be searched for and tagged in the Doc
                 object's text. Example: ['the', 'myself', ...]
@@ -55,8 +54,10 @@ class SimpleTagger(AbstractSendable):
                 token texts to `lookups` will become case sensitive.
                 Defaults to True.
         """
-        self.model_name = model_name
-        self.owner = owner
+
+        # This call is important to appropriately initialize the `owner` property
+        super(SimpleTagger, self).__init__()
+
         self.attribute = attribute
 
         # Desensitize tokens in lookups if `case_sensitive` is False
@@ -72,21 +73,96 @@ class SimpleTagger(AbstractSendable):
         self.tag = tag
         self.default_tag = default_tag
 
-    def factory(self):
-        """Creates a clone of this object.
-        This method is used by the SupPipeline class to create
-        objects using subpipeline templates.
+    @property
+    def pipeline_name(self) -> str:
+        """A getter for the `_pipeline_name` property.
+
+        Returns:
+           The lower cased `_pipeline_name` property.
         """
 
-        return SimpleTagger(
-            attribute=self.attribute,
-            lookups=self.lookups,
-            tag=self.tag,
-            default_tag=self.default_tag,
-            case_sensitive=self.case_sensitive,
-        )
+        return self._pipeline_name.lower()
 
-    def __call__(self, doc: Doc):
+    @pipeline_name.setter
+    def pipeline_name(self, name: str) -> None:
+        """Set the pipeline name to which this object belongs.
+
+        Args:
+            name: The name of the pipeline.
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._pipeline_name = name
+
+    @property
+    def name(self) -> str:
+        """A getter for the `_name` property.
+
+        Returns:
+           The lower cased `_name` property.
+        """
+
+        return self._name.lower()
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """Set the component name.
+
+        Args:
+            name: The name of the component
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._name = name
+
+    @property
+    def access(self) -> Set[str]:
+        """Get the access rules for this component.
+
+        Returns:
+            The set of worker ids where this component's state
+            could be sent.
+            If the string '*' is included in the set,  then all workers are
+            allowed to receive a copy of the state. If set to None, then
+            only the worker where this component is saved will be allowed
+            to get a copy of the state.
+        """
+
+        return self._access_rules
+
+    @access.setter
+    def access(self, rules: Set[str]) -> None:
+        """Set the access rules of this object.
+
+        Args:
+            rules: The set of worker ids where this component's state
+                could be sent.
+                If the string '*' is included in the set,  then all workers are
+                allowed to receive a copy of the state. If set to None, then
+                only the worker where this component is saved will be allowed
+                to get a copy of the state.
+        """
+
+        self._access_rules = rules
+
+    def __call__(self, doc: Doc) -> Doc:
+        """Performs the tagging.
+
+        Args:
+            doc: The Doc object containing the Token objects to
+                be tagged.
+
+        Returns:
+            A Doc object containing the tagged tokens. In order to
+            access a given tag, the `underscore` attribute of the
+            Token object should be used: token._.<attribute>
+        """
 
         # Start tagging
         for token in doc:
@@ -163,15 +239,11 @@ class SimpleTagger(AbstractSendable):
 
         """
 
-        # Simplify the object properties
-        attribute = serde._simplify(worker, simple_tagger.attribute)
-        lookups = serde._simplify(worker, simple_tagger.lookups)
-        tag = serde._simplify(worker, simple_tagger.tag)
-        default_tag = serde._simplify(worker, simple_tagger.default_tag)
-        case_sensitive = serde._simplify(worker, simple_tagger.case_sensitive)
-        model_name = serde._simplify(worker, simple_tagger.model_name)
+        # Simplify attributes
+        name_simple = serde._simplify(worker, simple_tagger.name)
+        pipeline_name_simple = serde._simplify(worker, simple_tagger.pipeline_name)
 
-        return (attribute, lookups, tag, default_tag, case_sensitive, model_name)
+        return (name_simple, pipeline_name_simple)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -181,32 +253,24 @@ class SimpleTagger(AbstractSendable):
         Args:
             worker (BaseWorker): The worker on which the
                 detail operation is carried out.
-            simple_obj (tuple): the simplified SubPipeline object.
+            simple_obj (tuple): the simplified SimpleTagger object.
+
         Returns:
             (SimpleTagger): The SimpleTagger object.
         """
 
-        # Unpack the simplified object
-        attribute, lookups, tag, default_tag, case_sensitive, model_name = simple_obj
+        # Get the tuple elements
+        name_simple, pipeline_name_simple = simple_obj
 
-        # Detail each property
-        attribute = serde._detail(worker, attribute)
-        lookups = serde._detail(worker, lookups)
-        tag = serde._detail(worker, tag)
-        default_tag = serde._detail(worker, default_tag)
-        case_sensitive = serde._detail(worker, case_sensitive)
-        model_name = serde._detail(worker, model_name)
+        # Detail
+        name = serde._detail(worker, name_simple)
+        pipeline_name = serde._detail(worker, pipeline_name_simple)
 
-        # Instantiate a SimpleTagger object
-        simple_tagger = SimpleTagger(
-            attribute=attribute,
-            lookups=lookups,
-            tag=tag,
-            default_tag=default_tag,
-            case_sensitive=case_sensitive,
-            model_name=model_name,
-            owner=worker,
-        )
+        # Create the simple_tagger object
+        simple_tagger = SimpleTagger()
+        simple_tagger.pipeline_name = pipeline_name
+        simple_tagger.name = name
+        simple_tagger.owner = worker
 
         return simple_tagger
 
@@ -237,29 +301,12 @@ class SimpleTagger(AbstractSendable):
 
         return code_dict
 
-    def set_model_name(self, model_name: str) -> None:
-        """Set the language model name to which this object belongs.
-
-        Args:
-            name: The name of the language model.
-        """
-
-        self.model_name = model_name
-
-    def load_state(self, name=None) -> None:
-        """Search for the state of this object on PyGrid.
-
-        Args:
-            name: The name of the state.
-        """
-        if name:
-            self.state_name = name
-        else:
-            self, state_name = self.__class__.__name__.lower()
+    def load_state(self) -> None:
+        """Search for the state of this object on PyGrid."""
 
         # Create the query. This is the ID according to which the
         # State object is searched on PyGrid
-        state_id = create_state_query(model_name=self.model_name, state_name=self.state_name)
+        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
 
         # Search for the state
         result = search_resource(query=state_id, local_worker=self.owner)
@@ -286,25 +333,18 @@ class SimpleTagger(AbstractSendable):
             case_sensitive_simple,
         ) = state.simple_obj
 
-        self.attribute = serde._detail(LOCAL_WORKER, attribute_simple)
-        self.lookups = serde._detail(LOCAL_WORKER, lookups_simple)
-        self.tag = serde._detail(LOCAL_WORKER, tag_simple)
-        self.default_tag = serde._detail(LOCAL_WORKER, default_tag_simple)
-        self.case_sensitive = serde._detail(LOCAL_WORKER, case_sensitive_simple)
+        self.attribute = serde._detail(self.owner, attribute_simple)
+        self.lookups = serde._detail(self.owner, lookups_simple)
+        self.tag = serde._detail(self.owner, tag_simple)
+        self.default_tag = serde._detail(self.owner, default_tag_simple)
+        self.case_sensitive = serde._detail(self.owner, case_sensitive_simple)
 
-    def dump_state(self, name=None) -> State:
+    def dump_state(self) -> State:
         """Returns a State object that holds the current state of this object.
-
-        Args:
-            name: The name of the state.
 
         Returns:
             A State object that holds a simplified version of this object's state.
         """
-        if name:
-            self.state_name = name
-        else:
-            self, state_name = self.__class__.__name__.lower()
 
         # Simply the state variables
         attribute_simple = serde._simplify(self.owner, self.attribute)
@@ -315,7 +355,7 @@ class SimpleTagger(AbstractSendable):
 
         # Create the query. This is the ID according to which the
         # State object is searched for on across workers
-        state_id = f"{self.model_name}:{self.state_name}"
+        state_id = f"{self.pipeline_name}:{self.name}"
 
         # Create the State object
         state = State(
@@ -327,7 +367,7 @@ class SimpleTagger(AbstractSendable):
                 case_sensitive_simple,
             ),
             id=state_id,
-            access={"*"},
+            access=self.access,
         )
 
         return state
