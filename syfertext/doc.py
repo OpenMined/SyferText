@@ -221,7 +221,7 @@ class Doc(AbstractObject):
         excluding token according to the excluded_tokens dictionary.
 
         Args
-            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on their custom attribute values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
