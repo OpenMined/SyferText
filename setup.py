@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "tqdm==4.36.1",
         "mmh3==2.5.1",
-        "syft @ git+https://github.com/OpenMined/PySyft.git@v0.2.9#egg=syft",
+        "syft @ git+https://github.com/Nilanshrajput/PySyft.git#GridClients_Serialize_correction9#egg=syft",
         "requests==2.22.0",
     ],
     extras_require={
