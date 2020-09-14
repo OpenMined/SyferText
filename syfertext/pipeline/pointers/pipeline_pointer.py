@@ -48,7 +48,7 @@ class PipelinePointer(ObjectPointer):
                 object referenced by this pointer.
         """
 
-        # Send the command
+        # Send the command, this will creates a copy of pipeline on remote location
         self.owner.send_command(
             recipient=self.location,
             cmd_name="send_copy",
@@ -57,8 +57,8 @@ class PipelinePointer(ObjectPointer):
             kwargs_={"destination": self.owner},
         )
 
-        # Get the pipeline from the local object store
-        pipeline = self.owner.get_obj(self.id_at_location)
+        # Request the pipeline from the remote worker
+        pipeline = self.owner.request_obj(self.id_at_location, self.location)
 
         return pipeline
 

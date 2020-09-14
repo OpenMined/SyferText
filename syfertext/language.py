@@ -66,6 +66,9 @@ class Language(AbstractObject):
         # Initialize the pipeline as an empty dictionary
         self._reset_pipeline()
 
+        # list of all locations this pipeline is deployed on
+        self.deployed_on = []
+
         super(Language, self).__init__(id=None, owner=owner, tags=tags, description=description)
 
     @property
@@ -245,6 +248,9 @@ class Language(AbstractObject):
 
         # Initialize a new `subpipelins_template` property
         self.subpipeline_templates = defaultdict(list)
+
+        # Initialize a new empty list for locations of deployments
+        self.deployed_on = []
 
     def add_pipe(
         self,
@@ -501,6 +507,10 @@ class Language(AbstractObject):
         # or the Doc to be processed is located
         if isinstance(text, ObjectPointer):
             location_id = text.location.id
+
+            # deploy all the states of Pipeline on location of text
+            if location_id not in self.deployed_on:
+                self.deploy(worker=text.location)
         else:
             location_id = self.owner.id
 
@@ -553,8 +563,11 @@ class Language(AbstractObject):
             description=self.description,
         )
 
+        # Deploy the pipeline states (on worker location)
+        pipeline.deploy_states()
         # Send the Pipeline object to the destination worker
         pipeline_pointer = pipeline.send(location=worker)
 
-        # Tell the Pipelin object to deploy all State objects
-        pipeline_pointer.deploy_states()
+        # add location of worker to deployed list
+        if worker.id not in self.deployed_on:
+            self.deployed_on.append(worker.id)

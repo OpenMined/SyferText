@@ -1,23 +1,22 @@
+from .token import Token
 import syft
-from syft.generic.abstract.object import AbstractObject
-from syft.workers.base import BaseWorker
-from syft.generic.abstract.tensor import AbstractTensor
-
 import torch
 
 hook = syft.TorchHook(torch)
 
-from .token import Token
-from .underscore import Underscore
-from .span import Span
-from .pointers.span_pointer import SpanPointer
-from .utils import normalize_slice
+
+from syft.generic.abstract.object import AbstractObject
+from syft.workers.base import BaseWorker
 
 from typing import List
 from typing import Dict
 from typing import Set
 from typing import Union
 from typing import Generator
+from .underscore import Underscore
+from .span import Span
+from .pointers.span_pointer import SpanPointer
+from .utils import normalize_slice
 
 
 class Doc(AbstractObject):
@@ -221,8 +220,8 @@ class Doc(AbstractObject):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
 
-        Args:
-            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on their custom attribute values
+        Args
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
@@ -290,6 +289,7 @@ class Doc(AbstractObject):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
+        protocol: str = None,
     ):
         """Get the mean of the vectors of each Token in this documents.
 
@@ -300,6 +300,7 @@ class Doc(AbstractObject):
             excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+            protocol (str): Protocol for SMPC.
 
         Returns:
 
@@ -315,7 +316,10 @@ class Doc(AbstractObject):
 
         # Encrypt the vector using SMPC with PySyft
         doc_vector = doc_vector.fix_precision().share(
-            *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
+            *workers,
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            protocol=protocol,
         )
 
         return doc_vector
@@ -326,6 +330,7 @@ class Doc(AbstractObject):
         crypto_provider: BaseWorker = None,
         requires_grad: bool = True,
         excluded_tokens: Dict[str, Set[object]] = None,
+        protocol: str = None,
     ) -> torch.Tensor:
         """Get the Tensors of all the vectors corresponding to the tokens in the `Doc`,
         excluding token according to the excluded_tokens dictionary.
@@ -340,6 +345,7 @@ class Doc(AbstractObject):
                 of their attributes, the keys are the attributes names and they index, for efficiency,
                 sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
+            protocol (str): Protocol for SMPC.
 
         Returns:
             Tensor: A SMPC-encrypted tensor representing the array of all vectors in this document,
@@ -354,29 +360,13 @@ class Doc(AbstractObject):
 
         # Encrypt the tensor using SMPC with PySyft
         token_vectors = token_vectors.fix_precision().share(
-            *workers, crypto_provider=crypto_provider, requires_grad=requires_grad
+            *workers,
+            crypto_provider=crypto_provider,
+            requires_grad=requires_grad,
+            protocol=protocol,
         )
 
         return token_vectors
-
-    def decode_logits(
-        self,
-        task_name: str,
-        logits: AbstractTensor,
-        labels: List[str],
-        single_label: bool,
-        encryption: str,
-    ) -> None:
-
-        # If 'mpc' encryption is used, decrypt the logits
-        if encryption == "mpc":
-            logits = logits.get().float_precision()
-
-        # Get the predict label text
-        label = labels[logits.argmax().item()]
-
-        # Set a custom attribute to the Doc containing the predicted label
-        self.set_attribute(name=task_name, value=label)
 
     def _get_valid_tokens(
         self, excluded_tokens: Dict[str, Set[object]] = None

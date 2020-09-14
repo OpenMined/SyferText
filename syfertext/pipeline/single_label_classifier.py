@@ -14,7 +14,7 @@ import torch as th
 
 import syft as sy
 from syft.generic.abstract.sendable import AbstractSendable
-from syft.serde.syft_serializable import SyftSerializable
+from syft.generic.abstract.syft_serializable import SyftSerializable
 import syft.serde.msgpack.serde as serde
 from syft.serde.msgpack.serde import msgpack_global_state
 from syft.workers.base import BaseWorker
