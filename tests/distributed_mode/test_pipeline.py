@@ -11,6 +11,7 @@ from syfertext.local_pipeline import get_test_language_model
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
+me.is_client_worker = False
 
 alice = sy.VirtualWorker(hook, id="alice")
 bob = sy.VirtualWorker(hook, id="bob")
@@ -25,10 +26,12 @@ adjective_tagger = SimpleTagger(attribute="adjective", lookups=["secure"], tag=T
 
 
 def test_addition_and_removal_of_pipeline_components():
-    """Test the add_pipe and remove_pipe methods.
-    """
+    """Test the add_pipe and remove_pipe methods."""
 
     nlp = get_test_language_model()
+
+    # Initializing a test string
+    test_string = "learn pysyft build syfertext!"
 
     # Add the pipeline components to SyferText pipeline
     nlp.add_pipe(noun_tagger, name="noun tagger")
@@ -42,13 +45,43 @@ def test_addition_and_removal_of_pipeline_components():
     #                          {'remote': False, 'name': 'verb tagger'}]
     assert len(nlp.pipeline_template) == 3
 
+    # Making lists for comparison, len_3_pipe refers to a pipe of size 3
+    len_3_pipe_tokens = []
+    len_3_pipe_nouns = []
+    len_3_pipe_verbs = []
+
+    # Filling up the len_3 lists with tokens and tags
+    doc = nlp(test_string)
+    for token in doc:
+        # print('%10s | %5s | %s'%(token, token._.noun, token._.verb))
+        len_3_pipe_tokens.append(str(token))
+        len_3_pipe_nouns.append(token._.noun)
+        len_3_pipe_verbs.append(token._.verb)
+
     # Remove noun tagger from the pipeline
     nlp.remove_pipe(name="noun tagger")
 
     # Assert pipeline has two components
     assert len(nlp.pipeline_template) == 2
 
+    # Ensuring the correct pipe has been removed
+    for elem in nlp.pipeline_template:
+        assert elem["name"] != "noun tagger"
 
+    # Making lists for comparison, len_2_pipe refers to a pipe of size 2
+    len_2_pipe_tokens = []
+    len_2_pipe_verbs = []
+
+    # Filling up the len_2 lists with tokens and tags
+    doc = nlp(test_string)
+    for token in doc:
+        # print('%10s | %5s ' %(token, token._.verb))
+        len_2_pipe_tokens.append(str(token))
+        len_2_pipe_verbs.append(token._.verb)
+
+    # Ensuring the rest of the pipe functions the same way
+    assert len_2_pipe_tokens == len_3_pipe_tokens
+    assert len_2_pipe_verbs == len_3_pipe_verbs
 
 
 def test_subpipeline_is_not_recreated_in_remote_workers():
@@ -58,7 +91,6 @@ def test_subpipeline_is_not_recreated_in_remote_workers():
 
     nlp = get_test_language_model()
 
-    
     # Create 4 PySyft Strings and send them to remote workers
     # (3 to Bob, 1 to Alice)
     texts = [String(text) for text in ["hello", "syfertext", "private", "nlp"]]
@@ -111,13 +143,12 @@ def test_pipeline_output():
 
     nlp = get_test_language_model()
 
-    
     # Create a PySyft String and send it to remote worker james
     text_ptr = String("building SyferText").send(james)
 
     # Add tagger with remote = True
     tagger = SimpleTagger(attribute="noun", lookups=["SyferText"], tag=True)
-    nlp.add_pipe(tagger, name="noun_tagger",access = {'*'})
+    nlp.add_pipe(tagger, name="noun_tagger", access={"*"})
 
     # Upon processing the text present on james's machine,
     # pipeline Should return a DocPointer to the doc on james's machine
@@ -144,4 +175,4 @@ def test_pipeline_output():
 
     # nlp.pipeline stores pointers to subpipeline objects on remote machines
     # assert subpipeline pointer stored in nlp.pipeline points to the subpipeline on james machine
-    assert nlp.pipeline['james'][0].id_at_location == subpipelines[0].id
+    assert nlp.pipeline["james"][0].id_at_location == subpipelines[0].id
