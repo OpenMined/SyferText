@@ -98,7 +98,7 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
     <td align="center">
       <a href="https://github.com/hershd23">
         <img src="https://avatars2.githubusercontent.com/u/37028207?s=400&u=8c65da7f84be079e42448fd60bc7f92c01055f5b&v=4" width="170px;" alt="Hersh Dhillon avatar">
-        <br /><sub><b>Hersh Dhillon/b></sub></a><br />
+        <br /><sub><b>Hersh Dhillon</b></sub></a><br />
         <sub>OM NLP team / Core Dev</sub>
       </a>
     </td>
