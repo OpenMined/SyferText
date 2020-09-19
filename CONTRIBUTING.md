@@ -174,14 +174,6 @@ Please create all pull requests to the `master` branch.
 If your PR is still work in progress and not ready to be merged please add a `[WIP]` at the start of the title.
 Example:`[WIP] Serialization of PointerTensor`
 
-Syfertext is formatted using `black` and there are integration tests to check whether there is any issue in the formatting. Before making the pull request you will need to install black via pip
-
-`pip install black`
-
-Then in the command line go to the parent directory of where you saved your forked repository and run the following command and commit the modifications to the repository
-
-`black SyferText`
-
 ### Check CI and Wait for Reviews
 
 After each commit GitHub Actions will check your new code against the formatting guidelines (should not cause any problems when you setup your pre-commit hook) and execute the tests to check if the test coverage is high enough.
