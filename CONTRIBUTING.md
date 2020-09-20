@@ -1,4 +1,4 @@
-# Contributors Guidelines to PySyft
+# Contributors Guidelines to SyferText
 
 ## Getting Started
 
@@ -12,20 +12,20 @@ A great first place to join the Community is the Slack channel <http://slack.ope
 
 ### Issues
 
-On <https://github.com/OpenMined/PySyft/issues> you can find all open Issues. You can find a detailed explanation on how to work with issues below under [Issue Allocation](#issue-allocation).
+On <https://github.com/OpenMined/SyferText/issues> you can find all open Issues. You can find a detailed explanation on how to work with issues below under [Issue Allocation](#issue-allocation).
 
 ## Setup
 
 ### Forking a Repository
 
-To contribute to PySyft you will need to fork the OpenMind/PySyft repository.
+To contribute to SyferText you will need to fork the OpenMind/SyferText repository.
 Then you can work risk-free on your fork.
 
 You will just need to fork once. After that you can call `git fetch upstream` and `git pull 'branch-name'` before you do your local changes to get the remote changes and be up-to-date
 
-### Setting up Pre-Commit Hook
+### [WIP] Setting up Pre-Commit Hook
 
-PySyft uses the python package `pre-commit` to make sure the correct formatting (black & flake) is applied.
+SyferText uses the python package `pre-commit` to make sure the correct formatting (black & flake) is applied.
 
 You can install it via `pip install -r pip-dep/requirements_dev.txt` or directly doing `pip install pre-commit`
 
@@ -34,10 +34,9 @@ Then you just need to call `pre-commit install`
 This can all also be done by running `make install_hooks`
 
 ### Syncing a Forked Repository
+To sync your fork with the OpenMined/SyferText repository please see this [Guide](https://help.github.com/articles/syncing-a-fork/) on how to sync your fork.
 
-To sync your fork with the OpenMined/PySyft repository please see this [Guide](https://help.github.com/articles/syncing-a-fork/) on how to sync your fork.
-
-### Installing PySyft after Cloning Repository
+### [WIP] Installing PySyft after Cloning Repository
 
 To install the development version of the package, once the `dev` version of the requirements have been satisified, one should:
 
@@ -53,9 +52,9 @@ To install the development version of the package, once the `dev` version of the
 
 NOTE: If you are using a virtual environment, please be sure to use the correct executable for `pip` or `python` instead.
 
-### Deploying Workers
+### [WIP] Deploying Workers
 
-You can follow along [this example](./examples/deploy_workers/deploy-and-connect.ipynb) to learn how to deploy PySyft workers and start playing around.
+You can follow along [this example](https://github.com/OpenMined/PySyft/examples/deploy_workers/deploy-and-connect.ipynb) to learn how to deploy PySyft workers and start playing around.
 
 ## Contributing
 
@@ -71,7 +70,7 @@ If you want to work on an open issue, please post a comment telling that you wil
 
 **Caution**: We try our best to keep the assignee up-to-date, but as we are all humans with our own schedule delays are possible, so make sure to check the comments once before you start working on an issue even when no one is assigned to it.
 
-### Writing Test Cases
+### [WIP] Writing Test Cases
 
 Always make sure to create the necessary tests and keep test coverage at 100%. You can always ask for help in slack or via github if you don't feel confident about your tests.
 
@@ -82,7 +81,7 @@ coverage run --omit=*/venv/*,setup.py,.eggs/* setup.py test
 coverage report --fail-under 100 -m
 ```
 
-PySyft is using `pytest` to execute the test cases.
+SyferText is using `pytest` to execute the test cases.
 
 #### Parametrize your Test Cases
 
@@ -105,24 +104,24 @@ def test_hooked_tensor(self, compress, compressScheme):
     assert (t == t_serialized_deserialized).all()
 ```
 
-### Process for Serde Protocol Changes
+### [WIP] Process for Serde Protocol Changes
 
-Constants related to PySyft Serde protocol are located in separate repository: [OpenMined/syft-proto](https://github.com/OpenMined/syft-proto).
+Constants related to SyferText Serde protocol are located in separate repository: [OpenMined/syft-proto](https://github.com/OpenMined/syft-proto).
 All classes that need to be serialized have to be listed in the [`proto.json`](https://github.com/OpenMined/syft-proto/blob/master/proto.json) file and have unique code value.
 
 Updating lists of _simplifiers and detailers_ in `syft/serde/native_serde.py`, `syft/serde/serde.py`, `syft/serde/torch_serde.py`
-or renaming/moving related classes can make unit tests fail because `proto.json` won't be in sync with PySyft code anymore.
+or renaming/moving related classes can make unit tests fail because `proto.json` won't be in sync with SyferText code anymore.
 
 Use following process:
 
  1. Fork [OpenMined/syft-proto](https://github.com/OpenMined/syft-proto) and create new branch.
- 2. In your PySyft branch, update `pip-deps/requirements.txt` file to have `git+git://github.com/<your_account>/syft-proto@<branch>#egg=syft-proto` instead of `syft-proto>=*`.
- 3. Make required changes in your PySyft and syft-proto branches. [`helpers/update_types.py`](https://github.com/OpenMined/syft-proto/blob/master/helpers/update_types.py) can help update `proto.json` automatically.
- 4. Create PRs in PySyft and syft-proto repos.
+ 2. In your SyferText branch, update `pip-deps/requirements.txt` file to have `git+git://github.com/<your_account>/syft-proto@<branch>#egg=syft-proto` instead of `syft-proto>=*`.
+ 3. Make required changes in your SyferText and syft-proto branches. [`helpers/update_types.py`](https://github.com/OpenMined/syft-proto/blob/master/helpers/update_types.py) can help update `proto.json` automatically.
+ 4. Create PRs in SyferText and syft-proto repos.
  5. PRs should pass CI checks.
  6. After syft-proto PR is merged, new version of syft-proto will be published automatically. You can look up new version [in PyPI
 ](https://pypi.org/project/syft-proto/#history).
- 7. Before merging PySyft PR, update `pip-deps/requirements.txt` to revert from `git+git://github.com/<your_account>/syft-proto@<branch>#egg=syft-proto` to `syft-proto>=<new version>`.
+ 7. Before merging SyferText PR, update `pip-deps/requirements.txt` to revert from `git+git://github.com/<your_account>/syft-proto@<branch>#egg=syft-proto` to `syft-proto>=<new version>`.
 
 ### Documentation and Codestyle
 
@@ -143,13 +142,13 @@ from syft.serde import serialize
 from syft.serde import deserialize
 ```
 
-#### Generating Documentation
+#### [WIP] Generating Documentation
 
 ```bash
 sphinx-apidoc -f -o docs/modules/ syft/
 ```
 
-#### Type Checking
+#### [WIP] Type Checking
 
 The codebase contains [static type hints](https://docs.python.org/3/library/typing.html) for code clarity and catching errors prior to runtime. If you're adding type hints, please run the static type checker to ensure the type annotations you added are correct via:
 
@@ -163,7 +162,7 @@ Due to issue [#2323](https://github.com/OpenMined/PySyft/issues/2323) you can ig
 
 As with any software project, it's important to keep the amount of code to a minimum, so keep code duplication to a minimum!
 
-### Contributing a notebook and adding it to the CI system
+### [WIP] Contributing a notebook and adding it to the CI system
 
 If you are contributing a notebook, please ensure you install the requirements for testing notebooks locally. `pip install -r pip-dep/requirements_notebooks.txt`.
 Also please add tests for it in the `tests/notebook/test_notebooks.py` file. There are plenty of examples, for questions about the notebook tests please feel free to reference https://github.com/fdroessler.
