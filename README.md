@@ -11,18 +11,31 @@
 
 ## SyferText
 
-SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft to perform Federated Learning and Encrypted Computations (
-[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) on text data. The two main usage scenarios of SyferText are:
+SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft to perform Federated Learning and Encrypted Computations ([Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation)) on text data. The two main usage scenarios of SyferText are:
 
 - :fire: **Secure plaintext pre-processing:** Enables pre-processing of  text located on a remote machine without breaking data privacy.
-- :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle a complete pipeline composed of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
-  
+- :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle the complete pipeline of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
+
 To get a more detailed introduction about SyferText, watch :movie_camera: [OpenMined AMA with Alan Aboudib](https://youtu.be/gtwOPxxJ5F4)  available on YouTube.
-  
+
 
 ## Installation
 
-You can install SyferText by directly cloning this repo:
+In order to install and start using SyferText, you first have to install `git-lfs` by following [this short guide](https://github.com/git-lfs/git-lfs/wiki/Installation).
+
+Then go ahead and install our experimental language model that we adapted form spaCy's `en_core_web_lg` model. This should take a few minutes since the model size is >800M.
+
+```
+$ pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
+```
+
+If you had already installed `syfertext_en_core_web_lg` prior to installing `git-lfs` please do the following:
+
+1. Uninstall `syfertext_en_core_web_lg`
+2. Install `git-lfs`.
+3. Reinstall `syfertext_en_core_web_lg`.
+
+Now you can go ahead and install SyferText:
 
 ```
 $ git clone https://github.com/OpenMined/SyferText.git
@@ -58,6 +71,12 @@ SyferText can be used to work with datasets residing on a local machine (or a lo
 
 More tutorials are coming soon. Stay tuned!
 
+## Start Contributing
+
+The guide for contributors can be found [here](https://github.com/OpenMined/PySyft/tree/master/CONTRIBUTING.md). It covers all that you need to know to start contributing code to PySyft in an easy way.
+
+Also join the rapidly growing community of 7000+ on [Slack](http://slack.openmined.org). The slack community is very friendly and great about quickly answering questions about the use and development of PySyft!
+
 ## Our Team
 
 SyferText is created and maintained by the NLP team at OpenMined and by volunteer contributors from all around the world. Here are the current members of the core NLP team. The team is growing!
@@ -87,25 +106,25 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/ramesht007">
-        <img src="https://avatars2.githubusercontent.com/u/36106177?s=400&u=09a9cee652a005ef6f4aed14844c659b56dfcdc7&v=4" width="170px; alt="Ramesht Shukla avatar">
-        <br /><sub><b>Ramesht Shukla</b></sub></a><br />
-        <sub>OM NLP Team / Core Dev</sub>
+      <a href="https://github.com/sachin-101">
+        <img src="https://avatars1.githubusercontent.com/u/44168164?s=400&u=df1c9d775a3312cacd4b330f469773e23260eb28&v=4"  width="170px;" alt="Sachin Kumar avatar">
+        <br /><sub><b>Sachin Kumar</b></sub></a><br />
+        <sub>OM NLP team / Core Dev</sub>
       </a>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="https://github.com/hershd23">
-        <img src="https://avatars2.githubusercontent.com/u/37028207?s=400&u=8c65da7f84be079e42448fd60bc7f92c01055f5b&v=4" width="170px;" alt="Hersh Dhillon avatar">
-        <br /><sub><b>Hersh Dhillon</b></sub></a><br />
-        <sub>OM NLP team / Core Dev</sub>
+      <a href="https://github.com/dzlab">
+        <img src="https://avatars0.githubusercontent.com/u/1645304?s=400&v=4" width="170px;" alt="Bachir Chihani avatar">
+        <br /><sub><b>Bachir Chihani</b></sub></a><br />
+        <sub>OM NLP Team / Core Dev</sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/sachin-101">
-        <img src="https://avatars1.githubusercontent.com/u/44168164?s=400&u=df1c9d775a3312cacd4b330f469773e23260eb28&v=4"  width="170px;" alt="Sachin Kumar avatar">
-        <br /><sub><b>Sachin Kumar</b></sub></a><br />
+      <a href="https://github.com/MarcioPorto">
+        <img src="https://avatars1.githubusercontent.com/u/6521281?s=400&v=4" width="170px;" alt="Marcio Porto avatar">
+        <br /><sub><b>Márcio Porto</b></sub></a><br />
         <sub>OM NLP team / Core Dev</sub>
       </a>
     </td>
@@ -117,8 +136,8 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
       </a>
     </td>
   </tr>
-  
-  
+
+
 </table>
 <br>
 
@@ -133,29 +152,33 @@ Demo on remote blind tokenization with SyferText.
 
 - **(March 19th, 2020)** [GDG Meetup, Reading, UK](https://www.meetup.com/GDG-Reading-Thames-Valley/events/268137223/). *(Cancelled due to COVID-19)*
 
-Demo on sentiment analysis with SyferText on multiple private datasets. 
+Demo on sentiment analysis with SyferText on multiple private datasets.
 
 
 - **(May 13th, 2020)**: [OpenMined AMA](https://www.youtube.com/channel/UCzoUqDE_OzYo6lGXtsEbOxQ). *(Cancelled due to COVID-19)*
 
 
-- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s). 
+- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3). 
+- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3).
 
 Introduction to SyferText.
 
-- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s). 
+- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo). 
+- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo).
 
 About SyferText and my Open Source Contribution Experience with OpenMined
+
+- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA.
+
+Introducing SyferText 0.1.0
 
 
 ## News
@@ -178,7 +201,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## Call for Partners
 
-We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built. 
+We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built.
 
 If you think that SyferText, in its current state or by adding more features, could be useful to your research or company, please contact us as indicated below in the **Contact Us** section, and let us discuss how we can help.
 
@@ -188,7 +211,7 @@ If you think that SyferText, in its current state or by adding more features, co
 You can reach out to us by contacting Alan on one of the following channels:
 
  [LinkedIn](https://www.linkedin.com/in/ala-aboudib/) | [Slack](https://app.slack.com/client/T6963A864/DDKH3SXKL/user_profile/UDKH3SH8S) | [Twitter](https://twitter.com/alan_aboudib)
- 
- 
+
+
 ## License
 [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
