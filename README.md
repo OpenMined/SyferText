@@ -16,9 +16,9 @@ SyferText is a library for privacy preserving Natural Language Processing in Pyt
 
 - :fire: **Secure plaintext pre-processing:** Enables pre-processing of  text located on a remote machine without breaking data privacy.
 - :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle a complete pipeline composed of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
-  
+
 To get a more detailed introduction about SyferText, watch :movie_camera: [OpenMined AMA with Alan Aboudib](https://youtu.be/gtwOPxxJ5F4)  available on YouTube.
-  
+
 
 ## Installation
 
@@ -57,6 +57,12 @@ SyferText can be used to work with datasets residing on a local machine (or a lo
 
 
 More tutorials are coming soon. Stay tuned!
+
+## Start Contributing
+
+The guide for contributors can be found [here](https://github.com/OpenMined/PySyft/tree/master/CONTRIBUTING.md). It covers all that you need to know to start contributing code to PySyft in an easy way.
+
+Also join the rapidly growing community of 7000+ on [Slack](http://slack.openmined.org). The slack community is very friendly and great about quickly answering questions about the use and development of PySyft!
 
 ## Our Team
 
@@ -117,8 +123,8 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
       </a>
     </td>
   </tr>
-  
-  
+
+
 </table>
 <br>
 
@@ -133,27 +139,27 @@ Demo on remote blind tokenization with SyferText.
 
 - **(March 19th, 2020)** [GDG Meetup, Reading, UK](https://www.meetup.com/GDG-Reading-Thames-Valley/events/268137223/). *(Cancelled due to COVID-19)*
 
-Demo on sentiment analysis with SyferText on multiple private datasets. 
+Demo on sentiment analysis with SyferText on multiple private datasets.
 
 
 - **(May 13th, 2020)**: [OpenMined AMA](https://www.youtube.com/channel/UCzoUqDE_OzYo6lGXtsEbOxQ). *(Cancelled due to COVID-19)*
 
 
-- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s). 
+- **(June 17th, 2020)**: [OpenMined AMA](https://www.youtube.com/watch?v=gtwOPxxJ5F4&t=2907s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3). 
+- **(June 18th, 2020)**: [The Federated Learning Conference](https://federatedlearningconference.com/index.php/schedule-2/schedule-3).
 
 Introduction to SyferText.
 
-- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s). 
+- **(July 8th, 2020)**: [OpenMined Paris Meetup](https://www.youtube.com/watch?v=KrjyfZDERsI&t=5040s).
 
 SyferText vision and encrypted sentiment analyzer demo.
 
 
-- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo). 
+- **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo).
 
 About SyferText and my Open Source Contribution Experience with OpenMined
 
@@ -178,7 +184,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## Call for Partners
 
-We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built. 
+We, at the NLP team, are eager to learn about new real-world use-cases around which new features in SyferText could be built.
 
 If you think that SyferText, in its current state or by adding more features, could be useful to your research or company, please contact us as indicated below in the **Contact Us** section, and let us discuss how we can help.
 
@@ -188,7 +194,7 @@ If you think that SyferText, in its current state or by adding more features, co
 You can reach out to us by contacting Alan on one of the following channels:
 
  [LinkedIn](https://www.linkedin.com/in/ala-aboudib/) | [Slack](https://app.slack.com/client/T6963A864/DDKH3SXKL/user_profile/UDKH3SH8S) | [Twitter](https://twitter.com/alan_aboudib)
- 
- 
+
+
 ## License
 [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
