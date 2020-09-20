@@ -59,10 +59,9 @@ SyferText can be used to work with datasets residing on a local machine (or a lo
 More tutorials are coming soon. Stay tuned!
 
 ## Start Contributing
+The guide for contributors can be found [here](https://github.com/OpenMined/SyferText/tree/master/CONTRIBUTING.md). It covers all that you need to know to start contributing code to SyferText in an easy way.
 
-The guide for contributors can be found [here](https://github.com/OpenMined/PySyft/tree/master/CONTRIBUTING.md). It covers all that you need to know to start contributing code to PySyft in an easy way.
-
-Also join the rapidly growing community of 7000+ on [Slack](http://slack.openmined.org). The slack community is very friendly and great about quickly answering questions about the use and development of PySyft!
+Also join the rapidly growing community of 7000+ on [Slack](http://slack.openmined.org). The slack community is very friendly and great about quickly answering questions about the use and development of SyferText!
 
 ## Our Team
 
