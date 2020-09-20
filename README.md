@@ -87,25 +87,25 @@ SyferText is created and maintained by the NLP team at OpenMined and by voluntee
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/sachin-101">
-        <img src="https://avatars1.githubusercontent.com/u/44168164?s=400&u=df1c9d775a3312cacd4b330f469773e23260eb28&v=4"  width="170px;" alt="Sachin Kumar avatar">
-        <br /><sub><b>Sachin Kumar</b></sub></a><br />
-        <sub>OM NLP team / Core Dev</sub>
+      <a href="https://github.com/ramesht007">
+        <img src="https://avatars2.githubusercontent.com/u/36106177?s=400&u=09a9cee652a005ef6f4aed14844c659b56dfcdc7&v=4" width="170px; alt="Ramesht Shukla avatar">
+        <br /><sub><b>Ramesht Shukla</b></sub></a><br />
+        <sub>OM NLP Team / Core Dev</sub>
       </a>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="https://github.com/dzlab">
-        <img src="https://avatars0.githubusercontent.com/u/1645304?s=400&v=4" width="170px;" alt="Bachir Chihani avatar">
-        <br /><sub><b>Bachir Chihani</b></sub></a><br />
-        <sub>OM NLP Team / Core Dev</sub>
+      <a href="https://github.com/hershd23">
+        <img src="https://avatars2.githubusercontent.com/u/37028207?s=400&u=8c65da7f84be079e42448fd60bc7f92c01055f5b&v=4" width="170px;" alt="Hersh Dhillon avatar">
+        <br /><sub><b>Hersh Dhillon</b></sub></a><br />
+        <sub>OM NLP team / Core Dev</sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/MarcioPorto">
-        <img src="https://avatars1.githubusercontent.com/u/6521281?s=400&v=4" width="170px;" alt="Marcio Porto avatar">
-        <br /><sub><b>Márcio Porto</b></sub></a><br />
+      <a href="https://github.com/sachin-101">
+        <img src="https://avatars1.githubusercontent.com/u/44168164?s=400&u=df1c9d775a3312cacd4b330f469773e23260eb28&v=4"  width="170px;" alt="Sachin Kumar avatar">
+        <br /><sub><b>Sachin Kumar</b></sub></a><br />
         <sub>OM NLP team / Core Dev</sub>
       </a>
     </td>
@@ -156,10 +156,6 @@ SyferText vision and encrypted sentiment analyzer demo.
 - **(July 29th, 2020)**: [MLH Fellowship Talk](https://www.youtube.com/watch?v=F36Mak1hdlo). 
 
 About SyferText and my Open Source Contribution Experience with OpenMined
-
-- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. 
-
-Introducing SyferText 0.1.0
 
 
 ## News
