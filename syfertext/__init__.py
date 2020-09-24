@@ -96,4 +96,4 @@ def create(pipeline_name, tags: Set[str] = None, description: str = None):
 
 
 # Set the default owners of some classes
-SubPipeline.owner = LOCAL_WORKER
+# SubPipeline.owner = LOCAL_WORKER
