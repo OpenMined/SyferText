@@ -203,14 +203,6 @@ class SingleLabelClassifier(AbstractSendable):
                 self.config["mpc"]["node_1"],
                 crypto_provider=self.config["mpc"]["node_2"],
             )
-            print(self.classifier.parameters()[0])
-
-            self.classifier.parameters()[0] = self.classifier.parameters()[0].send(
-                self.config["mpc"]["node_0"]
-            )
-            self.classifier.parameters()[0].get()
-
-            print(self.classifier.parameters()[0])
 
     @property
     def pipeline_name(self) -> str:
@@ -314,8 +306,6 @@ class SingleLabelClassifier(AbstractSendable):
 
         # Encode the document and obain the embedding vector
         doc_vector = self.doc_encoder(doc=doc, crypto_config=self.config)
-        print(self.config)
-        print(doc_vector)
 
         # Perform classification and get the logits
         output = self.classifier(doc_vector)
