@@ -7,6 +7,7 @@ hook = syft.TorchHook(torch)
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
+from syft.generic.abstract.tensor import AbstractTensor
 
 from typing import List
 from typing import Dict
@@ -220,8 +221,8 @@ class Doc(AbstractObject):
         """Get document vector as an average of in-vocabulary token's vectors,
         excluding token according to the excluded_tokens dictionary.
 
-        Args
-            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on their custom attribute values
+        Args:
+            excluded_tokens (Dict): A dictionary used to ignore tokens of the document based on values
                 of their attributes, the keys are the attributes names and they index, for efficiency, sets of values.
                 Example: {'attribute1_name' : {value1, value2}, 'attribute2_name': {v1, v2}, ....}
 
@@ -367,6 +368,25 @@ class Doc(AbstractObject):
         )
 
         return token_vectors
+
+    def decode_logits(
+        self,
+        task_name: str,
+        logits: AbstractTensor,
+        labels: List[str],
+        single_label: bool,
+        encryption: str,
+    ) -> None:
+
+        # If 'mpc' encryption is used, decrypt the logits
+        if encryption == "mpc":
+            logits = logits.get().float_precision()
+
+        # Get the predict label text
+        label = labels[logits.argmax().item()]
+
+        # Set a custom attribute to the Doc containing the predicted label
+        self.set_attribute(name=task_name, value=label)
 
     def _get_valid_tokens(
         self, excluded_tokens: Dict[str, Set[object]] = None

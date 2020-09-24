@@ -588,11 +588,6 @@ class Language(AbstractObject):
 
         # Deploy the pipeline states (on worker location)
         pipeline.deploy_states()
-        # Send the Pipeline object to the destination worker
-        pipeline_pointer = pipeline.send(location=worker)
-
-        # Tell the Pipelin object to deploy all State objects
-        pipeline_pointer.deploy_states()
 
         # Modify the `deployed_on` property to refer to the worker
         # where the pipeline is deployed
