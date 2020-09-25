@@ -377,14 +377,28 @@ class Doc(AbstractObject):
         single_label: bool,
         encryption: str,
     ) -> None:
-
+        """Decodes the logits tensor produced by a classifier
+        and gets the predicted label. Then this label is set as
+        and custom attribute value of the Doc.
+        Args:
+            task_name: The name of the classification task. This
+                will be used as the custom attribute's name.
+            logits: This is the logits tensor.
+            labels: The labels textual names of the classification
+                task.
+            single_label: A flag to distinguish the number of labels
+                to predict.
+            encryption: The encryption scheme used. For example, 'mpc'.
+        Todo:
+            For the moment, only single label classifier logits
+                are supported, this should be later extended to
+                multi-label classifiers.
+        """
         # If 'mpc' encryption is used, decrypt the logits
         if encryption == "mpc":
             logits = logits.get().float_precision()
-
         # Get the predict label text
         label = labels[logits.argmax().item()]
-
         # Set a custom attribute to the Doc containing the predicted label
         self.set_attribute(name=task_name, value=label)
 
