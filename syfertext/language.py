@@ -70,6 +70,9 @@ class Language(AbstractObject):
         # Initialize the pipeline as an empty dictionary
         self._reset_pipeline()
 
+        # list of all locations this pipeline is deployed on
+        self.deployed_on = []
+
         super(Language, self).__init__(id=None, owner=owner, tags=tags, description=description)
 
     @property
@@ -339,6 +342,9 @@ class Language(AbstractObject):
         # Initialize a new `subpipelins_template` property
         self.subpipeline_templates = defaultdict(list)
 
+        # Initialize a new empty list for locations of deployments
+        self.deployed_on = []
+
     def add_pipe(
         self,
         component: callable,
@@ -590,11 +596,11 @@ class Language(AbstractObject):
             description=self.description,
         )
 
+        # Deploy the pipeline states (on worker location)
+        pipeline.deploy_states()
+
         # Send the Pipeline object to the destination worker
         pipeline_pointer = pipeline.send(location=worker)
-
-        # Tell the Pipelin object to deploy all State objects
-        pipeline_pointer.deploy_states()
 
         # Modify the `deployed_on` property to refer to the worker
         # where the pipeline is deployed
