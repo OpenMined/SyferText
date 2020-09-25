@@ -1,6 +1,8 @@
 from syft.generic.pointers.object_pointer import ObjectPointer
 from syft.workers.base import BaseWorker
+from syft.generic.abstract.tensor import AbstractTensor
 import syft as sy
+
 import torch
 
 from .span_pointer import SpanPointer
@@ -70,6 +72,40 @@ class DocPointer(ObjectPointer):
         span = SpanPointer(location=self.location, id_at_location=obj_id, owner=self.owner)
 
         return span
+
+    def decode_logits(
+        self,
+        task_name: str,
+        logits: AbstractTensor,
+        labels: List[str],
+        single_label: bool,
+        encryption: str,
+    ) -> None:
+        """Forwards the call to the `decode_logits` method of the
+        referenced Doc object. Check out the latter method for
+        more information about the arguments.
+        """
+
+        # Create the command message to is used to forward the method
+        # call.
+        args = tuple()
+
+        kwargs = {
+            "task_name": task_name,
+            "logits": logits,
+            "labels": labels,
+            "single_label": single_label,
+            "encryption": encryption,
+        }
+
+        # Send the command
+        self.owner.send_command(
+            recipient=self.location,
+            cmd_name="decode_logits",
+            target=self,
+            args_=args,
+            kwargs_=kwargs,
+        )
 
     def get_encrypted_vector(
         self,

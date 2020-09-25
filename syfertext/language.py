@@ -308,6 +308,16 @@ class Language(AbstractObject):
             # Instantiate a subpipeline and load the subpipeline template
             subpipeline = SubPipeline(pipeline_name=self.pipeline_name)
 
+            # Set the SubPipeline owner
+            subpipeline.owner = self.owner
+
+            # Set the id of the worker that owns the pipeline
+            # that contains this subpipeline object.
+            # The Language object owner is always the worker
+            # that instantiates subpipelines, so it is
+            # the client of all subpipelines.
+            subpipeline.client_id = self.owner.id
+
             subpipeline.load_template(template=template, factories=self.factories)
 
             # Send the subpipeline to the worker where the input is located
