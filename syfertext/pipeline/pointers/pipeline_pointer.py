@@ -60,6 +60,9 @@ class PipelinePointer(ObjectPointer):
         # Request the pipeline from the remote worker
         pipeline = self.owner.request_obj(self.id_at_location, self.location)
 
+        # Register it in the object store
+        self.owner.register_obj(pipeline)
+
         return pipeline
 
     def deploy_states(self) -> None:
