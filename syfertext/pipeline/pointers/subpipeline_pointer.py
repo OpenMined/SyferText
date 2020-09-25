@@ -65,19 +65,11 @@ class SubPipelinePointer(ObjectPointer):
                 to the `Doc` object to by modified.
         """
 
-        # Make sure that the String of Doc to process is located on the
-        # same worker as the SubPipeline object.
-        assert (
-            pointer.location == self.location
-        ), "The `String` or `Doc`  objects to process do not belong to the same worker"
-
-        # Get the ID of the remote object pointed to by `pointer`.
-        input_id_at_location = pointer.id_at_location
-
         # Create the command message to is used to forward the method
         # call.
         args = tuple()
-        kwargs = {"input_id": input_id_at_location}
+
+        kwargs = {"input_id": pointer.id_at_location, "input_location": pointer.location}
 
         # Send the command
         response = self.owner.send_command(
