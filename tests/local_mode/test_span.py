@@ -60,9 +60,6 @@ def test_remote_span_from_remote_doc():
     # Assert SpanPointer is returned
     assert isinstance(span, SpanPointer)
 
-    # check the length is 4
-    assert len(span) == 4
-
     # Assert only one Span object on bob's machine
     spans = [v for v in bob._objects.values() if isinstance(v, Span)]
     assert len(spans) == 1
@@ -155,17 +152,11 @@ def test_remote_span_from_remote_span():
     # Assert SpanPointer is returned
     assert isinstance(span, SpanPointer)
 
-    # check the length is 4
-    assert len(span) == 4
-
     # create a span from a span
     new_span = span[1:3]
 
     # Assert SpanPointer is returned
     assert isinstance(new_span, SpanPointer)
-
-    # check the length is 2
-    assert len(new_span) == 2
 
     # Assert only two Span objects on bob's machine
     spans = [v for v in bob._objects.values() if isinstance(v, Span)]
