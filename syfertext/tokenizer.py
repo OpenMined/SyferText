@@ -241,9 +241,9 @@ class Tokenizer(AbstractSendable):
         else:
             self.infixes = TOKENIZER_INFIXES
 
-        self.prefix_search = compile_prefix_regex(prefixes).search if prefixes else None
-        self.suffix_search = compile_suffix_regex(suffixes).search if suffixes else None
-        self.infix_finditer = compile_infix_regex(infixes).finditer if infixes else None
+        self.prefix_search = compile_prefix_regex(self.prefixes).search if self.prefixes else None
+        self.suffix_search = compile_suffix_regex(self.suffixes).search if self.suffixes else None
+        self.infix_finditer = compile_infix_regex(self.infixes).finditer if self.infixes else None
 
         if exceptions is not None:
             self.exceptions = exceptions
