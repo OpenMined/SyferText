@@ -54,7 +54,10 @@ class AverageDocEncoder(AbstractSendable):
         self.mpc = None
 
     def __call__(
-        self, doc: Union[Doc, DocPointer], crypto_config: Dict[str, object] = None
+        self,
+        doc: Union[Doc, DocPointer],
+        crypto_config: Dict[str, object] = None,
+        protocol: str = None,
     ) -> Union[sy.AdditiveSharingTensor, AbstractTensor]:
         """Perform encoding of the document.
 
@@ -78,6 +81,7 @@ class AverageDocEncoder(AbstractSendable):
                 - config['mpc']['crypto_provider'] for the node that
                   provides crypto primitives.
                 - other configurations to be supported in the future.
+            protocol (str): Protocol for SMPC.
 
         Returns:
             A Syft tensor in case no encryption is used. If in 'mpc'
@@ -98,6 +102,7 @@ class AverageDocEncoder(AbstractSendable):
                 crypto_provider=crypto_config["mpc"]["node_2"],
                 requires_grad=False,
                 excluded_tokens=self.excluded_tokens,
+                protocol=protocol,
             )
 
             # Return the vector
