@@ -54,7 +54,9 @@ class AverageDocEncoder(AbstractSendable):
         self.mpc = None
 
     def __call__(
-        self, doc: Union[Doc, DocPointer], crypto_config: Dict[str, object] = None
+        self,
+        doc: Union[Doc, DocPointer],
+        crypto_config: Dict[str, object] = None,
     ) -> Union[sy.AdditiveSharingTensor, AbstractTensor]:
         """Perform encoding of the document.
 
@@ -98,6 +100,7 @@ class AverageDocEncoder(AbstractSendable):
                 crypto_provider=crypto_config["mpc"]["node_2"],
                 requires_grad=False,
                 excluded_tokens=self.excluded_tokens,
+                protocol="fss",
             )
 
             # Return the vector
