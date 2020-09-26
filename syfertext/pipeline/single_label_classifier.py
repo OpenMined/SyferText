@@ -202,6 +202,7 @@ class SingleLabelClassifier(AbstractSendable):
                 self.config["mpc"]["node_0"],
                 self.config["mpc"]["node_1"],
                 crypto_provider=self.config["mpc"]["node_2"],
+                protocol="fss",
             )
 
     @property
