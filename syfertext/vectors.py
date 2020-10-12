@@ -35,7 +35,7 @@ class Vectors:
         # Create the default vector as a numpy array if the `vectors` property is
         # set.
         if self.vectors is not None:
-            self.default_vector = torch.zeros(self.vectors.shape[1], dtype=torch.float)
+            self.default_vector = torch.zeros((1, self.vectors.shape[1]), dtype=torch.float)
 
     def load_data(self, hash2row: Dict[int, int], vectors: Union[np.ndarray, torch.tensor]):
         """Loads the vector data. This is needed when the Vocab object loads its
@@ -116,5 +116,8 @@ class Vectors:
 
         # Get the vector
         vector = self.vectors[row]
+
+        # Make it a 2D vector of size (1, nb coefficients)
+        vector = vector.unsqueeze(0)
 
         return vector
