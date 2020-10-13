@@ -47,17 +47,7 @@ class StatePointer(ObjectPointer):
                 object referenced by this pointer.
         """
 
-        # Send the command
-        self.owner.send_command(
-            recipient=self.location,
-            cmd_name="send_copy",
-            target=self,
-            args_=tuple(),
-            kwargs_={"destination": self.owner},
-        )
-
         # Request the state from the remote worker
-        # state = self.owner.request_obj(self.id_at_location, self.location)
         state = self.owner.request_obj(self.id_at_location, self.location, get_copy=True)
 
         # Register it in the object store
