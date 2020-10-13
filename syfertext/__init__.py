@@ -39,16 +39,29 @@ def load(pipeline_name: str) -> Language:
     # or the pipeline itself if it is local
     elif isinstance(result, PipelinePointer):
 
+        # The ID of the worker on which the pipeline is deployed
+        deployed_on = result.location.id
+
         # Get a copy of the pipeline using its pointer
         pipeline = result.get_copy()
 
     elif isinstance(result, Pipeline):
+
+        # In this case, the Pipeline object is found on the local worker
+        # which is a virtual worker by default as of the current PySyft version
+        # 0.2.9. We do not consider that it is officially deployed.
+        deployed_on = None
+
+        # Get the pipeline object
         pipeline = result
 
     # Instantiate a Language object
     nlp = Language(
         pipeline_name, owner=LOCAL_WORKER, tags=pipeline.tags, description=pipeline.description
     )
+
+    # Set the `deployed_on` property
+    nlp.deployed_on = deployed_on
 
     # Load the pipeline into the Language object
     nlp.load_pipeline(template=pipeline.template, states=pipeline.states)
@@ -83,4 +96,4 @@ def create(pipeline_name, tags: Set[str] = None, description: str = None):
 
 
 # Set the default owners of some classes
-SubPipeline.owner = LOCAL_WORKER
+# SubPipeline.owner = LOCAL_WORKER

@@ -51,13 +51,6 @@ class SubPipeline(AbstractSendable):
                 components.
         """
 
-        # Set the id of the worker that owns the pipeline
-        # that contains this subpipeline object.
-        # The PySyft local worker is always the one
-        # that instantiates subpipelines, so it is
-        # the client of all subpipelines.
-        self.client_id = self.owner.id
-
         # Set the name of the pipeline to which this
         # subpipeline belongs
         self.pipeline_name = pipeline_name
@@ -65,7 +58,7 @@ class SubPipeline(AbstractSendable):
         # Create the subpipeline
         self.subpipeline = pipes
 
-        super(SubPipeline, self).__init__(id=id, owner=self.owner)
+        super(SubPipeline, self).__init__(id=id)
 
     def load_states(self) -> None:
         """Calls the `load_state()` method of each pipe object in
@@ -107,7 +100,10 @@ class SubPipeline(AbstractSendable):
             self.subpipeline.append(component)
 
     def __call__(
-        self, input: Union[str, String, Doc] = None, input_id: Union[str, int] = None
+        self,
+        input: Union[str, String, Doc] = None,
+        input_id: Union[str, int] = None,
+        input_location: BaseWorker = None,
     ) -> Union[int, str, Doc]:
         """Execute the subpipeline.
 
@@ -120,6 +116,9 @@ class SubPipeline(AbstractSendable):
                 or it could be the Doc to modify.
             input_id (str, int): The ID of the input on which
                 the subpipeline components operate.
+            input_location (BaseWorker): The worker on which the
+                input is located. This is only used when `input_id`
+                is used instead of `input`.
 
         Returns:
             (int, str, Doc): Either the modified Doc object,
@@ -139,7 +138,16 @@ class SubPipeline(AbstractSendable):
 
         # If `input` is not specified, then get the input using its ID
         if input is None:
-            input = self.owner.get_obj(input_id)
+
+            # If the input is on the owner, just get it
+            if input_location == self.owner:
+                input = self.owner.get_obj(input_id)
+
+            # Else, get a pointer to it
+            else:
+                input = DocPointer(
+                    location=input_location, id_at_location=input_id, owner=self.owner
+                )
 
         # Execute the first pipe in the subpipeline
         doc = self.subpipeline[0](input)
@@ -158,9 +166,6 @@ class SubPipeline(AbstractSendable):
         # Execute the  rest of pipes in the subpipeline
         for pipe in self.subpipeline[1:]:
             doc = pipe(doc)
-
-        if doc.has_attribute("syfertext_sentiment__sentiment_classifier"):
-            print(doc._.syfertext_sentiment__sentiment_classifier)
 
         # If the Language object using this subpipeline
         # is located on a different worker, then

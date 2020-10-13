@@ -56,8 +56,11 @@ class StatePointer(ObjectPointer):
             kwargs_={"destination": self.owner},
         )
 
-        # Get the state from the local object store
-        state = self.owner.get_obj(self.id_at_location)
+        # Request the state from the remote worker
+        state = self.owner.request_obj(self.id_at_location, self.location)
+
+        # Register it in the object store
+        self.owner.register_obj(state)
 
         return state
 

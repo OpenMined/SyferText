@@ -7,23 +7,23 @@ from .pipeline import SingleLabelClassifier
 from .pipeline import SimpleTagger
 from .state import State
 from .pipeline import Pipeline
-
+from .utils import hash_string
 
 from syft.generic.abstract.object import AbstractObject
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
 from syft.generic.pointers.string_pointer import StringPointer
 from syft.generic.pointers.object_pointer import ObjectPointer
-import torch.nn as nn
 
+import torch.nn as nn
+import numpy as np
 from collections import defaultdict
+
 from typing import List
 from typing import Union
 from typing import Tuple
 from typing import Set
 from typing import Dict
-
-from collections import defaultdict
 
 
 class Language(AbstractObject):
@@ -62,6 +62,10 @@ class Language(AbstractObject):
         # Initialize the property that should hold the subpipeline templates
         # list for each worker
         self.subpipeline_templates = defaultdict(list)
+
+        # Initilialize the property that will point to the worker
+        # on which is pipeline is eventually deployed
+        self.deployed_on = None
 
         # Initialize the pipeline as an empty dictionary
         self._reset_pipeline()
@@ -169,28 +173,36 @@ class Language(AbstractObject):
         # Register it in the object store
         self.owner.register_obj(state)
 
-    def _parse_pipeline_template(self, location_id: str) -> None:
+    def _parse_pipeline_template(self, data_owner_id: str) -> None:
         """Parses the `pipeline_template` property to
-        create the subpipeline templates for `worker`.
+        create the subpipeline templates to process the string on
+        the worker `data_owner_id`.
 
         Args:
-            location_id: The ID of the worker according to
+            data_owner_id: The ID of the data owner's ID according to
                 which the subpipeline template should be parsed.
         """
 
+        # The id of the first worker to start creating the first subpipline
+        # is always the data owner
+        location_id = data_owner_id
+
         # If the pipeline template is already parsed for this
-        # location, return.
-        if location_id in self.pipeline:
+        # data owner, return.
+        if data_owner_id in self.pipeline:
             return
 
-        # Create an entry of `location_id` in the pipeline
-        self.pipeline[location_id] = []
+        # Create an entry of `data_owner_id` in the pipeline
+        self.pipeline[data_owner_id] = []
 
-        # Initialize a subpipeline template
-        subpipeline_template = dict(names=[])
+        # Initialize a subpipeline template for the data owner
+        subpipeline_template = dict(names=[], location=data_owner_id)
 
         # Create the subpipeline templates for that location
-        self.subpipeline_templates[location_id].append(subpipeline_template)
+        self.subpipeline_templates[data_owner_id].append(subpipeline_template)
+
+        # Set the location id that is being processing
+        location_id = data_owner_id
 
         # Loop through the pipeline template elements
         for pipe_template in self.pipeline_template:
@@ -199,52 +211,133 @@ class Language(AbstractObject):
             # `location_id` has access to the pipe component,
             # If it does, append the pipe template to the currently
             # processed subpipeline template
-            # Notice that PySyft models should never be sent to a
-            # remote worker even if their `access` property of the corresponding
-            # state allows for this
             # The reason I use .get() here is just for better code lisibility
             access = self.states.get(pipe_template["name"]).get("access")
 
-            if {"*", location_id} & access and pipe_template["class_name"] != nn.Module.__name__:
+            if {"*", location_id} & access:
 
                 subpipeline_template["names"].append(pipe_template["name"])
 
+                continue
+
             # Otherwise, create a new subpipeline template and add the
             # pipe template to it
-            else:
-                subpipeline_template = dict(names=[pipe_template["name"]])
+            # Since the worker `location_id` is not allowed to
+            # download this pipe, keep the pipe on the worker where it is
+            # deployed to avoid unnecessary State transfers. Of course,
+            # this is done only if the deployment worker has access to
+            # the pipe component. Yes, you understood it right, the worker
+            # on which the pipeline is deployed, might not have permissions
+            # to run a pipe component, the reason could be the fact that the
+            # deployment machine might be poor on computational resources.
+            if {self.deployed_on} & access:
 
-                self.subpipeline_templates[location_id].append(subpipeline_template)
+                # Change the location id being processed
+                location_id = self.deployed_on
+
+            # Otherwise, randomly choose a worker from those in `access` and put
+            # the pipeline on it.
+            else:
+
+                location_id = np.random.choice(a=list(access))
+
+            # Create the subpipeline template
+            subpipeline_template = dict(names=[pipe_template["name"]], location=location_id)
+
+            self.subpipeline_templates[data_owner_id].append(subpipeline_template)
 
         # Now create the subpipeline objects
-        for subpipeline_template in self.subpipeline_templates[location_id]:
+        for subpipeline_template in self.subpipeline_templates[data_owner_id]:
+
+            # Get a SubPipeline object corresponding to the subpipeline tempalte
+            subpipeline = self._get_or_create_subpipeline(template=subpipeline_template)
+
+            # Add the subpipeline to the pipeline
+            self.pipeline[data_owner_id].append(subpipeline)
+
+        # Now load the state of each pipe in the subpipelines.
+        # I could have done this step in the previous loop, but
+        # I do it here in order to separated parsing from loading
+        # states that might take significant longer time.
+        for subpipeline in self.pipeline[data_owner_id]:
+
+            subpipeline.load_states()
+
+    def _get_or_create_subpipeline(self, template: Dict[str, Union[str, List[str]]]) -> SubPipeline:
+        """This method avoids creates redundant SupPipeline objects
+        for multiple identical subpipeline templates.
+        It could happen that two different subpipeline templates in
+        `self.subpipeline_templates`, belonging to two different
+        data owners, be identical. In this case, we could create
+        a single SubPipeline object and reuse it for both templates.
+        This is exactly which this method is supposed to do.
+
+        Args:
+            template: The template of the subpipeline to be created.
+                This is a dictionary of the format:
+                {'names': ['<pipe name 1>', '<pipe name 2>', ...],
+                 'location': '<worker ID>'}
+
+        Returns:
+            The SubPipeline object corresponding the passed template.
+        """
+
+        # Get the location on which the subpipeline should be sent
+        location_id = template["location"]
+
+        # Get the unique identifier of the subpipeline described by
+        # its template.
+        # A unique identifier is simply the hash of the concatentation
+        # between location_id and the pipe names of that worker.
+        # The reason I create this identifier is to use it to index
+        # Subpipeline objects and reuse them. For instance,
+        # when two pipelines for 'bob' and 'alice' share the same
+        # subpipeline on 'james', the latter should be reused without
+        # creating a new subpipeline on 'james' for each data owner 'bob'
+        # and 'alice'
+        subpipeline_hash = hash_string(string=f"{location_id}{''.join(template['names'])}")
+
+        # If the SubPipeline object already exists, use it
+        if subpipeline_hash in self.subpipelines:
+            subpipeline = self.subpipelines[subpipeline_hash]
+
+        # Else, create a new SubPipeline object and send it to
+        # its destination worker.
+        else:
 
             # Instantiate a subpipeline and load the subpipeline template
             subpipeline = SubPipeline(pipeline_name=self.pipeline_name)
 
-            subpipeline.load_template(template=subpipeline_template, factories=self.factories)
+            # Set the SubPipeline owner
+            subpipeline.owner = self.owner
+
+            # Set the id of the worker that owns the pipeline
+            # that contains this subpipeline object.
+            # The Language object owner is always the worker
+            # that instantiates subpipelines, so it is
+            # the client of all subpipelines.
+            subpipeline.client_id = self.owner.id
+
+            subpipeline.load_template(template=template, factories=self.factories)
 
             # Send the subpipeline to the worker where the input is located
             # if the destination worker is different from the local one
             if location_id != self.owner.id:
                 subpipeline = subpipeline.send(location_id)
 
-            # Add the subpipeline to the pipeline
-            self.pipeline[location_id].append(subpipeline)
+            self.subpipelines[subpipeline_hash] = subpipeline
 
-        # Now load the state of each pipe in the subpipelines.
-        # I could have done this step in the previous loop, but
-        # I do it here in order to separated parsing from loading
-        # states that might take significant longer time.
-        for subpipeline in self.pipeline[location_id]:
-
-            subpipeline.load_states()
+        return subpipeline
 
     def _reset_pipeline(self):
         """Reset the `pipeline` class property."""
 
         # Initialize a new empty pipeline with as an empty dict
         self.pipeline = {}
+
+        # Initialize an empty dict that will be used to cash SupPipeline
+        # and SupPipelinPointer objects.
+        self.subpipelines = {}
 
         # Initialize a new `subpipelins_template` property
         self.subpipeline_templates = defaultdict(list)
@@ -393,74 +486,18 @@ class Language(AbstractObject):
     def _run_subpipeline_from_template(
         self,
         template_index: int,
-        location_id: str,
+        data_owner_id: str,
         input=Union[str, String, StringPointer, Doc, DocPointer],
     ) -> Union[Doc, DocPointer]:
         """Creates a `subpipeline` object and sends it to the appropriate
         worker if `input` is remote. Then runs the subpipeline at position
-        `template_index` of self.pipeline on the appropriate worker.
+        `template_index` of self.pipeline[data_owner_id].
 
-        The worker on which the subpipeline is run is either the
-        the same worker on which `input` lives, if the `remote`
-        property of the subpipeline template is True. Or, it is the
-        local worker if `remote` is False.
-
-        The self.pipeline is a list of dicts which stores
-        the references to Subpipeline (or SubpipelinePointer) objects.
-        It is created by parsing self.subpipeliline_template.
-
-        At each index in self.pipeline we have a dictionary which
-        holds the location id as the key and a reference to the
-        SubPipeline (or SubpipelinePointer) object as the value.
-
-        The text (or StringPointer) is processed by the tokenizer to create
-        Doc (or DocPointer) object which is then processed in place by
-        the subpipeline components in the relative order in which
-        they are stored in self.pipeline.
-
-        If no subpipeline is yet created for the specified worker,
-        one is created using the template in self.subpipeline_templates
-        and added to the pipeline.
-
-        Example:
-            If a text is to be processed on the local machine, then subpipelines
-            in the pipeline are initialized on the local machine.
-            So if there are 3 subpipelines in the pipeline then
-
-            self.pipeline = [{'me': SubPipeline[pipe_1_name > pipe_2_name]},
-                             {'me': SubPipeline[pipe_3_name]},
-                             {'me': SubPipeline[pipe_4_name, pipe_5_name]},
-                            ]
-
-            Now any more local texts that are to be processed by the pipeline are
-            processed with the subpipeline objects already present on the local machine.
-
-            Then if we pass a StringPointer referring to a text located on a remote
-            machine, new SubPipeline objects whose templates in `self.subpipeline_templates`
-            has "remote = True" are created on remote machines and their references
-            are stored in dictionaries at appropriate indices in `self.pipeline` with
-            remote location id as the key.
-
-            Hence in our example, if subpipeline templates at the first and third indices
-            in `self.subpipeline_templates` have "remote = True". Then upon passing a
-            StringPointer to the pipeline, new subpipeline objects are initialized on
-            bob's machine and their references are stored in dictionaries at the first
-            and third indices in `self.pipeline` with `bob` as the key.
-
-            self.pipeline = [{'me' : SubPipeline[pipe_1_name > pipe_2_name],
-                              'bob': SubPipelinePointer[pipe_1_name > pipe_2_name]},
-                             {'me' : SubPipeline[pipe_3_name]},
-                             {'bob': SubPipelinePointer[pipe_4_name > pipe_5_name],
-                              'me' : SubPipeline[pipe_4_name > pipe_5_name]}
-                            ]
-
-            Note:
-                The order of workers stored in the dictionary in self.pipeline is arbitrary.
 
         Args:
             template_index (int): The index of the subpipeline template in
                 `self.subpipelines_templates`
-            location_id: The ID of the worker on which processing will take place.
+            data_owner_id: The ID of the data owner for which  processing will take place.
             input (str, String, StringPointer, Doc, DocPointer):
                 The input on which the subpipeline operates. It can be either the text
                 to tokenize (or a pointer to it) for the subpipeline at index 0, or it
@@ -475,7 +512,7 @@ class Language(AbstractObject):
         # Apply the subpipeline and get the doc or the Doc id.
         # If a Doc ID is obtained, this signifies the ID of the
         # Doc object on the remote worker.
-        doc_or_id = self.pipeline[location_id][template_index](input)
+        doc_or_id = self.pipeline[data_owner_id][template_index](input)
 
         # If the doc is of type (str or int), this means that a
         # DocPointer should be created
@@ -496,39 +533,35 @@ class Language(AbstractObject):
 
         Args:
             text (str, String or StringPointer): the text to be tokenized and
-        processed by the pipeline components.
+                processed by the pipeline components.
 
         Returns:
             (Doc or DocPointer): The Doc object or a pointer to a Doc object.
-        This object provides access to all token data.
+                This object provides access to all token data.
         """
 
         # Get the location ID of the worker where the text to be tokenized,
         # or the Doc to be processed is located
         if isinstance(text, ObjectPointer):
-            location_id = text.location.id
-
-            # deploy all the states of Pipeline on location of text
-            if location_id not in self.deployed_on:
-                self.deploy(worker=text.location)
+            data_owner_id = text.location.id
         else:
-            location_id = self.owner.id
+            data_owner_id = self.owner.id
 
         # Create a subpipeline templates list for the worker where `input` is located
         # If it does not already exist
-        self._parse_pipeline_template(location_id=location_id)
+        self._parse_pipeline_template(data_owner_id=data_owner_id)
 
         # Runs the first subpipeline.
         # The first subpipeline is the one that has the tokenizer
         doc = self._run_subpipeline_from_template(
-            template_index=0, location_id=location_id, input=text
+            template_index=0, data_owner_id=data_owner_id, input=text
         )
 
         # Apply the the rest of subpipelines sequentially
         # Each subpipeline will modify the document `doc` inplace
-        for i in range(1, len(self.pipeline[location_id])):
+        for i in range(1, len(self.pipeline[data_owner_id])):
             doc = self._run_subpipeline_from_template(
-                template_index=i, location_id=location_id, input=doc
+                template_index=i, data_owner_id=data_owner_id, input=doc
             )
 
         # return the Doc object
@@ -565,9 +598,10 @@ class Language(AbstractObject):
 
         # Deploy the pipeline states (on worker location)
         pipeline.deploy_states()
+
         # Send the Pipeline object to the destination worker
         pipeline_pointer = pipeline.send(location=worker)
 
-        # add location of worker to deployed list
-        if worker.id not in self.deployed_on:
-            self.deployed_on.append(worker.id)
+        # Modify the `deployed_on` property to refer to the worker
+        # where the pipeline is deployed
+        self.deployed_on = worker.id
