@@ -2,6 +2,8 @@ import syft
 from syft.serde.msgpack.serde import msgpack_global_state
 from syft.workers.base import BaseWorker
 import torch
+import dill
+import os
 
 # Get a torch hook
 HOOK = syft.TorchHook(torch)
@@ -16,6 +18,7 @@ from .pipeline.pointers.pipeline_pointer import PipelinePointer
 from .utils import search_resource
 
 from typing import Set
+from typing import Union
 
 
 def load(pipeline_name: str) -> Language:
@@ -31,6 +34,8 @@ def load(pipeline_name: str) -> Language:
     # Search for the pipeline
     result = search_resource(query=pipeline_name, local_worker=LOCAL_WORKER)
 
+    pipeline = None
+
     # If no pipeline is found, return
     if not result:
         return
@@ -42,8 +47,24 @@ def load(pipeline_name: str) -> Language:
         # The ID of the worker on which the pipeline is deployed
         deployed_on = result.location.id
 
-        # Get a copy of the pipeline using its pointer
-        pipeline = result.get_copy()
+        if os.path.isfile('../../cache/{}.pkl'.format(pipeline_name)) and os.path.getsize('../../cache/{}.pkl'.format(pipeline_name)) > 0:
+            # Make file object
+            pipeline_cache = open('../../cache/{}.pkl'.format(pipeline_name), 'rb')
+
+            # Load into simplified pipeline object
+            simplified_pipeline = dill.load(pipeline_cache)
+
+            # Create detailed pipeline object
+            pipeline = Pipeline.detail(worker = LOCAL_WORKER, pipeline_simple = simplified_pipeline)
+
+        else:
+
+            # Get a copy of the pipeline using its pointer
+            pipeline = result.get_copy()
+
+            # Save the pipeline to local storage
+            save(pipeline_name = pipeline_name, pipeline = pipeline, destination = 'local')
+        
 
     elif isinstance(result, Pipeline):
 
@@ -51,6 +72,8 @@ def load(pipeline_name: str) -> Language:
         # which is a virtual worker by default as of the current PySyft version
         # 0.2.9. We do not consider that it is officially deployed.
         deployed_on = None
+
+        print("Pipeline found")
 
         # Get the pipeline object
         pipeline = result
@@ -97,3 +120,18 @@ def create(pipeline_name, tags: Set[str] = None, description: str = None):
 
 # Set the default owners of some classes
 # SubPipeline.owner = LOCAL_WORKER
+
+def save(pipeline_name:str, pipeline: 'Pipeline', destination: Union['local'] = 'local') -> None:
+    """Saves the pipeline and it's states to storage
+
+    Args:
+        pipeline_name (str): The name of the pipeline.
+        pipeline (Pipeline): The pipeline object itself
+        destination (Union): The location where to save that object, currently storage on local machine is implemented.
+
+    """
+
+    # Using pickle to save simplified pipeline object
+    pipeline_cache = open('../../cache/{}.pkl'.format(pipeline_name), 'wb') 
+    dill.dump(pipeline.simplify(worker = LOCAL_WORKER, pipeline = pipeline), pipeline_cache)
+    pipeline_cache.close()
