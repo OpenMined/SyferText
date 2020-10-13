@@ -200,13 +200,12 @@ def test_exclude_tokens_on_attr_values_doc():
     # initialize the excluded_tokens dict
     excluded_tokens = {"attribute1_name": {"value1", "value2"}, "attribute2_name": {"v1", "v2"}}
 
-    # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing,
-    # all() is needed because equals for tensor arrays returns an array of booleans.
-    assert all(doc.get_vector(excluded_tokens) == doc_excluding_tokens.get_vector())
+    # checks if get_vector returns the same vector for doc and the doc with the word to exclude already missing.
+    assert torch.equal(doc.get_vector(excluded_tokens), doc_excluding_tokens.get_vector())
 
     # checks if get_vector without excluded_tokens returns a different vector for doc
     # and doc with the word to exclude already missing.
-    assert any(doc.get_vector() != doc_excluding_tokens.get_vector())
+    assert not torch.equal(doc.get_vector(), doc_excluding_tokens.get_vector())
 
 
 def test_get_token_vectors():
