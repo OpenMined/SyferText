@@ -197,7 +197,7 @@ class Token(AbstractObject):
         ), "One of the provided tokens has a zero norm."
 
         # Compute similarity
-        sim = torch.dot(torch.tensor(self.vector), torch.tensor(other.vector))
+        sim = torch.matmul(self.vector, other.vector.transpose(1, 0))
         sim /= self.vector_norm * other.vector_norm
 
         return sim
