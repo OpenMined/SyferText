@@ -4,6 +4,7 @@ from syft.workers.base import BaseWorker
 import torch
 import dill
 import os
+from pathlib import Path
 
 # Get a torch hook
 HOOK = syft.TorchHook(torch)
@@ -47,9 +48,13 @@ def load(pipeline_name: str) -> Language:
         # The ID of the worker on which the pipeline is deployed
         deployed_on = result.location.id
 
-        if os.path.isfile('../../cache/{}.pkl'.format(pipeline_name)) and os.path.getsize('../../cache/{}.pkl'.format(pipeline_name)) > 0:
+        data_path = os.path.join(str(Path.home()), "SyferText", "cache")
+
+        target = str('/{}.pkl'.format(pipeline_name))
+
+        if os.path.isfile(data_path + target) and os.path.getsize(data_path + target) > 0:
             # Make file object
-            pipeline_cache = open('../../cache/{}.pkl'.format(pipeline_name), 'rb')
+            pipeline_cache = open(data_path + target, 'rb')
 
             # Load into simplified pipeline object
             simplified_pipeline = dill.load(pipeline_cache)
@@ -58,7 +63,6 @@ def load(pipeline_name: str) -> Language:
             pipeline = Pipeline.detail(worker = LOCAL_WORKER, pipeline_simple = simplified_pipeline)
 
         else:
-
             # Get a copy of the pipeline using its pointer
             pipeline = result.get_copy()
 
@@ -131,7 +135,26 @@ def save(pipeline_name:str, pipeline: 'Pipeline', destination: Union['local'] = 
 
     """
 
-    # Using pickle to save simplified pipeline object
-    pipeline_cache = open('../../cache/{}.pkl'.format(pipeline_name), 'wb') 
+    # Path to the home/SyferText directory
+    data_path = os.path.join(str(Path.home()), "SyferText")
+
+    # Creating a new directory if home/SyferText does not exist
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
+
+    data_path = os.path.join(data_path, "cache")
+
+    # Creating a new directory if home/SyferText/cache does not exist
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
+
+    # Making a target at the file
+    target = str('/{}.pkl'.format(pipeline_name))
+
+    # Opening cache file
+    pipeline_cache = open(data_path + target, 'wb') 
+
+    # Dumping data
     dill.dump(pipeline.simplify(worker = LOCAL_WORKER, pipeline = pipeline), pipeline_cache)
+
     pipeline_cache.close()
