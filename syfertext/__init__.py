@@ -50,25 +50,24 @@ def load(pipeline_name: str) -> Language:
 
         data_path = os.path.join(str(Path.home()), "SyferText", "cache")
 
-        target = str('/{}.pkl'.format(pipeline_name))
+        target = str("/{}.pkl".format(pipeline_name))
 
         if os.path.isfile(data_path + target) and os.path.getsize(data_path + target) > 0:
             # Make file object
-            pipeline_cache = open(data_path + target, 'rb')
+            pipeline_cache = open(data_path + target, "rb")
 
             # Load into simplified pipeline object
             simplified_pipeline = dill.load(pipeline_cache)
 
             # Create detailed pipeline object
-            pipeline = Pipeline.detail(worker = LOCAL_WORKER, pipeline_simple = simplified_pipeline)
+            pipeline = Pipeline.detail(worker=LOCAL_WORKER, pipeline_simple=simplified_pipeline)
 
         else:
             # Get a copy of the pipeline using its pointer
             pipeline = result.get_copy()
 
             # Save the pipeline to local storage
-            save(pipeline_name = pipeline_name, pipeline = pipeline, destination = 'local')
-        
+            save(pipeline_name=pipeline_name, pipeline=pipeline, destination="local")
 
     elif isinstance(result, Pipeline):
 
@@ -125,7 +124,8 @@ def create(pipeline_name, tags: Set[str] = None, description: str = None):
 # Set the default owners of some classes
 # SubPipeline.owner = LOCAL_WORKER
 
-def save(pipeline_name:str, pipeline: 'Pipeline', destination: Union['local'] = 'local') -> None:
+
+def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] = "local") -> None:
     """Saves the pipeline and it's states to storage
 
     Args:
@@ -149,12 +149,12 @@ def save(pipeline_name:str, pipeline: 'Pipeline', destination: Union['local'] = 
         os.mkdir(data_path)
 
     # Making a target at the file
-    target = str('/{}.pkl'.format(pipeline_name))
+    target = str("/{}.pkl".format(pipeline_name))
 
     # Opening cache file
-    pipeline_cache = open(data_path + target, 'wb') 
+    pipeline_cache = open(data_path + target, "wb")
 
     # Dumping data
-    dill.dump(pipeline.simplify(worker = LOCAL_WORKER, pipeline = pipeline), pipeline_cache)
+    dill.dump(pipeline.simplify(worker=LOCAL_WORKER, pipeline=pipeline), pipeline_cache)
 
     pipeline_cache.close()
