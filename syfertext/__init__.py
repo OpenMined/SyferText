@@ -48,7 +48,7 @@ def load(pipeline_name: str) -> Language:
         # The ID of the worker on which the pipeline is deployed
         deployed_on = result.location.id
 
-        data_path = os.path.join(str(Path.home()), "SyferText", "cache")
+        data_path = os.path.join(str(Path.home()), "SyferText", "cache", pipeline_name)
 
         target = str("/{}.pkl".format(pipeline_name))
 
@@ -145,6 +145,12 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
     data_path = os.path.join(data_path, "cache")
 
     # Creating a new directory if home/SyferText/cache does not exist
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
+
+    data_path = os.path.join(data_path, pipeline_name)
+
+    # Creating a new directory if home/SyferText/cache/<pipeline_name> does not exist
     if not os.path.exists(data_path):
         os.mkdir(data_path)
 
