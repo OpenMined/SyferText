@@ -588,7 +588,7 @@ class Language(AbstractObject):
 
             # Remove the state objects as its not required.
             # Only description of each state needed to reconstruct the pipeline
-            states[pipe_name].pop('states')
+            states[pipe_name].pop("states")
 
         # Create a Pipeline object
         pipeline = Pipeline(
