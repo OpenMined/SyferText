@@ -586,6 +586,10 @@ class Language(AbstractObject):
             # Change the pipe's location
             states[pipe_name]["location_id"] = worker.id
 
+            # Remove the state objects as its not required.
+            # Only description of each state needed to reconstruct the pipeline
+            states[pipe_name].pop('states')
+
         # Create a Pipeline object
         pipeline = Pipeline(
             name=self.pipeline_name,
