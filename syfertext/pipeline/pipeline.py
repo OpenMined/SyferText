@@ -25,7 +25,7 @@ class Pipeline(AbstractSendable):
         self,
         name: str,
         template: List[dict],
-        states: Dict[str, dict],
+        states_info: Dict[str, dict],
         owner: BaseWorker = None,
         tags: Set[str] = None,
         description: str = None,
@@ -39,7 +39,7 @@ class Pipeline(AbstractSendable):
                 PyGrid.
             template: A list of dictionaries each describing
                 a pipe component of the pipeline in order.
-            states: a dictionary of dictionaries containing the
+            states_info: a dictionary of dictionaries containing the
                 description of each state needed to reconstruct
                 the pipeline. Example:
                     {'tokenizer': {'location_id': 'bob',
@@ -66,7 +66,7 @@ class Pipeline(AbstractSendable):
 
         # Create properties
         self.template = template
-        self.states = states
+        self.states_info = states_info
 
         # Initialize the parent class
         super(Pipeline, self).__init__(id=id, owner=owner, tags=tags, description=description)
@@ -77,10 +77,10 @@ class Pipeline(AbstractSendable):
         """
 
         # Loop through all the states
-        for state_name in self.states:
+        for state_name in self.states_info:
 
             # Get the name of the state
-            location_id = self.states[state_name]["location_id"]
+            location_id = self.states_info[state_name]["location_id"]
 
             # Construct the state ID that will be used as the search query
             state_id = create_state_query(pipeline_name=self.name, state_name=state_name)
@@ -111,7 +111,7 @@ class Pipeline(AbstractSendable):
         pipeline = Pipeline(
             name=self.name,
             template=self.template,
-            states=self.states,
+            states_info=self.states_info,
             owner=self.owner,
             tags=self.tags,
             description=self.description,
@@ -205,7 +205,7 @@ class Pipeline(AbstractSendable):
         # Simplify the Pipeline object attributes
         name_simple = serde._simplify(worker, pipeline.name)
         template_simple = serde._simplify(worker, pipeline.template)
-        states_simple = serde._simplify(worker, pipeline.states)
+        states_info_simple = serde._simplify(worker, pipeline.states_info)
         tags_simple = serde._simplify(worker, pipeline.tags)
         description_simple = serde._simplify(worker, pipeline.description)
 
@@ -213,7 +213,7 @@ class Pipeline(AbstractSendable):
         pipeline_simple = (
             name_simple,
             template_simple,
-            states_simple,
+            states_info_simple,
             tags_simple,
             description_simple,
         )
@@ -240,7 +240,7 @@ class Pipeline(AbstractSendable):
         (
             name_simple,
             template_simple,
-            states_simple,
+            states_info_simple,
             tags_simple,
             description_simple,
         ) = pipeline_simple
@@ -248,7 +248,7 @@ class Pipeline(AbstractSendable):
         # Detail the attributes
         name = serde._detail(worker, name_simple)
         template = serde._detail(worker, template_simple)
-        states = serde._detail(worker, states_simple)
+        states_info = serde._detail(worker, states_info_simple)
         tags = serde._detail(worker, tags_simple)
         description = serde._detail(worker, description_simple)
 
@@ -256,7 +256,7 @@ class Pipeline(AbstractSendable):
         pipeline = Pipeline(
             name=name,
             template=template,
-            states=states,
+            states_info=states_info,
             owner=worker,
             tags=tags,
             description=description,
