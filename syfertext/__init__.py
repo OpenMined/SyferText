@@ -90,7 +90,7 @@ def load(pipeline_name: str) -> Language:
     nlp.deployed_on = deployed_on
 
     # Load the pipeline into the Language object
-    nlp.load_pipeline(template=pipeline.template, states=pipeline.states)
+    nlp.load_pipeline(template=pipeline.template, states_info=pipeline.states_info)
 
     return nlp
 
