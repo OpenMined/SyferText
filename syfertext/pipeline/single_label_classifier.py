@@ -80,7 +80,7 @@ class SingleLabelClassifier(AbstractSendable):
     ):
         """Performs the real object initialization. Object
         properties are set here and classifier is prepared
-        (including decryption  and building the Syft Plan if
+        (including decryption and building the Syft Plan if
         required).
 
         The reason we separate initialization in this method
@@ -137,7 +137,7 @@ class SingleLabelClassifier(AbstractSendable):
         If the classifier is encrypted, decrypt it.
 
         Modifies:
-            self.classifier: The classifier's Syft plan  is decrypted
+            self.classifier: The classifier's Syft plan is decrypted
                 and built.
         """
 
@@ -314,7 +314,7 @@ class SingleLabelClassifier(AbstractSendable):
         if isinstance(output, collections.abc.Sequence):
             logits = output[self.logits_index]
         else:
-            logits = logits
+            logits = output
 
         # Secure delivery of the predicted label.
         # In case encryption is used, decryption takes place
