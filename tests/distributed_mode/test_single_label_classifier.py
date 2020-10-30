@@ -2,6 +2,7 @@ import pytest
 
 import syft as sy
 from syft.generic.string import String
+from syfertext.pointers.doc_pointer import DocPointer
 from syfertext.pipeline.single_label_classifier import AverageDocEncoder, SingleLabelClassifier
 from syfertext.local_pipeline import get_test_language_model
 import torch
@@ -35,7 +36,6 @@ doc_encoder = AverageDocEncoder()
 labels = ["A", "B"]
 
 
-
 @pytest.mark.parametrize("text,expected", [("The quick brown fox", "B")])
 def test_single_label_inference(text, expected):
     torch.manual_seed(seed)
@@ -53,16 +53,20 @@ def test_single_label_inference(text, expected):
     nlp.add_pipe(classifier, name=classifier_name, access={'*'})
     nlp.deploy(worker=bob)
 
-    string = String(text)
+    string = String(text).send(bob)
     doc_ptr = nlp(string) 
+
+    assert isinstance(doc_ptr, DocPointer)
 
     # Check if actual label matches expected label
     attribute_name = "{pipeline_name}__{classifier_name}".format(
         pipeline_name=nlp.pipeline_name,
         classifier_name=classifier_name
         )
-    assert hasattr(doc_ptr._, attribute_name)
-    assert doc_ptr.get_attribute(attribute_name) == expected
+
+    remote_doc = bob._objects[doc_ptr.id_at_location]
+    assert hasattr(remote_doc._, attribute_name)
+    assert remote_doc.get_attribute(attribute_name) == expected
 
 
 @pytest.mark.parametrize("text,expected", [("The quick brown fox", "B")])
@@ -79,16 +83,20 @@ def test_encrypted_single_label_inference(text, expected):
         encryption="mpc",
         labels=labels
     )  
-    nlp.add_pipe(classifier, name=classifier_name, access={'*'})
+    nlp.add_pipe(classifier, name=classifier_name, access={'bob'})
     nlp.deploy(worker=bob)
+    string_ptr = String(text).send(bob)
+    doc_ptr = nlp(string_ptr) 
 
-    string = String(text)
-    doc_ptr = nlp(string) 
+    assert isinstance(doc_ptr, DocPointer)
 
-    # Check if actual label matches expected label
+    # Check if actual label on remote machine matches expected label
     attribute_name = "{pipeline_name}__{classifier_name}".format(
         pipeline_name=nlp.pipeline_name,
         classifier_name=classifier_name
         )
-    assert hasattr(doc_ptr._, attribute_name)
-    assert doc_ptr.get_attribute(attribute_name) == expected
+
+    remote_doc = bob._objects[doc_ptr.id_at_location]
+    assert hasattr(remote_doc._, attribute_name)
+    assert remote_doc.get_attribute(attribute_name) == expected
+    
