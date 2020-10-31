@@ -2,7 +2,7 @@ import pytest
 
 import syft as sy
 from syft.generic.string import String
-from syfertext.pointers.doc_pointer import DocPointer
+from syfertext.doc import Doc
 from syfertext.pipeline.single_label_classifier import AverageDocEncoder, SingleLabelClassifier
 from syfertext.local_pipeline import get_test_language_model
 import torch
@@ -51,15 +51,13 @@ def test_single_label_inference(text, expected):
         labels=labels
     )  
     nlp.add_pipe(classifier, name=classifier_name, access={'*'})
-    nlp.deploy(worker=bob)
 
-    string_ptr = String(text).send(bob)
-    doc_ptr = nlp(string_ptr) 
-
-    # Check that string pointer, doc pointer, and pipeline are remote
-    assert string_ptr.location == bob
-    assert nlp.deployed_on == bob.id
-    assert isinstance(doc_ptr, DocPointer)
+    string = String(text)
+    doc = nlp(string) 
+    
+    # Check that string and pipeline are local
+    assert isinstance(doc, Doc)
+    assert not nlp.deployed_on
 
     # Check if actual label matches expected label
     attribute_name = "{pipeline_name}__{classifier_name}".format(
@@ -67,9 +65,8 @@ def test_single_label_inference(text, expected):
         classifier_name=classifier_name
         )
 
-    remote_doc = bob._objects[doc_ptr.id_at_location]
-    assert hasattr(remote_doc._, attribute_name)
-    assert remote_doc.get_attribute(attribute_name) == expected
+    assert hasattr(doc._, attribute_name)
+    assert doc.get_attribute(attribute_name) == expected
 
 
 @pytest.mark.parametrize("text,expected", [("The quick brown fox", "B")])
@@ -86,15 +83,13 @@ def test_encrypted_single_label_inference(text, expected):
         encryption="mpc",
         labels=labels
     )  
-    nlp.add_pipe(classifier, name=classifier_name, access={'bob'})
-    nlp.deploy(worker=bob)
-    string_ptr = String(text).send(bob)
-    doc_ptr = nlp(string_ptr) 
+    nlp.add_pipe(classifier, name=classifier_name, access={'*'})
+    string_ptr = String(text)
+    doc = nlp(string_ptr) 
 
-    # Check that string pointer, doc pointer, and pipeline are remote
-    assert string_ptr.location == bob
-    assert nlp.deployed_on == bob.id
-    assert isinstance(doc_ptr, DocPointer)
+    # Check that string and pipeline are local
+    assert isinstance(doc, Doc)
+    assert not nlp.deployed_on
 
     # Check if actual label on remote machine matches expected label
     attribute_name = "{pipeline_name}__{classifier_name}".format(
@@ -102,6 +97,5 @@ def test_encrypted_single_label_inference(text, expected):
         classifier_name=classifier_name
         )
 
-    remote_doc = bob._objects[doc_ptr.id_at_location]
-    assert hasattr(remote_doc._, attribute_name)
-    assert remote_doc.get_attribute(attribute_name) == expected
+    assert hasattr(doc._, attribute_name)
+    assert doc.get_attribute(attribute_name) == expected
