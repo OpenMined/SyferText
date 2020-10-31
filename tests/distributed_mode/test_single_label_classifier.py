@@ -51,7 +51,7 @@ def test_single_label_inference(text, expected):
         encryption=None,
         labels=labels
     )  
-    nlp.add_pipe(classifier, name=classifier_name, access={'*'})
+    nlp.add_pipe(classifier, name=classifier_name, access={'bob'})
     nlp.deploy(worker=bob)
 
     string_ptr = String(text).send(bob)
