@@ -3,9 +3,8 @@ import pytest
 import syft as sy
 from syft.generic.string import String
 import syfertext
-from syfertext.pointers.doc_pointer import DocPointer
-from syfertext.pipeline.single_label_classifier import AverageDocEncoder, SingleLabelClassifier
 from syfertext.local_pipeline import get_test_language_model
+from syfertext.pipeline.single_label_classifier import AverageDocEncoder, SingleLabelClassifier
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -42,6 +41,7 @@ def test_single_label_inference(text, expected):
     torch.manual_seed(seed)
     classifier_name = "classifier"
     nlp = get_test_language_model()
+    pipeline_name = nlp.pipeline_name
 
     # Set up SingleLabelClassifier and add to pipeline
     net = Net()
@@ -51,39 +51,49 @@ def test_single_label_inference(text, expected):
         encryption=None,
         labels=labels
     )  
-    nlp.add_pipe(classifier, name=classifier_name, access={'bob'})
+    nlp.add_pipe(classifier, name=classifier_name, access={'*'})
+
+    attribute_name = "{pipeline_name}__{classifier_name}".format(
+        pipeline_name=pipeline_name,
+        classifier_name=classifier_name
+    )
+
+    # Case 1: infer using pipeline before deployment
+    string_ptr = String(text).send(bob)
+    doc_ptr1 = nlp(string_ptr) 
+    doc1 = bob._objects[doc_ptr1.id_at_location]
+
+    # Check that inference results are as expected
+    assert hasattr(doc1._, attribute_name)
+    assert doc1.get_attribute(attribute_name) == expected
+
+    # Deploy pipeline 
     nlp.deploy(worker=bob)
 
-    string_ptr = String(text).send(bob)
-
-    # Infer using deployed pipeline
-    doc_ptr1 = nlp(string_ptr) 
-
-    # Infer using deployed pipeline that is loaded
+    # Empty local worker's object store to ensure that 
+    # we are using the deployed pipeline rather than local states
     for obj in list(me._objects):
         del me._objects[obj]
-    nlp_loaded_from_bob = syfertext.load(nlp.pipeline_name)
+
+    # Load deployed pipeline
+    nlp_loaded_from_bob = syfertext.load(pipeline_name)
+
+    # Case 2: infer with string pointer using deployed pipeline
+    string_ptr = String(text).send(bob)
     doc_ptr2 = nlp_loaded_from_bob(string_ptr)
+    doc2 = bob._objects[doc_ptr2.id_at_location]
 
-    # Check that string pointer, doc pointer, and pipeline are remote
-    assert string_ptr.location == bob
-    assert nlp.deployed_on == bob.id
-    assert isinstance(doc_ptr1, DocPointer) 
-    assert isinstance(doc_ptr2, DocPointer)
+    # Check that inference results are as expected
+    assert hasattr(doc2._, attribute_name)
+    assert doc2.get_attribute(attribute_name) == expected
 
-    # Check if actual label matches expected label
-    attribute_name = "{pipeline_name}__{classifier_name}".format(
-        pipeline_name=nlp.pipeline_name,
-        classifier_name=classifier_name
-        )
+    # Case 3: infer with local string using deployed pipeline
+    string = String(text)
+    doc3 = nlp_loaded_from_bob(string)
 
-    remote_doc1 = bob._objects[doc_ptr1.id_at_location]
-    assert hasattr(remote_doc1._, attribute_name)
-    assert remote_doc1.get_attribute(attribute_name) == expected
-
-    remote_doc2 = bob._objects[doc_ptr2.id_at_location]
-    assert hasattr(remote_doc2._, attribute_name)
-    assert remote_doc2.get_attribute(attribute_name) == expected
+    # Check that inference results are as expected
+    assert hasattr(doc3._, attribute_name)
+    assert doc3.get_attribute(attribute_name) == expected
 
 
 @pytest.mark.parametrize("text,expected", [("The quick brown fox", "B")])
@@ -91,6 +101,7 @@ def test_encrypted_single_label_inference(text, expected):
     torch.manual_seed(seed)
     classifier_name = "encrypted_classifier"
     nlp = get_test_language_model()
+    pipeline_name = nlp.pipeline_name
 
     # Set up SingleLabelClassifier and add to pipeline
     net = Net()
@@ -100,35 +111,46 @@ def test_encrypted_single_label_inference(text, expected):
         encryption="mpc",
         labels=labels
     )  
-    nlp.add_pipe(classifier, name=classifier_name, access={'bob'})
-    nlp.deploy(worker=bob)
-    string_ptr = String(text).send(bob)
-    
-    # Infer using deployed pipeline
-    doc_ptr1 = nlp(string_ptr) 
+    nlp.add_pipe(classifier, name=classifier_name, access={'*'})
 
-    # Infer using deployed pipeline that is loaded
+    attribute_name = "{pipeline_name}__{classifier_name}".format(
+        pipeline_name=pipeline_name,
+        classifier_name=classifier_name
+    )
+
+    # Case 1: infer using pipeline before deployment
+    string_ptr = String(text).send(bob)
+    doc_ptr1 = nlp(string_ptr) 
+    doc1 = bob._objects[doc_ptr1.id_at_location]
+
+    # Check that inference results are as expected
+    assert hasattr(doc1._, attribute_name)
+    assert doc1.get_attribute(attribute_name) == expected
+
+    # Deploy pipeline 
+    nlp.deploy(worker=bob)
+
+    # Empty local worker's object store to ensure that 
+    # we are using the deployed pipeline rather than local states
     for obj in list(me._objects):
         del me._objects[obj]
-    nlp_loaded_from_bob = syfertext.load(nlp.pipeline_name)
+
+    # Load deployed pipeline
+    nlp_loaded_from_bob = syfertext.load(pipeline_name)
+
+    # Case 2: infer with string pointer using deployed pipeline
+    string_ptr = String(text).send(bob)
     doc_ptr2 = nlp_loaded_from_bob(string_ptr)
+    doc2 = bob._objects[doc_ptr2.id_at_location]
 
-    # Check that string pointer, doc pointer, and pipeline are remote
-    assert string_ptr.location == bob
-    assert nlp.deployed_on == bob.id
-    assert isinstance(doc_ptr1, DocPointer)
-    assert isinstance(doc_ptr2, DocPointer)
+    # Check that inference results are as expected
+    assert hasattr(doc2._, attribute_name)
+    assert doc2.get_attribute(attribute_name) == expected
 
-    # Check if actual label on remote machine matches expected label
-    attribute_name = "{pipeline_name}__{classifier_name}".format(
-        pipeline_name=nlp.pipeline_name,
-        classifier_name=classifier_name
-        )
+    # Case 3: infer with local string using deployed pipeline
+    string = String(text)
+    doc3 = nlp_loaded_from_bob(string)
 
-    remote_doc1 = bob._objects[doc_ptr1.id_at_location]
-    assert hasattr(remote_doc1._, attribute_name)
-    assert remote_doc1.get_attribute(attribute_name) == expected
-
-    remote_doc2 = bob._objects[doc_ptr2.id_at_location]
-    assert hasattr(remote_doc2._, attribute_name)
-    assert remote_doc2.get_attribute(attribute_name) == expected
+    # Check that inference results are as expected
+    assert hasattr(doc3._, attribute_name)
+    assert doc3.get_attribute(attribute_name) == expected
