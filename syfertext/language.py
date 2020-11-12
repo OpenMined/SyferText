@@ -54,10 +54,10 @@ class Language(AbstractObject):
         # of the pipeline, an object that is charged to accomplish the job.
         self.factories = dict()
 
-        # Initialize an empty dict of State object.
+        # Initialize an empty dict for storing info about each State object.
         # The keys of this dict are the names of the components
-        # whose states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
-        self.states = {}
+        # whose description of states are being stored, e.g., 'vocab', 'stopword_tagger', etc.
+        self.states_info = {}
 
         # Initialize the property that should hold the subpipeline templates
         # list for each worker
@@ -136,10 +136,28 @@ class Language(AbstractObject):
 
         self._save_state(state=state, name=vocab.name, access=access)
 
-    def load_pipeline(self, template, states):
+    def load_pipeline(self, template: List[dict], states_info: Dict[str, dict]) -> None:
+        """Loads the pipeline from the given template in Langauage object.
 
-        # Load the states
-        self.states = states
+        Args:
+            template: A list of dictionaries each describing
+                a pipe component of the pipeline in order.
+            states_info: a dictionary of dictionaries containing the
+                description of each state needed to reconstruct
+                the pipeline. Example:
+                    {'tokenizer': {'location_id': 'bob',
+                                   'access': {'*'},
+                                  },
+                     'vocab': {'location_id': 'bob',
+                               'access', {'*'},
+                              }
+                     :
+                     :
+                    }
+        """
+
+        # Load the states info
+        self.states_info = states_info
 
         # Load the pipeline template
         self.pipeline_template = template
@@ -168,7 +186,7 @@ class Language(AbstractObject):
         """
 
         # Add to the list of State objects known to this Language object
-        self.states[name] = dict(state=state, access=access)
+        self.states_info[name] = dict(access=access)
 
         # Register it in the object store
         self.owner.register_obj(state)
@@ -212,7 +230,7 @@ class Language(AbstractObject):
             # If it does, append the pipe template to the currently
             # processed subpipeline template
             # The reason I use .get() here is just for better code lisibility
-            access = self.states.get(pipe_template["name"]).get("access")
+            access = self.states_info.get(pipe_template["name"]).get("access")
 
             if {"*", location_id} & access:
 
@@ -579,18 +597,18 @@ class Language(AbstractObject):
 
         # Set the `location_id` property of each state to
         # the worker on which the pipeline is deployed
-        states = self.states.copy()
+        states_info = self.states_info.copy()
 
-        for pipe_name in self.states:
+        for pipe_name in self.states_info:
 
             # Change the pipe's location
-            states[pipe_name]["location_id"] = worker.id
+            states_info[pipe_name]["location_id"] = worker.id
 
         # Create a Pipeline object
         pipeline = Pipeline(
             name=self.pipeline_name,
             template=self.pipeline_template,
-            states=states,
+            states_info=states_info,
             owner=self.owner,
             tags=self.tags,
             description=self.description,

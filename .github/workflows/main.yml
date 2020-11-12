@@ -12,7 +12,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v1
       with:
-        python-version: '>=3.7'
+        python-version: '3.7'
     - name: Install SyferText with test dependencies
       run: |
         pip install ".[test]"
