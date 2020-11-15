@@ -91,7 +91,7 @@ class AverageDocEncoder(AbstractSendable):
         # In this case, `doc` is a DocPointer object although that it
         # could also be a Doc object in theory.
         # The returned tensor is a Syft AdditiveSharingTensor object.
-        if "mpc" in crypto_config:
+        if crypto_config and "mpc" in crypto_config:
 
             # Encrypt the vector
             vector_enc = doc.get_encrypted_vector(
