@@ -19,8 +19,9 @@ def reset_object_store(worker):
     for k in keys:
         del worker._objects[k]
 
-bob = sy.VirtualWorker(hook, id = 'bob')
-alice = sy.VirtualWorker(hook, id = 'alice')
+
+bob = sy.VirtualWorker(hook, id="bob")
+alice = sy.VirtualWorker(hook, id="alice")
 
 # The remote workers
 # bob = DataCentricFLClient(hook, "http://18.220.216.78:5001/")
@@ -31,15 +32,18 @@ alice = sy.VirtualWorker(hook, id = 'alice')
 # my_grid = sy.PrivateGridNetwork(bob, alice, crypto_provider, me)
 
 nlp = get_test_language_model()
-type(nlp), nlp.owner
+# type(nlp), nlp.owner
 
-tagger = SimpleTagger(attribute="noun", lookups=["SyferText"], tag=True)
+# tagger = SimpleTagger(attribute="noun", lookups=["SyferText"], tag=True)
 # nlp.add_pipe(tagger, name="noun_tagger",access = {me})
+
+
+print(nlp.pipeline_template)
+print(nlp.states_info)
 nlp.deploy(bob)
+print(nlp.states_info)
 
 print(me._objects)
-
-print(me._objects['syfertext_sentiment:tokenizer'])
 
 reset_object_store(me)
 
@@ -52,5 +56,6 @@ nlp_deployed = syfertext.load("syfertext_sentiment")
 # Testing nlp_deployed
 doc = nlp_deployed("This is some random test")
 print(nlp_deployed.pipeline_template)
+print(nlp_deployed.states_info)
 for token in doc:
     print(token)

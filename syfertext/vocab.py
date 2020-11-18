@@ -177,6 +177,9 @@ class Vocab(AbstractObject):
         elif isinstance(result, State):
             state = result
 
+        elif isinstance(result, tuple):
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
         # Detail the simple object contained in the state
         hash2row_simple, vectors_simple = state.simple_obj
 

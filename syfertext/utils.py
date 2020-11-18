@@ -5,6 +5,8 @@ import numpy as np
 import mmh3
 import os
 import re
+from pathlib import Path
+import dill
 
 from typing import Pattern
 from typing import Match
@@ -142,7 +144,8 @@ def search_resource(
 ) -> Union["State", "StatePointer", "Pipeline", "PipelinePointer", None]:
     """Searches for a resource (State or Pipeline object) on PyGrid.
     It first checks out whether the object could be found on the local worker.
-    If not, search is triggered across all workers known to the
+    Then it checks the local storage whether the resource has been cached or not.
+    Else, search is triggered across all workers known to the
     local worker.
 
     Args:
@@ -167,6 +170,33 @@ def search_resource(
         ), f"Ambiguous result: multiple objects matching the search query were found on worker `{local_worker}`."
 
         return result[0]
+
+    # Now look into the local storage for states
+    data_path = os.path.join(str(Path.home()), "SyferText", "cache")
+
+    # Since : is a reserved character for naming files, replacing with - instead in file_name
+    tokens = query.split(":")
+    print("Tokens", tokens)
+    file_name = "-".join(tokens)
+
+    # tokens[0] is the name of the pipeline directory
+    data_path = os.path.join(data_path, tokens[0])
+
+    if os.path.exists(data_path):
+        # target contains the name of the file
+        target = str("/{}.pkl".format(file_name))
+
+        if os.path.isfile(data_path + target) and os.path.getsize(data_path + target) > 0:
+            # Make file object
+            state_cache = open(data_path + target, "rb")
+
+            # Load into simplified pipeline object
+            simplified_state = dill.load(state_cache)
+
+            # Create detailed pipeline object
+            # state = State.detail(worker=BaseWorker, state_simple=simplified_state)
+
+            return simplified_state
 
     # If no object is found on the local worker, search on all
     # workers connected to the local_worker

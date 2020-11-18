@@ -48,7 +48,7 @@ class StatePointer(ObjectPointer):
         """
 
         # Request the state from the remote worker
-        state = self.owner.request_obj(self.id_at_location, self.location)
+        state = self.owner.request_obj(self.id_at_location, self.location, get_copy=True)
 
         # Register it in the object store
         self.owner.register_obj(state)

@@ -285,6 +285,9 @@ class Tokenizer(AbstractSendable):
         elif isinstance(result, State):
             state = result
 
+        elif isinstance(result, tuple):
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
         # Detail the simple object contained in the state
         exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
 

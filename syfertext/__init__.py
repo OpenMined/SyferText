@@ -16,7 +16,8 @@ from .language import Language
 from .pipeline import SubPipeline
 from .pipeline import Pipeline
 from .pipeline.pointers.pipeline_pointer import PipelinePointer
-from .utils import search_resource
+from .pointers.state_pointer import StatePointer
+from .utils import search_resource, create_state_query
 
 from typing import Set
 from typing import Union
@@ -48,26 +49,11 @@ def load(pipeline_name: str) -> Language:
         # The ID of the worker on which the pipeline is deployed
         deployed_on = result.location.id
 
-        data_path = os.path.join(str(Path.home()), "SyferText", "cache", pipeline_name)
+        # Get a copy of the pipeline using its pointer
+        pipeline = result.get_copy()
 
-        target = str("/{}.pkl".format(pipeline_name))
-
-        if os.path.isfile(data_path + target) and os.path.getsize(data_path + target) > 0:
-            # Make file object
-            pipeline_cache = open(data_path + target, "rb")
-
-            # Load into simplified pipeline object
-            simplified_pipeline = dill.load(pipeline_cache)
-
-            # Create detailed pipeline object
-            pipeline = Pipeline.detail(worker=LOCAL_WORKER, pipeline_simple=simplified_pipeline)
-
-        else:
-            # Get a copy of the pipeline using its pointer
-            pipeline = result.get_copy()
-
-            # Save the pipeline to local storage
-            save(pipeline_name=pipeline_name, pipeline=pipeline, destination="local")
+        # Save the pipeline to local storage
+        save(pipeline_name=pipeline_name, pipeline=pipeline, destination="local")
 
     elif isinstance(result, Pipeline):
 
@@ -80,6 +66,10 @@ def load(pipeline_name: str) -> Language:
 
         # Get the pipeline object
         pipeline = result
+
+    elif isinstance(result, tuple):
+        pipeline = Pipeline.detail(worker=LOCAL_WORKER, pipeline_simple=result)
+        deployed_on = None
 
     # Instantiate a Language object
     nlp = Language(
@@ -162,5 +152,27 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
 
     # Dumping data
     dill.dump(pipeline.simplify(worker=LOCAL_WORKER, pipeline=pipeline), pipeline_cache)
+
+    # Loading states
+    for state in pipeline.states_info:
+        # Searching on state
+        state_id = create_state_query(pipeline_name=pipeline_name, state_name=state)
+
+        result = search_resource(query=state_id, local_worker=LOCAL_WORKER)
+
+        if isinstance(result, StatePointer):
+            # State target
+            # Since : is a reserved character for naming files, replacing with - instead
+            tokens = state_id.split(":")
+            print("Tokens", tokens)
+            file_name = "-".join(tokens)
+
+            target = str("/{}.pkl".format(file_name))
+
+            state_obj = result.get_copy()
+
+            state_cache = open(data_path + target, "wb")
+
+            dill.dump(state_obj.simplify(worker=LOCAL_WORKER, state=state_obj), state_cache)
 
     pipeline_cache.close()
