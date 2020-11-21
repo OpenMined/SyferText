@@ -190,11 +190,8 @@ def search_resource(
             # Make file object
             state_cache = open(data_path + target, "rb")
 
-            # Load into simplified pipeline object
+            # Load into simplified pipeline object and return
             simplified_state = dill.load(state_cache)
-
-            # Create detailed pipeline object
-            # state = State.detail(worker=BaseWorker, state_simple=simplified_state)
 
             return simplified_state
 
