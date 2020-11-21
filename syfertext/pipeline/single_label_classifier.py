@@ -408,6 +408,9 @@ class SingleLabelClassifier(AbstractSendable):
         elif isinstance(result, State):
             state = result
 
+        elif isinstance(result, tuple):
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
         # Get the simplified objects contained in the state
         (
             doc_encoder_simple,
