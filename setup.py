@@ -20,12 +20,7 @@ setup(
     packages=find_packages(),
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    install_requires=[
-        "tqdm==4.36.1",
-        "mmh3==2.5.1",
-        "syft @ git+https://github.com/OpenMined/PySyft#egg=syft",
-        "requests==2.22.0",
-    ],
+    install_requires=["tqdm==4.36.1", "mmh3==2.5.1", "syft==0.2.9", "requests==2.22.0"],
     extras_require={
         "test": [
             "black>=20.8b1",
