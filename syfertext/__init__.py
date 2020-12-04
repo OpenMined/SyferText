@@ -68,7 +68,7 @@ def load(pipeline_name: str) -> Language:
     elif isinstance(result, tuple):
 
         # In this case we get a simplified pipeline object,
-        # from the stored cache which is a tuple. 
+        # from the stored cache which is a tuple.
         # The following code details it back to a pipeline object.
 
         pipeline = Pipeline.detail(worker=LOCAL_WORKER, pipeline_simple=result)
@@ -136,8 +136,8 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
 
     # Creating a new directory if home/SyferText/cache/<pipeline_name> does not exist
     if not os.path.exists(data_path):
-         os.makedirs(data_path, exist_ok = True)
-        
+        os.makedirs(data_path, exist_ok=True)
+
     # Making a target at the file
     target = str("/{}.pkl".format(pipeline_name))
 
