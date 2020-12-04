@@ -62,13 +62,19 @@ def load(pipeline_name: str) -> Language:
         # 0.2.9. We do not consider that it is officially deployed.
         deployed_on = None
 
-        print("Pipeline found")
-
         # Get the pipeline object
         pipeline = result
 
     elif isinstance(result, tuple):
+
+        # In this case we get a simplified pipeline object,
+        # from the stored cache which is a tuple. 
+        # The following code details it back to a pipeline object.
+
         pipeline = Pipeline.detail(worker=LOCAL_WORKER, pipeline_simple=result)
+
+        # Since we found the model in local storage, deployed_on = None
+
         deployed_on = None
 
     # Instantiate a Language object
@@ -125,25 +131,13 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
 
     """
 
-    # Path to the home/SyferText directory
-    data_path = os.path.join(str(Path.home()), "SyferText")
-
-    # Creating a new directory if home/SyferText does not exist
-    if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
-    data_path = os.path.join(data_path, "cache")
-
-    # Creating a new directory if home/SyferText/cache does not exist
-    if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
-    data_path = os.path.join(data_path, pipeline_name)
+    # Path to the home/SyferText/cache/<pipeline_name> directory
+    data_path = os.path.join(str(Path.home()), "SyferText", "cache", pipeline_name)
 
     # Creating a new directory if home/SyferText/cache/<pipeline_name> does not exist
     if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
+         os.makedirs(data_path, exist_ok = True)
+        
     # Making a target at the file
     target = str("/{}.pkl".format(pipeline_name))
 
@@ -162,10 +156,12 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
 
         if isinstance(result, StatePointer):
             # State target
+
             # Since : is a reserved character for naming files, replacing with - instead
-            tokens = state_id.split(":")
-            print("Tokens", tokens)
-            file_name = "-".join(tokens)
+            # Splitting tokens to get the name of the pipeline for the name of the pipeline directory
+            # tokens = state_id.split(":")
+            # print("Tokens", tokens)
+            file_name = state_id.replace(":", "-")
 
             target = str("/{}.pkl".format(file_name))
 

@@ -176,8 +176,7 @@ def search_resource(
 
     # Since : is a reserved character for naming files, replacing with - instead in file_name
     tokens = query.split(":")
-    print("Tokens", tokens)
-    file_name = "-".join(tokens)
+    file_name = query.replace(":", "-")
 
     # tokens[0] is the name of the pipeline directory
     data_path = os.path.join(data_path, tokens[0])

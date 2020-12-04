@@ -14,6 +14,7 @@ me.is_client_worker = False
 
 
 def reset_object_store(worker):
+    ''' This functions resets all the objects for the specified worker '''
     keys = list(worker._objects)
     for k in keys:
         del worker._objects[k]

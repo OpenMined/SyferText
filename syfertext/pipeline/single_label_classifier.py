@@ -409,6 +409,9 @@ class SingleLabelClassifier(AbstractSendable):
             state = result
 
         elif isinstance(result, tuple):
+            # In this case we get a simplified pipeline object,
+            # from the stored cache which is a tuple. 
+            # The following code details it back to a pipeline object.
             state = State.detail(worker=LOCAL_WORKER, state_simple=result)
 
         # Get the simplified objects contained in the state
