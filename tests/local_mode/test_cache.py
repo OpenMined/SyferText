@@ -32,8 +32,24 @@ reset_object_store(me)
 
 
 def test_save_to_storage():
-    nlp_deployed = syfertext.load("syfertext_sentiment")
 
     cache_directory = os.path.join(str(Path.home()), "SyferText", "cache", "syfertext_sentiment")
 
+    # Remove any existing folder
+    if os.path.exists(cache_directory):
+        for f in os.listdir(cache_directory):
+            os.remove(cache_directory + "/" + f)
+
+        os.rmdir(cache_directory)
+
+    nlp_to_save = syfertext.load("syfertext_sentiment")
+
+    # Assert that the directory now exists
     assert os.path.exists(cache_directory)
+
+    # Given that the directory now exists load it again from cache
+
+    nlp_to_load = syfertext.load("syfertext_sentiment")
+
+    assert nlp_to_save.pipeline_template == nlp_to_load.pipeline_template
+    assert nlp_to_save.states_info == nlp_to_load.states_info

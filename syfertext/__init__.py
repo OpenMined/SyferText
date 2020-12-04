@@ -159,8 +159,7 @@ def save(pipeline_name: str, pipeline: "Pipeline", destination: Union["local"] =
 
             # Since : is a reserved character for naming files, replacing with - instead
             # Splitting tokens to get the name of the pipeline for the name of the pipeline directory
-            # tokens = state_id.split(":")
-            # print("Tokens", tokens)
+
             file_name = state_id.replace(":", "-")
 
             target = str("/{}.pkl".format(file_name))
