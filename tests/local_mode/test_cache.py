@@ -35,7 +35,7 @@ def test_save_to_storage():
 
     cache_directory = os.path.join(str(Path.home()), "SyferText", "cache", "syfertext_sentiment")
 
-    # Remove any existing folder
+    # Remove any existing directory
     if os.path.exists(cache_directory):
         for f in os.listdir(cache_directory):
             os.remove(cache_directory + "/" + f)
@@ -53,3 +53,12 @@ def test_save_to_storage():
 
     assert nlp_to_save.pipeline_template == nlp_to_load.pipeline_template
     assert nlp_to_save.states_info == nlp_to_load.states_info
+
+    cache_directory = os.path.join(str(Path.home()), "SyferText", "cache", "syfertext_sentiment")
+
+    # Remove the added directory after test
+    if os.path.exists(cache_directory):
+        for f in os.listdir(cache_directory):
+            os.remove(cache_directory + "/" + f)
+
+        os.rmdir(cache_directory)
