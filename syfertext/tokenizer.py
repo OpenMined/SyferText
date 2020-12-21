@@ -23,10 +23,7 @@ import re
 
 from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
-from syft.generic.string import String
-import syft.serde.msgpack.serde as serde
 
-import pickle
 from collections import defaultdict
 
 from typing import List
@@ -63,9 +60,10 @@ class TokenMeta(object):
         self._ = Underscore()
 
 
-class Tokenizer(AbstractSendable):
+class DefaultTokenizer:
     def __init__(
         self,
+        uuid: str,
         exceptions: Dict[str, List[dict]] = None,
         prefixes: List[str] = None,
         suffixes: List[str] = None,
