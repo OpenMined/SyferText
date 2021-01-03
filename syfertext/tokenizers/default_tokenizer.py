@@ -1,9 +1,10 @@
 class DefaultTokenizer:
-    def __init__(self, prefixes, suffixes, infixes):
+    def __init__(self, prefixes, suffixes, infixes, exceptions):
 
-        self.prefixes = ["1", "2"]
-        self.suffixes = ["3", "4"]
-        self.infixes = ["5", "6"]
+        self.prefixes = prefixes
+        self.suffixes = suffixes
+        self.infixes = infixes
+        self.exceptions = exceptions
 
     def __call__(self, text: str):
 

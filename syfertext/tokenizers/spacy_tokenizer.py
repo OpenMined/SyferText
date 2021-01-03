@@ -1,28 +1,5 @@
-from .doc import Doc
-from .vocab import Vocab
-from .state import State
-from .pointers import StatePointer
-from .underscore import Underscore
-
-from . import LOCAL_WORKER
-
-from .token_exception import TOKENIZER_EXCEPTIONS
-
-from .punctuations import TOKENIZER_PREFIXES
-from .punctuations import TOKENIZER_SUFFIXES
-from .punctuations import TOKENIZER_INFIXES
-from .utils import hash_string
-from .utils import search_resource
-from .utils import create_state_query
-from .utils import compile_suffix_regex
-from .utils import compile_infix_regex
-from .utils import compile_prefix_regex
-from .utils import msgpack_code_generator
-
+# stdlib
 import re
-
-from syft.generic.abstract.sendable import AbstractSendable
-from syft.workers.base import BaseWorker
 
 from collections import defaultdict
 
@@ -34,37 +11,28 @@ from typing import DefaultDict
 from typing import Dict
 from typing import Set
 
+# syft
+from syft.lib.python.string import String as SyString
 
-class TokenMeta(object):
-    """This class holds some meta data about a token from the text held by a Doc object.
-    This allows to create a Token object when needed.
+# syfertext relative
+from ..data.units import TextDoc
+from ..data.units import TokenMeta
+from .token_exception import TOKENIZER_EXCEPTIONS
+from .punctuations import TOKENIZER_PREFIXES
+from .punctuations import TOKENIZER_SUFFIXES
+from .punctuations import TOKENIZER_INFIXES
+from .utils import compile_suffix_regex
+from .utils import compile_infix_regex
+from .utils import compile_prefix_regex
+
+
+class SpacyTokenizer:
+    """A rule-based tokenizer similar to the way spaCy's tokenizer is implemented.
     """
 
-    def __init__(self, hash_key: int, space_after: bool):
-        """Initializes a TokenMeta object
-
-        Args:
-            hash_key(int): hash value of the string stored by the Token object
-            space_after (bool): Whether the token is followed by a single white
-                space (True) or not (False).
-        """
-
-        # stores the hash of the hash of the string
-        self.orth = hash_key
-
-        self.space_after = space_after
-
-        # Initialize the Underscore object (inspired by spaCy)
-        # This object will hold all the custom attributes set
-        # using the `self.set_attribute` method
-        self._ = Underscore()
-
-
-class DefaultTokenizer:
     def __init__(
         self,
-        uuid: str,
-        exceptions: Dict[str, List[dict]] = None,
+        exceptions: Dict[str, List[str]] = None,
         prefixes: List[str] = None,
         suffixes: List[str] = None,
         infixes: List[str] = None,
@@ -77,12 +45,9 @@ class DefaultTokenizer:
             exceptions: Exception cases for the tokenizer.
                 Example: "e.g.", "I'ma". The exception dict should
                 specifiy how these exceptions are tokenized, e.g.,
-                exceptions = {"e.g." : [{"ORTH": "e.g."}],
-                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"},
-                                        {"ORTH": "a"}]
+                exceptions = {"e.g." : ["e.g."],
+                              "I'ma" : ["I", "'m", "a"]
                              }
-                Other properties than "ORTH" can also be specified.
-                see `token_exception.py` for more examples.
             prefixes: A list of strings to separate as prefixes during
                 tokenization.
                 Example: ["@"]. So in "@username", "@" will be separated as
@@ -97,90 +62,12 @@ class DefaultTokenizer:
                 an infix.
         """
 
-        super(Tokenizer, self).__init__()
+        super(SpacyTokenizer, self).__init__()
 
         # Set the tokenization rules
         self.load_rules(
             exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
         )
-
-    @property
-    def pipeline_name(self) -> str:
-        """A getter for the `_pipeline_name` property.
-
-        Returns:
-           The lower cased `_pipeline_name` property.
-        """
-
-        return self._pipeline_name.lower()
-
-    @pipeline_name.setter
-    def pipeline_name(self, name: str) -> None:
-        """Set the pipeline name to which this object belongs.
-
-        Args:
-            name: The name of the pipeline.
-        """
-
-        # Convert the name of lower case
-        if isinstance(name, str):
-            name = name.lower()
-
-        self._pipeline_name = name
-
-    @property
-    def name(self) -> str:
-        """A getter for the `_name` property.
-
-        Returns:
-           The lower cased `_name` property.
-        """
-
-        return self._name.lower()
-
-    @name.setter
-    def name(self, name: str) -> None:
-        """Set the component name.
-
-        Args:
-            name: The name of the component
-        """
-
-        # Convert the name of lower case
-        if isinstance(name, str):
-            name = name.lower()
-
-        self._name = name
-
-    @property
-    def access(self) -> Set[str]:
-        """Get the access rules for this component.
-
-        Returns:
-            The set of worker ids where this component's state
-            could be sent.
-            If the string '*' is included in the set,  then all workers are
-            allowed to receive a copy of the state. If set to None, then
-            only the worker where this component is saved will be allowed
-            to get a copy of the state.
-        """
-
-        return self._access_rules
-
-    @access.setter
-    def access(self, rules: Set[str]) -> None:
-        """Set the access rules of this object.
-
-        Args:
-            rules: The set of worker ids where this component's state
-                could be sent.
-                If the string '*' is included in the set,  then all workers are
-                allowed to receive a copy of the state. If set to None, then
-                only the worker where this component is saved will be allowed
-                to get a copy of the state.
-        """
-
-        self._access_rules = rules
 
     def load_rules(
         self,
@@ -248,81 +135,7 @@ class DefaultTokenizer:
         else:
             self.exceptions = TOKENIZER_EXCEPTIONS
 
-    def load_state(self) -> None:
-        """Search for the state of this object on PyGrid.
-
-        Modifies:
-            self.vocab: The `vocab` property is initialized with the model
-                 name. Its 'load_state()` method is also called.
-        """
-
-        # Start by creating the vocab and loading its state
-        self.vocab = Vocab()
-        self.vocab.pipeline_name = self.pipeline_name
-        self.vocab.name = "vocab"
-        self.vocab.owner = self.owner
-        self.vocab.load_state()
-
-        # Create the query. This is the ID according to which the
-        # State object is searched on PyGrid
-        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
-
-        # Search for the state
-        result = search_resource(query=state_id, local_worker=self.owner)
-
-        # If no state is found, return
-        if not result:
-            return
-
-        # If a state is found get either its pointer if it is remote
-        # or the state itself if it is local
-        elif isinstance(result, StatePointer):
-            # Get a copy of the state using its pointer
-            state = result.get_copy()
-
-        elif isinstance(result, State):
-            state = result
-
-        # Detail the simple object contained in the state
-        exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
-
-        exceptions = serde._detail(self.owner, exceptions_simple)
-        prefixes = serde._detail(self.owner, prefixes_simple)
-        suffixes = serde._detail(self.owner, suffixes_simple)
-        infixes = serde._detail(self.owner, infixes_simple)
-
-        # Load the state
-        self.load_rules(
-            exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
-        )
-
-    def dump_state(self) -> State:
-        """Returns a State object that holds the current state of this object.
-
-        Returns:
-            A State object that holds a simplified version of this object's state.
-        """
-
-        # Simplify the state variables
-        exceptions_simple = serde._simplify(self.owner, self.exceptions)
-        prefixes_simple = serde._simplify(self.owner, self.prefixes)
-        suffixes_simple = serde._simplify(self.owner, self.suffixes)
-        infixes_simple = serde._simplify(self.owner, self.infixes)
-
-        # Create the query. This is the ID according to which the
-        # State object is searched for on across workers
-        state_id = f"{self.pipeline_name}:{self.name}"
-
-        # Create the State object
-        state = State(
-            simple_obj=(exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple),
-            id=state_id,
-            access=self.access,
-        )
-
-        return state
-
-    def __call__(self, text: Union[String, str]):
+    def __call__(self, text: Union[SyString, str]):
         """The real tokenization procedure takes place here.
         As in the spaCy library. This is not exactly equivalent to
         text.split(' '). Because tokens can be white spaces if two or
@@ -347,18 +160,14 @@ class DefaultTokenizer:
         """
 
         # Create a document that will hold meta data of tokens
-        # By meta data I mean the hash value of the string stored by the Token object
-        # in the original text, and if the token is followed by a white space.
-
-        # I do not assign the Doc here any owner, this will
-        # be done by the SupPipeline object that operates
-        # this tokenizer.
-        doc = Doc(self.vocab)
+        # By meta data I mean the token's text and whether the token
+        # is followed by a white space or not.
+        doc = TextDoc()
 
         # The number of characters in the text
         text_size = len(text)
 
-        # Return empty doc for empty strings("")
+        # Return empty doc for empty strings ("")
         if text_size == 0:
             return doc
 
@@ -376,16 +185,13 @@ class DefaultTokenizer:
             # if 'is_space' is True, then we want to find a character that is
             # not a space. and vice versa. This event marks the end of a token.
             is_current_space = char.isspace()
+
             if is_current_space != is_space:
+
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
                 token_meta = TokenMeta(
-                    # get hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos + 1 == (i - 1) + 1
-                    # Note: If the store doesn't contain string, then it is added to store
-                    # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos : (i - 1) + 1])],
-                    space_after=is_current_space,
+                    text=str(text[pos : (i - 1) + 1]), space_after=is_current_space
                 )
 
                 # if is_space is True that means detected token is composed of only whitespaces
@@ -419,14 +225,7 @@ class DefaultTokenizer:
 
                 # Create the TokenMeta object that can be later used to retrieve the token
                 # from the text
-                token_meta = TokenMeta(
-                    # hash key for string stored in the TokenMeta object, where string is
-                    # substring of text from start_pos == pos to end_pos == None
-                    # Note: If the store doesn't contain string, then it is added to store
-                    # and the corresponding key is returned back
-                    hash_key=self.vocab.store[str(text[pos:])],
-                    space_after=is_current_space,
-                )
+                token_meta = TokenMeta(text=str(text[pos:]), space_after=is_current_space)
 
                 # if is_space is True that means detected token is composed of only whitespaces
                 # so we dont need to check for prefix, infixes etc.
@@ -442,9 +241,9 @@ class DefaultTokenizer:
 
         return doc
 
-    def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
+    def _tokenize(self, substring: str, token_meta: TokenMeta, doc: TextDoc) -> TextDoc:
         """Tokenize each substring formed after splitting affixes and processing
-        exceptions. Returns Doc object.
+        exceptions.
 
         Args:
             substring: The substring to tokenize.
@@ -516,7 +315,7 @@ class DefaultTokenizer:
         while i - last_i <= 2:
 
             if substring in self.exceptions:
-                # Get a list of exception  `TokenMeta` objects to be added in the Doc container
+                # Get a list of exception  `TokenMeta` objects to be added in the TextDoc container
                 exception_tokens, substring = self._get_exception_token_metas(substring)
 
                 break
@@ -547,14 +346,14 @@ class DefaultTokenizer:
 
     def _attach_tokens(
         self,
-        doc: Doc,
+        doc: TextDoc,
         substring: str,
         space_after: bool,
         affixes: DefaultDict,
         exception_tokens: List[TokenMeta],
-    ) -> Doc:
+    ) -> TextDoc:
         """Attach all the `TokenMeta` objects which are the result of splitting affixes
-        in Doc object's container. Returns Doc object.
+        in TextDoc object's container. Returns TextDoc object.
 
         Args:
             doc: Original Document
@@ -581,7 +380,7 @@ class DefaultTokenizer:
 
             # Create the TokenMeta object
             token_meta = TokenMeta(
-                hash_key=self.vocab.store[(substring)],
+                text=substring,
                 space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
             )
 
@@ -619,7 +418,7 @@ class DefaultTokenizer:
 
         # Create the TokenMeta object
         token_meta = TokenMeta(
-            hash_key=self.vocab.store[str(substring[:pre_len])],
+            text=str(substring[:pre_len]),
             space_after=False,  # for the last token space_after will be updated explicitly according to the original substring.
         )
 
@@ -648,7 +447,7 @@ class DefaultTokenizer:
 
         # Create the TokenMeta object
         token_meta = TokenMeta(
-            hash_key=self.vocab.store[str(substring[len(substring) - suff_len :])],
+            text=str(substring[len(substring) - suff_len :]),
             space_after=False,  # for the last token space_after will be updated explicitly in end.
         )
 
@@ -697,7 +496,7 @@ class DefaultTokenizer:
             else:
                 # Create the TokenMeta object
                 token_meta = TokenMeta(
-                    hash_key=self.vocab.store[str(substring[start_pos:end_pos])],
+                    text=str(substring[start_pos:end_pos]),
                     space_after=False,  #  For this token space_after will be updated explicitly in end.
                 )
 
@@ -725,12 +524,11 @@ class DefaultTokenizer:
         # List to hold TokenMeta objects of exceptions found in the `substring`.
         exception_token_metas = []
 
-        for e in self.exceptions[substring]:
-            ORTH = e["ORTH"]
+        for orth in self.exceptions[substring]:
 
             # Create the TokenMeta object
             token_meta = TokenMeta(
-                hash_key=self.vocab.store[ORTH],
+                text=orth,
                 space_after=False,  # for the last token space_after will be updated explicitly in end.
             )
 
@@ -803,70 +601,3 @@ class DefaultTokenizer:
 
         # Return the length of the suffix match in the substring.
         return (match.end() - match.start()) if match is not None else 0
-
-    @staticmethod
-    def simplify(worker, tokenizer: "Tokenizer"):
-        """This method is used to reduce a `Tokenizer` object into a list of simpler objects that can be
-        serialized.
-        """
-
-        # Simplify attributes
-        name_simple = serde._simplify(worker, tokenizer.name)
-        pipeline_name_simple = serde._simplify(worker, tokenizer.pipeline_name)
-
-        return (name_simple, pipeline_name_simple)
-
-    @staticmethod
-    def detail(worker: BaseWorker, simple_obj: tuple):
-        """Create an object of type Tokenizer from the reduced representation in `simple_obj`.
-
-        Args:
-            worker (BaseWorker) : The worker on which the new Tokenizer object is to be created.
-            simple_obj (tuple) : A tuple resulting from the serialized then deserialized returned tuple
-                                from the `_simplify` static method above.
-
-        Returns:
-           tokenizer (Tokenizer) : a Tokenizer object
-        """
-
-        # Get the tuple elements
-        name_simple, pipeline_name_simple = simple_obj
-
-        # Detail
-        name = serde._detail(worker, name_simple)
-        pipeline_name = serde._detail(worker, pipeline_name_simple)
-
-        # Create the tokenizer object
-        tokenizer = Tokenizer()
-        tokenizer.pipeline_name = pipeline_name
-        tokenizer.name = name
-        tokenizer.owner = worker
-
-        return tokenizer
-
-    @staticmethod
-    def get_msgpack_code() -> Dict[str, int]:
-        """This is the implementation of the `get_msgpack_code()`
-        method required by PySyft's SyftSerializable class.
-        It provides a code for msgpack if the type is not present in proto.json.
-
-        The returned object should be similar to:
-        {
-            "code": int value,
-            "forced_code": int value
-        }
-
-        Both keys are optional, the common and right way would be to add only the "code" key.
-
-        Returns:
-            dict: A dict with the "code" and/or "forced_code" keys.
-        """
-
-        # If a msgpack code is not already generated, then generate one
-        # the code is hash of class name
-        if not hasattr(Tokenizer, "proto_id"):
-            Tokenizer.proto_id = msgpack_code_generator(Tokenizer.__qualname__)
-
-        code_dict = dict(code=Tokenizer.proto_id)
-
-        return code_dict
