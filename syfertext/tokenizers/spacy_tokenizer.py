@@ -199,7 +199,7 @@ class SpacyTokenizer:
                 if is_space:
 
                     # Append the token to the document
-                    doc.container.append(token_meta)
+                    doc.token_metas.append(token_meta)
                 else:
 
                     # Process substring for prefix, infix, suffix and exception cases
@@ -232,7 +232,7 @@ class SpacyTokenizer:
                 if is_space:
 
                     # Append the token to the document
-                    doc.container.append(token_meta)
+                    doc.token_metas.append(token_meta)
                 else:
 
                     # Process substring for prefix, infix, suffix and exception cases
@@ -264,8 +264,8 @@ class SpacyTokenizer:
         # exceptions after splitting the affixes.
         substring, affixes, exception_tokens = self._split_affixes(substring=substring)
 
-        # Attach all the `TokenMeta` objects formed as result of splitting
-        # the affixes and exception cases in the doc container.
+        # Add all the `TokenMeta` objects formed as result of splitting
+        # the affixes and exception cases to the TextDoc's `token_metas` list.
         doc = self._attach_tokens(
             doc=doc,
             substring=substring,
@@ -315,7 +315,7 @@ class SpacyTokenizer:
         while i - last_i <= 2:
 
             if substring in self.exceptions:
-                # Get a list of exception  `TokenMeta` objects to be added in the TextDoc container
+                # Get a list of exception  `TokenMeta` objects to be added to the TextDoc.
                 exception_tokens, substring = self._get_exception_token_metas(substring)
 
                 break
@@ -352,8 +352,8 @@ class SpacyTokenizer:
         affixes: DefaultDict,
         exception_tokens: List[TokenMeta],
     ) -> TextDoc:
-        """Attach all the `TokenMeta` objects which are the result of splitting affixes
-        in TextDoc object's container. Returns TextDoc object.
+        """Add all the `TokenMeta` objects which are the result of splitting affixes
+        to TextDoc's `token_metas` list. Returns TextDoc object.
 
         Args:
             doc: Original Document
@@ -370,10 +370,10 @@ class SpacyTokenizer:
         """
 
         # Append the prefix TokenMeta list in doc
-        doc.container.extend(affixes["prefix"])
+        doc.token_metas.extend(affixes["prefix"])
 
         # Append the exceptions TokenMeta list in doc
-        doc.container.extend(exception_tokens)
+        doc.token_metas.extend(exception_tokens)
 
         # If subtring is remaining after splitting all the affixes.
         if substring:
@@ -385,16 +385,16 @@ class SpacyTokenizer:
             )
 
             # Append the token to the document
-            doc.container.append(token_meta)
+            doc.token_metas.append(token_meta)
 
         # Append the infixes TokenMeta list in doc
-        doc.container.extend(affixes["infix"])
+        doc.token_metas.extend(affixes["infix"])
 
         # Append the suffixes TokenMeta list in doc
-        doc.container.extend(reversed(affixes["suffix"]))
+        doc.token_metas.extend(reversed(affixes["suffix"]))
 
         # Get the last token and update it's space_after attr according to original substring's TokenMeta data
-        doc.container[-1].space_after = space_after
+        doc.token_metas[-1].space_after = space_after
 
         return doc
 

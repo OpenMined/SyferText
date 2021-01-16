@@ -11,7 +11,10 @@ class LanguageModelingDataset(Dataset):
     dataset and preparing it for data loaders.
     """
 
-    def __init__(self, dataset_meta: LanguageModelingDatasetMeta, encoder=None, mode=None):
+    def __init__(self, encoder=None, mode=None):
+        pass
+
+    def __call__(self, dataset_meta: LanguageModelingDatasetMeta):
 
         # Create a dataset reader and read the dataset
         dataset_reader = LanguageModelingDatasetReader(

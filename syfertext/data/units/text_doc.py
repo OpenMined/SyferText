@@ -14,7 +14,7 @@ class TextDoc:
 
         # This list is populated in the __call__ method of the Tokenizer object.
         # Its members are objects of the TokenMeta class
-        self.tokens = list()
+        self.token_metas = list()
 
         # A dictionary to hold custom attributes
         self.attributes: Dict[str, List[str]] = dict()
@@ -39,7 +39,7 @@ class TextDoc:
                 idx = key
 
             # Get the corresponding TokenMeta object
-            token_meta = self.tokens[idx]
+            token_meta = self.token_metas[idx]
 
             # Create a Token object
             token = Token(doc=self, token_meta=token_meta, position=key)
@@ -58,11 +58,11 @@ class TextDoc:
 
     def __len__(self):
         """Return the number of tokens in the Doc."""
-        return len(self.tokens)
+        return len(self.token_metas)
 
     def __iter__(self):
-        """Allows to loop over tokens in `self.tokens`"""
-        for i in range(len(self.tokens)):
+        """Allows to loop over tokens in `self.token_metas`"""
+        for i in range(len(self.token_metas)):
 
             # Yield a Token object
             yield self[i]

@@ -49,9 +49,9 @@ class Span:
         if isinstance(key, int):
 
             if key < 0:
-                token_meta = self.doc.container[self.end + key]
+                token_meta = self.doc.token_metas[self.end + key]
             else:
-                token_meta = self.doc.container[self.start + key]
+                token_meta = self.doc.token_metas[self.start + key]
 
             # Create a Token object
             token = Token(doc=self.doc, token_meta=token_meta, position=key)
@@ -98,6 +98,6 @@ class Span:
         for idx in range(self.start, self.end):
 
             # Add token meta object to the new doc
-            doc.container.append(self.doc.container[idx])
+            doc.token_metas.append(self.doc.token_metas[idx])
 
         return doc
