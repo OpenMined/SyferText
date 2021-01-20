@@ -134,7 +134,7 @@ def test_encrypted_single_label_inference(text, expected):
     assert hasattr(doc2._, attribute_name)
     assert doc2.get_attribute(attribute_name) == expected
 
-    # Deploy pipeline 
+    # Deploy pipeline
     nlp.deploy(worker=bob)
 
     # Empty local worker's object store to ensure that 
@@ -158,3 +158,67 @@ def test_encrypted_single_label_inference(text, expected):
 
     assert hasattr(doc4._, attribute_name)
     assert doc4.get_attribute(attribute_name) == expected
+
+
+@pytest.mark.parametrize("text,expected", [("The quick brown fox", "B")])
+def test_single_label_inference_access(text, expected):
+    torch.manual_seed(seed)
+    net = Net()
+    classifier = SingleLabelClassifier(
+        classifier=net, 
+        doc_encoder=doc_encoder,
+        encryption="mpc",
+        labels=labels
+    )
+
+    # Set up pipeline where classifier has no access restrictions
+    pipeline_name = "pipeline_all"
+    classifier_name = "classifier_all"
+    attribute_name= "{pipeline_name}__{classifier_name}".format(
+        pipeline_name=pipeline_name,
+        classifier_name=classifier_name
+    )
+
+    nlp = get_test_language_model(pipeline_name)
+    nlp.add_pipe(classifier, name=classifier_name, access={"*"}) 
+    
+    # Set up pipeline where classifier is only given access to bob
+    pipeline_name_private = "pipeline_bob"
+    classifier_name_private = "classifier_bob"
+    attribute_name_private = "{pipeline_name}__{classifier_name}".format(
+        pipeline_name=pipeline_name_private,
+        classifier_name=classifier_name_private
+    )
+
+    nlp_private = get_test_language_model(pipeline_name_private)
+    nlp_private.add_pipe(classifier, name=classifier_name_private, access={"bob"}) 
+
+    # Deploy pipelines
+    nlp.deploy(worker=bob)
+    nlp_private.deploy(worker=bob)
+
+    # Empty local worker's object store to ensure that 
+    # we are using deployed pipelines rather than local states
+    for obj in list(me._objects):
+        del me._objects[obj]
+
+    nlp_loaded_from_bob = syfertext.load(pipeline_name)
+    nlp_loaded_from_bob_private = syfertext.load(pipeline_name_private)
+
+    string_ptr_alice = String(text).send(alice)
+    string_ptr_bob = String(text).send(bob)
+
+    # Inference should fail when classifier lack access 
+    with pytest.raises(Exception) as e:
+        nlp_loaded_from_bob_private(string_ptr_alice) 
+        
+    # Inference should succeed when classifier has access
+    doc_ptr1 = nlp_loaded_from_bob_private(string_ptr_bob)
+    doc1 = bob._objects[doc_ptr1.id_at_location]
+    assert hasattr(doc1._, attribute_name_private)
+    assert doc1.get_attribute(attribute_name_private) == expected
+
+    doc_ptr2 = nlp_loaded_from_bob(string_ptr_alice)
+    doc2 = alice._objects[doc_ptr2.id_at_location]
+    assert hasattr(doc2._, attribute_name)
+    assert doc2.get_attribute(attribute_name) == expected
