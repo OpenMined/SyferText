@@ -11,8 +11,7 @@
 
 ## SyferText
 
-SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft to perform Federated Learning and Encrypted Computations (
-[Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation) on text data. The two main usage scenarios of SyferText are:
+SyferText is a library for privacy preserving Natural Language Processing in Python. It leverages PySyft to perform Federated Learning and Encrypted Computations ([Multi-Party Computation (MPC)](https://en.wikipedia.org/wiki/Secure_multi-party_computation)) on text data. The two main usage scenarios of SyferText are:
 
 - :fire: **Secure plaintext pre-processing:** Enables pre-processing of  text located on a remote machine without breaking data privacy.
 - :rocket: **Secure pipeline deploy:** Starting from version 0.1.0, SyferText will be able to bundle the complete pipeline of pre-processing components and trained PySyft models and to securely deploy it to PyGrid.
@@ -173,7 +172,9 @@ SyferText vision and encrypted sentiment analyzer demo.
 
 About SyferText and my Open Source Contribution Experience with OpenMined
 
-- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA.
+
+- **(September 16th, 2020 at 5:30PM GMT)**: OpenMined AMA. *(Cancelled)*
+
 
 Introducing SyferText 0.1.0
 

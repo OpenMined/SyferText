@@ -18,8 +18,7 @@ from .utils import normalize_slice
 
 
 class Span(AbstractObject):
-    """A slice from a Doc object.
-    """
+    """A slice from a Doc object."""
 
     def __init__(self, doc: "Doc", start: int, end: int, id: int = None, owner: BaseWorker = None):
         """Create a `Span` object from the slice `doc[start : end]`.
@@ -59,11 +58,11 @@ class Span(AbstractObject):
 
     def set_attribute(self, name: str, value: object):
         """Creates a custom attribute with the name `name` and
-       value `value` in the Underscore object `self._`
+        value `value` in the Underscore object `self._`
 
-        Args:
-            name (str): name of the custom attribute.
-            value (object): value of the custom named attribute.
+         Args:
+             name (str): name of the custom attribute.
+             value (object): value of the custom named attribute.
         """
 
         # make sure there is no space in name as well prevent empty name

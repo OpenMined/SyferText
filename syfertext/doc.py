@@ -303,7 +303,7 @@ class Doc(AbstractObject):
         Returns:
 
             Tensor: A tensor representing the SMPC-encrypted vector of this document.
-            
+
         """
 
         # You need at least two workers in order to encrypt the vector with SMPC

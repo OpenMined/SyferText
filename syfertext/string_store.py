@@ -3,8 +3,8 @@ from typing import Union
 
 
 class StringStore:
-    """ StringStore object acts as a lookup table.
-        It looks up strings by 64-bit hashes and vice-versa, looks up hashes by their corresponding strings.
+    """StringStore object acts as a lookup table.
+    It looks up strings by 64-bit hashes and vice-versa, looks up hashes by their corresponding strings.
     """
 
     def __init__(self, strings=None):
