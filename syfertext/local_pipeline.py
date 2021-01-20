@@ -2,14 +2,23 @@ import random
 import torch
 import syfertext
 
+from syfertext.language import Language
 from syfertext.tokenizer import Tokenizer
 from syfertext.vocab import Vocab
 from syfertext.utils import hash_string
 from syfertext.test_vocab import TEST_VOCAB
 
 
-def get_test_language_model():
-    nlp = syfertext.create(pipeline_name="syfertext_sentiment")
+def get_test_language_model(
+    pipeline_name: str = "syfertext_sentiment",
+    random_seed: int = 0
+) -> Language:
+
+    random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    
+    nlp = syfertext.create(pipeline_name=pipeline_name)
+
     # Create the tokenizer
     tokenizer = Tokenizer()
 

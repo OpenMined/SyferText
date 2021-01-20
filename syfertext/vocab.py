@@ -177,6 +177,12 @@ class Vocab(AbstractObject):
         elif isinstance(result, State):
             state = result
 
+        elif isinstance(result, tuple):
+            # In this case we get a simplified pipeline object,
+            # from the stored cache which is a tuple.
+            # The following code details it back to a pipeline object.
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
         # Detail the simple object contained in the state
         hash2row_simple, vectors_simple = state.simple_obj
 
