@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "tqdm==4.36.1",
         "mmh3==2.5.1",
-        "syft @ git+https://github.com/OpenMined/PySyft@syft_0.2.x#egg=syft",
+        "syft @ git+https://github.com/OpenMined/PySyft@396b8121985c6fff8f23c5534fbcfaa1adcf66ce",
         "requests==2.22.0",
     ],
     extras_require={
