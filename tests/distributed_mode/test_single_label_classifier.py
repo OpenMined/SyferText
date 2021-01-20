@@ -136,7 +136,7 @@ def test_encrypted_single_label_inference(text, expected):
     assert hasattr(doc2._, attribute_name)
     assert doc2.get_attribute(attribute_name) == expected
 
-    # Deploy pipeline 
+    # Deploy pipeline
     nlp.deploy(worker=bob)
 
     # Empty local worker's object store to ensure that 
