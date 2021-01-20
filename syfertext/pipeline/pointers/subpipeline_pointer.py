@@ -3,8 +3,11 @@ from syft.generic.pointers.string_pointer import StringPointer
 from syft.workers.base import BaseWorker
 
 from ...pointers.doc_pointer import DocPointer
+from ...utils import msgpack_code_generator
 
-from typing import Union, Dict, List
+from typing import Union
+from typing import Dict
+from typing import List
 
 
 class SubPipelinePointer(ObjectPointer):
@@ -41,6 +44,16 @@ class SubPipelinePointer(ObjectPointer):
             garbage_collect_data=True,  # Always True
         )
 
+    def load_states(self) -> None:
+        """Calls the `load_states()` method of the Subpipeline
+        object referenced by this pointer object.
+        """
+
+        # Send the command
+        self.owner.send_command(
+            recipient=self.location, cmd_name="load_states", target=self, args_=tuple(), kwargs_={}
+        )
+
     def __call__(self, pointer: Union[StringPointer, DocPointer]):
         """Forwards the call to the `__call__` method of the
         `SubPipeline` object it points to.
@@ -52,19 +65,11 @@ class SubPipelinePointer(ObjectPointer):
                 to the `Doc` object to by modified.
         """
 
-        # Make sure that the String of Doc to process is located on the
-        # same worker as the SubPipeline object.
-        assert (
-            pointer.location == self.location
-        ), "The `String` or `Doc`  objects to process do not belong to the same worker"
-
-        # Get the ID of the remote object pointed to by `pointer`.
-        input_id_at_location = pointer.id_at_location
-
         # Create the command message to is used to forward the method
         # call.
         args = tuple()
-        kwargs = {"input_id": input_id_at_location}
+
+        kwargs = {"input_id": pointer.id_at_location, "input_location": pointer.location}
 
         # Send the command
         response = self.owner.send_command(
@@ -72,3 +77,29 @@ class SubPipelinePointer(ObjectPointer):
         )
 
         return response
+
+    @staticmethod
+    def get_msgpack_code() -> Dict[str, int]:
+        """This is the implementation of the `get_msgpack_code()`
+        method required by PySyft's SyftSerializable class.
+        It provides a code for msgpack if the type is not present in proto.json.
+
+        The returned object should be similar to:
+        {
+            "code": int value,
+            "forced_code": int value
+        }
+
+        Both keys are optional, the common and right way would be to add only the "code" key.
+
+        Returns:
+            dict: A dict with the "code" and/or "forced_code" keys.
+        """
+
+        # If a msgpack code is not already generated, then generate one
+        if not hasattr(SubPipelinePointer, "proto_id"):
+            SubPipelinePointer.proto_id = msgpack_code_generator(SubPipelinePointer.__qualname__)
+
+        code_dict = dict(code=SubPipelinePointer.proto_id)
+
+        return code_dict

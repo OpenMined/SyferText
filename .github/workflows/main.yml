@@ -12,11 +12,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v1
       with:
-        python-version: '>=3.6'
-    - name: Install language model 'syfertext_en_core_web_lg'
-      run: |
-        pip install git+git://github.com/Nilanshrajput/syfertext_en_core_web_lg@master
-        echo syfertext_en_core_web_lg successfully installed
+        python-version: '3.7'
     - name: Install SyferText with test dependencies
       run: |
         pip install ".[test]"

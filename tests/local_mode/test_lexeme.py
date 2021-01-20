@@ -2,15 +2,17 @@ import syft as sy
 import torch
 import syfertext
 from syfertext.attrs import Attributes
+from syfertext.local_pipeline import get_test_language_model
 
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang = "en_core_web_lg"
-nlp = syfertext.load(lang, owner=me)
+me.is_client_worker = False
+nlp = get_test_language_model()
 
 # Get the vocab instance
-vocab = nlp.vocab
+vocab = nlp("").vocab
+lang = nlp.pipeline_name
 
 
 def test_check_flag():
@@ -90,7 +92,7 @@ def test_lang_name():
     # Get the Lexeme object of text from Vocab
     lexeme = vocab[text]
 
-    # test the language model name of lexeme
+    # test the language pipeline name of lexeme
     assert lexeme.lang_ == lang
 
 

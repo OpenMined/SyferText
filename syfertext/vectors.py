@@ -1,47 +1,67 @@
-import pickle
-import os
-from pathlib import Path
-import importlib
 import torch
+
+import numpy as np
+
 from typing import Union
+from typing import Dict
 
 from .utils import hash_string
 
 
 class Vectors:
-    def __init__(self, model_name):
+    def __init__(self, hash2row: Dict[int, int], vectors: Union[np.ndarray, torch.tensor]):
+        """Creates the Vectors object.
 
-        self.model_name = model_name
-
-        # At initialization, no vectors are loaded
-        # They will be loaded once a vector is
-        # requested for the first time
-        self.loaded = False
-
-    def _load_data(self):
-        """Loads the vectors from the language model package named
-        `self.model_name` which should be installed.
+        Args:
+            hash2row: A dictionary that maps each token hash to an index that
+                points to the embedding vector of that token in `vectors`.
+                This index can also be used as an input to a an embedding layer.
+            vectors: A 2D numpy array or a torch tensor that contains the
+                word embeddings of tokens.
         """
 
-        # Import the language model
-        model = importlib.import_module(f"syfertext_{self.model_name}")
+        self.load_data(hash2row=hash2row, vectors=vectors)
 
-        # Import the dictionary of loaders:
-        # This dictionary will be used to laod
-        # `vectors` array and `key2row` dictionary
-        LOADERS = getattr(model, "LOADERS")
+    def _create_default_vector(self) -> None:
+        """Create a default vector that is returned
+        when an out-of-vocabulary token is encountered
 
-        # Load the array holding the word vectors
-        self.data, self.default_vector = LOADERS["vectors"]()
+        Modifies:
+            self.default_vectors: This property is created or modified by
+        this method
 
-        # Convert the default vector to torch Tensor
-        self.default_vector = torch.Tensor(self.default_vector)
+        """
 
-        # Load the mappings between word hashes and row indices in 'self.data'
-        self.key2row = LOADERS["key2row"]()
+        # Create the default vector as a numpy array if the `vectors` property is
+        # set.
+        if self.vectors is not None:
+            self.default_vector = torch.zeros((1, self.vectors.shape[1]), dtype=torch.float)
 
-        # Set the `loaded` property to True since data is now loaded
-        self.loaded = True
+    def load_data(self, hash2row: Dict[int, int], vectors: Union[np.ndarray, torch.tensor]):
+        """Loads the vector data. This is needed when the Vocab object loads its
+        state, which might contain vector data.
+
+        Args:
+            hash2row: A dictionary that maps each token hash to an index that
+                points to the embedding vector of that token in `vectors`.
+                This index can also be used as an input to a an embedding layer.
+            vectors: A 2D numpy array or a torch tensor that contains the
+                word embeddings of tokens.
+
+        """
+
+        self.hash2row = hash2row
+
+        # Set the vector property
+        if isinstance(vectors, np.ndarray):
+            self.vectors = torch.tensor(vectors, dtype=torch.float)
+        else:
+            self.vectors = vectors
+
+        # Create a default vector that is returned
+        # when an out-of-vocabulary token is encountered
+        # This will create the self.default_vector property
+        self._create_default_vector()
 
     def has_vector(self, key: Union[str, int]) -> bool:
         """Checks whether 'word' has a vector or not in self.data
@@ -50,12 +70,11 @@ class Vectors:
             key: the word or its hash to which we wish to test whether a vector exists or not.
 
         Returns:
-            True if a vector for 'word' already exists.
+            True if a vector for 'word' already exists in self.vectors.
         """
 
-        # If data is not yet loaded, then load it
-        if not self.loaded:
-            self._load_data()
+        if self.vectors is None:
+            return False
 
         if isinstance(key, str):
             # Create the word hash key
@@ -65,7 +84,7 @@ class Vectors:
             orth = key
 
         # if the key exists return True
-        if orth in self.key2row:
+        if orth in self.hash2row:
             return True
 
         else:
@@ -82,24 +101,23 @@ class Vectors:
             if no vector is found, self.default_vector is returned.
         """
 
-        # If data is not yet loaded, then load it
-        if not self.loaded:
-            self._load_data()
-
-        # Create the word hash key
-        key = hash_string(word)
+        # Make sure the Vocab has a `vector` property set.
+        assert self.vectors is not None, "No vector array is loaded in 'Vocab'."
 
         # if the key does not exists return default vector
         if not self.has_vector(word):
             return self.default_vector
 
+        # Create the word hash key
+        key = hash_string(word)
+
         # Get the vector row corresponding to the hash
-        row = self.key2row[key]
+        row = self.hash2row[key]
 
         # Get the vector
-        vector = self.data[row]
+        vector = self.vectors[row]
 
-        # Convert the vectors to torch Tensors
-        vector = torch.tensor(vector, dtype=torch.float32)
+        # Make it a 2D vector of size (1, nb coefficients)
+        vector = vector.unsqueeze(0)
 
         return vector

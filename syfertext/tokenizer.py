@@ -1,9 +1,22 @@
 from .doc import Doc
 from .vocab import Vocab
-
-from .punctuations import prefix_re, infix_re, suffix_re
-from .token_exception import TOKENIZER_EXCEPTIONS
+from .state import State
+from .pointers import StatePointer
 from .underscore import Underscore
+
+from . import LOCAL_WORKER
+
+from .token_exception import TOKENIZER_EXCEPTIONS
+
+from .punctuations import TOKENIZER_PREFIXES
+from .punctuations import TOKENIZER_SUFFIXES
+from .punctuations import TOKENIZER_INFIXES
+from .utils import hash_string
+from .utils import search_resource
+from .utils import create_state_query
+from .utils import compile_suffix_regex
+from .utils import compile_infix_regex
+from .utils import compile_prefix_regex
 from .utils import msgpack_code_generator
 
 import re
@@ -11,6 +24,7 @@ import re
 from syft.generic.abstract.sendable import AbstractSendable
 from syft.workers.base import BaseWorker
 from syft.generic.string import String
+import syft.serde.msgpack.serde as serde
 
 import pickle
 from collections import defaultdict
@@ -21,6 +35,7 @@ from typing import Tuple
 from typing import Match
 from typing import DefaultDict
 from typing import Dict
+from typing import Set
 
 
 class TokenMeta(object):
@@ -51,55 +66,269 @@ class TokenMeta(object):
 class Tokenizer(AbstractSendable):
     def __init__(
         self,
-        vocab: Union[Vocab, str],
-        exceptions=TOKENIZER_EXCEPTIONS,
-        prefix_search=prefix_re.search,
-        suffix_search=suffix_re.search,
-        infix_finditer=infix_re.finditer,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
     ):
-        """Initializes the `Tokenizer` object
+        """Initializes the `Tokenizer` object. Pass in empty lists for suffix, prefix and infix
+        if you don't want any suffix, prefix and infix rules and empty dict for no exception rules.
+        If None(default value), is passed, we use pre-configured rules.
 
         Args:
-            vocab (str or Vocab object): If `str`, this should be the name of the
-                language model to build the `Vocab` object from, such as
-                'en_core_web_lg'. This is useful when the `Tokenizer` object
-                is sent to a remote worker. So it can rebuild
-                its `Vocab` object from scratch instead of sending the `Vocab`
-                object to the remote worker which might take too much network traffic.
             exceptions: Exception cases for the tokenizer.
-                Example: "e.g.", "Jr."
-            prefix_search: A function matching the signature of
-                `re.compile(string).search` to match prefixes.
-                Example: "@username" : "@" is a prefix
-            suffix_search: A function matching the signature of
-                `re.compile(string).search` to match sufixes.
-                Example: "Oh!" : "!" is a suffix
-            infix_finditer: A function matching the signature of
-                `re.compile(string).finditer` to match infixes.
-                Example: "Hell-o" : "-" is an infix
+                Example: "e.g.", "I'ma". The exception dict should
+                specifiy how these exceptions are tokenized, e.g.,
+                exceptions = {"e.g." : [{"ORTH": "e.g."}],
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"},
+                                        {"ORTH": "a"}]
+                             }
+                Other properties than "ORTH" can also be specified.
+                see `token_exception.py` for more examples.
+            prefixes: A list of strings to separate as prefixes during
+                tokenization.
+                Example: ["@"]. So in "@username", "@" will be separated as
+                a prefix.
+            suffixes: A list of strings to separate as suffixes during
+                tokenization.
+                Example: ["!"]. So in "Oh!", "!" will be separated as
+                a suffix.
+            infixes: A list of strings to separate as infixes during
+                tokenization.
+                Example: ["-"]. So in  "Hell-o", "-" will be separated as
+                an infix.
         """
 
-        self.prefix_search = prefix_search
-        self.suffix_search = suffix_search
-        self.infix_finditer = infix_finditer
+        super(Tokenizer, self).__init__()
 
-        if exceptions:
+        # Set the tokenization rules
+        self.load_rules(
+            exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
+        )
+
+    @property
+    def pipeline_name(self) -> str:
+        """A getter for the `_pipeline_name` property.
+
+        Returns:
+           The lower cased `_pipeline_name` property.
+        """
+
+        return self._pipeline_name.lower()
+
+    @pipeline_name.setter
+    def pipeline_name(self, name: str) -> None:
+        """Set the pipeline name to which this object belongs.
+
+        Args:
+            name: The name of the pipeline.
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._pipeline_name = name
+
+    @property
+    def name(self) -> str:
+        """A getter for the `_name` property.
+
+        Returns:
+           The lower cased `_name` property.
+        """
+
+        return self._name.lower()
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """Set the component name.
+
+        Args:
+            name: The name of the component
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._name = name
+
+    @property
+    def access(self) -> Set[str]:
+        """Get the access rules for this component.
+
+        Returns:
+            The set of worker ids where this component's state
+            could be sent.
+            If the string '*' is included in the set,  then all workers are
+            allowed to receive a copy of the state. If set to None, then
+            only the worker where this component is saved will be allowed
+            to get a copy of the state.
+        """
+
+        return self._access_rules
+
+    @access.setter
+    def access(self, rules: Set[str]) -> None:
+        """Set the access rules of this object.
+
+        Args:
+            rules: The set of worker ids where this component's state
+                could be sent.
+                If the string '*' is included in the set,  then all workers are
+                allowed to receive a copy of the state. If set to None, then
+                only the worker where this component is saved will be allowed
+                to get a copy of the state.
+        """
+
+        self._access_rules = rules
+
+    def load_rules(
+        self,
+        exceptions: Dict[str, List[dict]] = None,
+        prefixes: List[str] = None,
+        suffixes: List[str] = None,
+        infixes: List[str] = None,
+    ):
+        """Sets/Resets the tokenization rules.
+
+        Args:
+            exceptions: Exception cases for the tokenizer.
+                Example: "e.g.", "I'ma". The exception dict should
+                specifiy how these exceptions are tokenized, e.g.,
+                exceptions = {"e.g." : [{"ORTH": "e.g."}],
+                              "I'ma" : [{"ORTH": "I"}, {"ORTH": "'m"},
+                                        {"ORTH": "a"}]
+                             }
+                Other properties than "ORTH" can also be specified.
+                see `token_exception.py` for more examples.
+            prefixes: A list of strings to separate as prefixes during
+                tokenization.
+                Example: ["@"]. So in "@username", "@" will be separated as
+                a prefix.
+            suffixes: A list of strings to separate as suffixes during
+                tokenization.
+                Example: ["!"]. So in "Oh!", "!" will be separated as
+                a suffix.
+            infixes: A list of strings to separate as infixes during
+                tokenization.
+                Example: ["-"]. So in  "Hell-o", "-" will be separated as
+                an infix.
+
+        Modifies:
+            properties `exceptions`, `prefix_search`, `suffix_search`,
+               `infix_finditer`, `prefixes`, `suffixes`, and `infixes`
+               are created by this method.
+
+
+        """
+
+        # If affixes are set to None, they should take the default
+        # values
+        if prefixes is not None:
+            self.prefixes = prefixes
+        else:
+            self.prefixes = TOKENIZER_PREFIXES
+
+        if suffixes is not None:
+            self.suffixes = suffixes
+        else:
+            self.suffixes = TOKENIZER_SUFFIXES
+
+        if infixes is not None:
+            self.infixes = infixes
+        else:
+            self.infixes = TOKENIZER_INFIXES
+
+        self.prefix_search = compile_prefix_regex(self.prefixes).search if self.prefixes else None
+        self.suffix_search = compile_suffix_regex(self.suffixes).search if self.suffixes else None
+        self.infix_finditer = compile_infix_regex(self.infixes).finditer if self.infixes else None
+
+        if exceptions is not None:
             self.exceptions = exceptions
         else:
-            self.exceptions = {}
+            self.exceptions = TOKENIZER_EXCEPTIONS
 
-        if isinstance(vocab, Vocab):
-            self.vocab = vocab
-        else:
-            self.vocab = Vocab(model_name=vocab)
+    def load_state(self) -> None:
+        """Search for the state of this object on PyGrid.
 
-    def factory(self):
-        """Creates a clone of this object.
-        This method is used by the SupPipeline class to create
-        objects using subpipeline templates.
+        Modifies:
+            self.vocab: The `vocab` property is initialized with the model
+                 name. Its 'load_state()` method is also called.
         """
 
-        return Tokenizer(vocab=self.vocab)
+        # Start by creating the vocab and loading its state
+        self.vocab = Vocab()
+        self.vocab.pipeline_name = self.pipeline_name
+        self.vocab.name = "vocab"
+        self.vocab.owner = self.owner
+        self.vocab.load_state()
+
+        # Create the query. This is the ID according to which the
+        # State object is searched on PyGrid
+        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
+
+        # Search for the state
+        result = search_resource(query=state_id, local_worker=self.owner)
+
+        # If no state is found, return
+        if not result:
+            return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+
+        elif isinstance(result, State):
+            state = result
+
+        elif isinstance(result, tuple):
+            # In this case we get a simplified pipeline object,
+            # from the stored cache which is a tuple.
+            # The following code details it back to a pipeline object.
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
+        # Detail the simple object contained in the state
+        exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple = state.simple_obj
+
+        exceptions = serde._detail(self.owner, exceptions_simple)
+        prefixes = serde._detail(self.owner, prefixes_simple)
+        suffixes = serde._detail(self.owner, suffixes_simple)
+        infixes = serde._detail(self.owner, infixes_simple)
+
+        # Load the state
+        self.load_rules(
+            exceptions=exceptions, prefixes=prefixes, suffixes=suffixes, infixes=infixes
+        )
+
+    def dump_state(self) -> State:
+        """Returns a State object that holds the current state of this object.
+
+        Returns:
+            A State object that holds a simplified version of this object's state.
+        """
+
+        # Simplify the state variables
+        exceptions_simple = serde._simplify(self.owner, self.exceptions)
+        prefixes_simple = serde._simplify(self.owner, self.prefixes)
+        suffixes_simple = serde._simplify(self.owner, self.suffixes)
+        infixes_simple = serde._simplify(self.owner, self.infixes)
+
+        # Create the query. This is the ID according to which the
+        # State object is searched for on across workers
+        state_id = f"{self.pipeline_name}:{self.name}"
+
+        # Create the State object
+        state = State(
+            simple_obj=(exceptions_simple, prefixes_simple, suffixes_simple, infixes_simple),
+            id=state_id,
+            access=self.access,
+        )
+
+        return state
 
     def __call__(self, text: Union[String, str]):
         """The real tokenization procedure takes place here.
@@ -223,7 +452,7 @@ class Tokenizer(AbstractSendable):
 
     def _tokenize(self, substring: str, token_meta: TokenMeta, doc: Doc) -> Doc:
         """Tokenize each substring formed after splitting affixes and processing
-            exceptions. Returns Doc object.
+        exceptions. Returns Doc object.
 
         Args:
             substring: The substring to tokenize.
@@ -269,8 +498,6 @@ class Tokenizer(AbstractSendable):
             exception_tokens: The list of exception tokens TokenMeta objects.
         """
 
-        suffixes = []
-        prefixes = []
         infixes = []
         exception_tokens = []
 
@@ -592,10 +819,10 @@ class Tokenizer(AbstractSendable):
         """
 
         # Simplify attributes
+        name_simple = serde._simplify(worker, tokenizer.name)
+        pipeline_name_simple = serde._simplify(worker, tokenizer.pipeline_name)
 
-        model_name = pickle.dumps(tokenizer.vocab.model_name)
-
-        return (model_name,)
+        return (name_simple, pipeline_name_simple)
 
     @staticmethod
     def detail(worker: BaseWorker, simple_obj: tuple):
@@ -610,14 +837,18 @@ class Tokenizer(AbstractSendable):
            tokenizer (Tokenizer) : a Tokenizer object
         """
 
-        # Get the model name from the tuple
-        model_name = simple_obj[0]
+        # Get the tuple elements
+        name_simple, pipeline_name_simple = simple_obj
 
-        # Unpickle
-        model_name = pickle.loads(model_name)
+        # Detail
+        name = serde._detail(worker, name_simple)
+        pipeline_name = serde._detail(worker, pipeline_name_simple)
 
         # Create the tokenizer object
-        tokenizer = Tokenizer(vocab=model_name)
+        tokenizer = Tokenizer()
+        tokenizer.pipeline_name = pipeline_name
+        tokenizer.name = name
+        tokenizer.owner = worker
 
         return tokenizer
 

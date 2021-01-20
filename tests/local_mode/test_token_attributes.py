@@ -1,13 +1,14 @@
 import syft as sy
 import torch
 import syfertext
+from syfertext.local_pipeline import get_test_language_model
 
 
 hook = sy.TorchHook(torch)
 me = hook.local_worker
-lang = "en_core_web_lg"
-nlp = syfertext.load(lang, owner=me)
-vocab = nlp.vocab
+me.is_client_worker = False
+nlp = get_test_language_model()
+lang = nlp.pipeline_name
 
 
 def test_token_text_with_ws():
@@ -23,10 +24,11 @@ def test_token_lex_id():
     text = "apple"
 
     # create a token object
-    token = nlp(text)[0]
+    doc = nlp(text)
+    token = doc[0]
 
     # Get the Lexeme object from vocab
-    lexeme = vocab[text]
+    lexeme = doc.vocab[text]
 
     # test that lexeme rank and token lex_id are equal
     assert token.lex_id == lexeme.rank
@@ -43,7 +45,7 @@ def test_token_whitespace():
 
 
 def test_token_rank():
-    text = "Apple outofvocabulary"
+    text = "apple outofvocabulary"
     doc = nlp(text)
 
     # Get the token object of text from doc
@@ -75,7 +77,7 @@ def test_lang_name():
     text = "apple"
     token = nlp(text)[0]
 
-    # test the parent language model name of yoken
+    # test the parent language pipeline name of token
     assert token.lang_ == lang
 
 

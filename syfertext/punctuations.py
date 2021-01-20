@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 from .char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_CURRENCY
 from .char_classes import LIST_ICONS, HYPHENS, CURRENCY, UNITS
 from .char_classes import CONCAT_QUOTES, ALPHA_LOWER, ALPHA_UPPER, ALPHA, PUNCT
-from .utils import compile_suffix_regex, compile_infix_regex, compile_prefix_regex
 import re
 
 
@@ -53,7 +52,3 @@ _infixes = (
 TOKENIZER_PREFIXES = _prefixes
 TOKENIZER_SUFFIXES = _suffixes
 TOKENIZER_INFIXES = _infixes
-
-suffix_re = compile_suffix_regex(_suffixes)
-prefix_re = compile_prefix_regex(_prefixes)
-infix_re = compile_infix_regex(_infixes)

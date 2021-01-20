@@ -1,25 +1,49 @@
-import pickle
-import os
-from pathlib import Path
-from typing import Union
-from typing import List
-from typing import Callable
 import functools
-import warnings
+
+import torch
+
+import numpy as np
 
 from .vectors import Vectors
 from .string_store import StringStore
+from .utils import search_resource
+from .utils import create_state_query
+from .state import State
+from .pointers import StatePointer
+from . import LOCAL_WORKER
 from .lexeme import Lexeme
 from .lexeme import LexemeMeta
 from .attrs import Attributes
 from .lex_attrs import LEX_ATTRS
 from .stop_words import STOP_WORDS
 
+import syft.serde.msgpack.serde as serde
+from syft.workers.base import BaseWorker
+from syft.generic.abstract.object import AbstractObject
 
-class Vocab:
-    def __init__(self, model_name: str):
 
-        self.model_name = model_name
+from typing import Set
+from typing import Union
+from typing import List
+from typing import Callable
+from typing import Dict
+
+
+class Vocab(AbstractObject):
+    def __init__(self, hash2row: Dict[int, int] = None, vectors: torch.tensor = None):
+        """Initializes the Vocab object.
+
+        Args:
+            hash2row (optional): A dictionary that maps each token hash to an index that
+                points to the embedding vector of that token in `vectors`.
+                This index can also be used as an input a an embedding layer.
+            vectors (optional): A 2D numpy array that contains the word embeddings of tokens.
+        """
+
+        super(Vocab, self).__init__()
+
+        # Create the Vectors object
+        self.vectors = Vectors(hash2row, vectors)
 
         # Create a `StringStore` object which acts like a lookup table
         # mapping between all strings known to the vocabulary and
@@ -46,18 +70,149 @@ class Vocab:
             is_stop, stops=self.stop_words
         )
 
-        # Create the Vectors object
-        self.vectors = Vectors(model_name)
+    @property
+    def pipeline_name(self) -> str:
+        """A getter for the `_pipeline_name` property.
 
-    def load_strings(self) -> List[str]:
-        """load the pickled list of words that the Vocab object knows and has vectors for"""
+        Returns:
+           The lower cased `_pipeline_name` property.
+        """
 
-        words_path = os.path.join(self.model_path, "words")
+        return self._pipeline_name.lower()
 
-        with open(words_path, "rb") as word_file:
-            strings = pickle.load(word_file)
+    @pipeline_name.setter
+    def pipeline_name(self, name: str) -> None:
+        """Set the pipeline name to which this object belongs.
 
-        return strings
+        Args:
+            name: The name of the pipeline.
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._pipeline_name = name
+
+    @property
+    def name(self) -> str:
+        """A getter for the `_name` property.
+
+        Returns:
+           The lower cased `_name` property.
+        """
+
+        return self._name.lower()
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """Set the component name.
+
+        Args:
+            name: The name of the component
+        """
+
+        # Convert the name of lower case
+        if isinstance(name, str):
+            name = name.lower()
+
+        self._name = name
+
+    @property
+    def access(self) -> Set[str]:
+        """Get the access rules for this component.
+
+        Returns:
+            The set of worker ids where this component's state
+            could be sent.
+            If the string '*' is included in the set,  then all workers are
+            allowed to receive a copy of the state. If set to None, then
+            only the worker where this component is saved will be allowed
+            to get a copy of the state.
+        """
+
+        return self._access_rules
+
+    @access.setter
+    def access(self, rules: Set[str]) -> None:
+        """Set the access rules of this object.
+
+        Args:
+            rules: The set of worker ids where this component's state
+                could be sent.
+                If the string '*' is included in the set,  then all workers are
+                allowed to receive a copy of the state. If set to None, then
+                only the worker where this component is saved will be allowed
+                to get a copy of the state.
+        """
+
+        self._access_rules = rules
+
+    def load_state(self) -> None:
+        """Search for the state of this Vocab object on PyGrid.
+
+        Modifies:
+            self.vectors: The `vectors` property is initialized with the loaded
+                state which included the `hash2row` mapping and optionally the
+                `vectors` array.
+        """
+
+        # Create the query. This is the ID according to which the
+        # State object is searched on PyGrid
+        state_id = create_state_query(pipeline_name=self.pipeline_name, state_name=self.name)
+
+        # Search for the state
+        result = search_resource(query=state_id, local_worker=self.owner)
+
+        # If no state is found, return
+        if not result:
+            return
+
+        # If a state is found get either its pointer if it is remote
+        # or the state itself if it is local
+        elif isinstance(result, StatePointer):
+            # Get a copy of the state using its pointer
+            state = result.get_copy()
+
+        elif isinstance(result, State):
+            state = result
+
+        elif isinstance(result, tuple):
+            # In this case we get a simplified pipeline object,
+            # from the stored cache which is a tuple.
+            # The following code details it back to a pipeline object.
+            state = State.detail(worker=LOCAL_WORKER, state_simple=result)
+
+        # Detail the simple object contained in the state
+        hash2row_simple, vectors_simple = state.simple_obj
+
+        hash2row = serde._detail(self.owner, hash2row_simple)
+        vectors = serde._detail(self.owner, vectors_simple)
+
+        # Load the state
+        self.vectors.load_data(vectors=vectors, hash2row=hash2row)
+
+    def dump_state(self) -> State:
+        """Returns a State object that holds the current state of this object.
+        The state is characterized by the `hash2row` mapping and optionally the
+        `vectors` array.
+
+        Returns:
+            A State object that holds a simplified version of this object's state.
+        """
+
+        # Simply the state variables
+        hash2row_simple = serde._simplify(self.owner, self.vectors.hash2row)
+        vectors_simple = serde._simplify(self.owner, self.vectors.vectors)
+
+        # Create the query. This is the ID according to which the
+        # State object is searched for on PyGrid1
+        state_id = f"{self.pipeline_name}:vocab"
+
+        # Create the State object
+        state = State(simple_obj=(hash2row_simple, vectors_simple), id=state_id, access=self.access)
+
+        return state
 
     def get_vector(self, key: Union[str, int]):
         """Retrieve a vector for a word in the vocabulary. Words can be looked
@@ -171,15 +326,15 @@ class Vocab:
         lex_meta.orth = self.store.add(string)
         lex_meta.length = len(string)
 
-        # The language model name of parent vocabulary
-        lex_meta.lang = self.store.add(self.model_name)
+        # The pipeline name of parent vocabulary
+        lex_meta.lang = self.store.add(self.pipeline_name)
 
         # id is the index of the corresponding vector
         # in self.vectors if we vectors are loaded.
-        if not self.vectors.loaded:
+        if self.vectors.vectors is None:
             lex_meta.id = None
         else:
-            lex_meta.id = self.vectors.key2row.get(lex_meta.orth)
+            lex_meta.id = self.vectors.hash2row.get(lex_meta.orth)
 
         # Traverse all the lexical attributes getters in the dict.
         for attr, func in self.lex_attr_getters.items():
