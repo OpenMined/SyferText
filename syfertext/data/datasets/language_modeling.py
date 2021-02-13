@@ -1,5 +1,5 @@
 # Syfertext relative
-from ..meta import LMDatasetMeta
+from ..meta.language_modeling import LMDatasetMeta
 from ..readers.language_modeling import LMDatasetReader
 
 # Third party
@@ -22,11 +22,11 @@ class LanguageModelingDataset(Dataset):
         self.encoder = encoder
         self.mode = mode
 
-    def __call__(self, dataset_meta: LMDatasetMeta):
+    def load(self, dataset_meta: LMDatasetMeta):
 
         # Create a dataset reader and read the dataset
         dataset_reader = LMDatasetReader(
-            dataset_meta=dataset_meta, encoder=self.encode, mode=self.mode
+            dataset_meta=dataset_meta, encoder=self.encoder, mode=self.mode
         )
 
         # Read the dataset for the requested mode
