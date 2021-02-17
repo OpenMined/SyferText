@@ -1,14 +1,15 @@
 import pathlib
+import torch
 
 
-class LMDatasetReader:
-    def __init__(self, dataset_meta, encoder, mode):
+class LMTXTReader:
+    def __init__(self, encoder, mode):
 
-        self.dataset_meta = dataset_meta
         self.encoder = encoder
         self.mode = mode
+        self.examples = []
 
-    def read(self):
+    def read(self, dataset_meta):
         """Read the dataset of the specified mode, and return
         all of its text as a list of integer indexes.
         """
@@ -17,7 +18,7 @@ class LMDatasetReader:
         encoded_text = []
 
         # Get the path of the file containing text data
-        data_path = getattr(self.dataset_meta, f"{self.mode}_path")
+        data_path = getattr(dataset_meta, f"{self.mode}_path")
         data_path = pathlib.Path(data_path)
 
         # Open the text file to read and encode its text
@@ -34,4 +35,5 @@ class LMDatasetReader:
 
                 encoded_text.extend(line_encoded)
 
-        return encoded_text
+        # Add the whole dataset as one example
+        self.examples.append(torch.LongTensor(encoded_text))
