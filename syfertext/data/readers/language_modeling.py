@@ -2,7 +2,7 @@ import pathlib
 import torch
 
 
-class LMTXTReader:
+class LMTxtReader:
     def __init__(self, encoder, mode):
 
         self.encoder = encoder
