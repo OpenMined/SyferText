@@ -1,4 +1,4 @@
-class LMDatasetMeta:
+class TextDatasetMeta:
     """Provides meta information about a language modeling dataset
     locally stored as text files.
     Objects of this class are created by data owners and sent to

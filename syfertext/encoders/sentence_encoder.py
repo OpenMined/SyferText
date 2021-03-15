@@ -1,3 +1,6 @@
+from ..vocab import Vocab
+
+
 class SentenceEncoder:
     """This is a simple encoder that takes a text, tokenizes
     it and then uses the vocabulary to convert each token to an
@@ -9,7 +12,13 @@ class SentenceEncoder:
     def __init__(self, tokenizer, vocab=None):
 
         self.tokenizer = tokenizer
-        self.vocab = vocab
+
+        # If no vocabulary is specified, then create
+        # an empty Vocab object
+        if vocab is None:
+            self.vocab = Vocab()
+        else:
+            self.vocab = vocab
 
     def __call__(self, text):
         """Encode the given text.

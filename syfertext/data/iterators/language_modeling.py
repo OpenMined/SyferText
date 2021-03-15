@@ -1,7 +1,7 @@
 import torch
 
 
-class LMBPTTIterator:
+class BPTTIterator:
     def __init__(
         self,
         batch_size: int,
@@ -15,11 +15,15 @@ class LMBPTTIterator:
         self.batch_size = batch_size
         self.bptt_len = bptt_len
         self.dataset_reader = dataset_reader
+        self.mode = mode
 
     def load(self, dataset_meta):
 
         # Read the dataset
         self.dataset_reader.read(dataset_meta=dataset_meta)
+
+        print("yo")
+        print(self.dataset_reader.encoded_text)
 
     def __iter__(self):
 
@@ -50,13 +54,17 @@ class LMBPTTIterator:
 
         return batch
 
+    def yo(self):
+
+        return torch.Tensor([1, 2])
+
     @property
     def num_examples(self):
         """Returns that number of non-overlapping  examples
         in the dataset
         """
 
-        num_examples = (len(self.dataset_reader.examples[0]) - 1) // self.bptt_len
+        num_examples = (len(self.dataset_reader.encoded_text) - 1) // self.bptt_len
 
         return num_examples
 
@@ -79,7 +87,7 @@ class LMBPTTIterator:
 
         # For convenience, get a reference to the tensor representing
         # the dataset
-        dataset = self.dataset_reader.examples[0]
+        dataset = self.dataset_reader.encoded_text
 
         # Get the input tensor
         inpt = dataset.narrow(

@@ -2,12 +2,11 @@ import pathlib
 import torch
 
 
-class LMTxtReader:
+class TextReader:
     def __init__(self, encoder, mode):
 
         self.encoder = encoder
         self.mode = mode
-        self.examples = []
 
     def read(self, dataset_meta):
         """Read the dataset of the specified mode, and return
@@ -36,4 +35,4 @@ class LMTxtReader:
                 encoded_text.extend(line_encoded)
 
         # Add the whole dataset as one example
-        self.examples.append(torch.LongTensor(encoded_text))
+        self.encoded_text = torch.LongTensor(encoded_text)
