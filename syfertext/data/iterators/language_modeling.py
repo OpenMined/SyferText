@@ -22,8 +22,10 @@ class BPTTIterator:
         # Read the dataset
         self.dataset_reader.read(dataset_meta=dataset_meta)
 
-        print("yo")
         print(self.dataset_reader.encoded_text)
+
+    def __len__(self):
+        return self.num_batches
 
     def __iter__(self):
 
@@ -35,8 +37,8 @@ class BPTTIterator:
     def __next__(self):
 
         # Stop iterating if all examples have been loaded
-        if self.index == self.num_examples:
-            raise StopIteration
+        # if self.index == self.num_examples - self.bptt_len:
+        #    raise StopIteration
 
         # Load training examples
         batch_examples = []
@@ -54,10 +56,6 @@ class BPTTIterator:
 
         return batch
 
-    def yo(self):
-
-        return torch.Tensor([1, 2])
-
     @property
     def num_examples(self):
         """Returns that number of non-overlapping  examples
@@ -74,7 +72,7 @@ class BPTTIterator:
         is dropped if its size is less than self.batch_size.
         """
 
-        num_batches = self.num_examples // batch_size
+        num_batches = self.num_examples // self.batch_size
 
         return num_batches
 
