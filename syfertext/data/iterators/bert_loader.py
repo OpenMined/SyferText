@@ -10,16 +10,8 @@ class BERTIterator:
         self.batch_size = batch_size
         self.sentence_len = sentence_len
 
-        self.data_collator = DataCollatorForLanguageModeling(
-            tokenizer=self.dataset_reader.encoder.tokenizer_ref,
-            mlm = True,
-            mlm_probability = 0.15)
-
-    def load(self, dataset_meta) -> LongTensor:
+    def load(self, dataset_meta):
         self.dataset_reader.read(dataset_meta)
-
-        #In case user wants to display the data
-        return self.dataset_reader.encoded_text
 
     def __iter__(self):
 
@@ -28,9 +20,6 @@ class BERTIterator:
         return self
 
     def __next__(self):
-        
-        if self.index + self.batch_size > self.num_examples:
-            raise StopIteration
 
         batch_examples = []
 
@@ -48,7 +37,7 @@ class BERTIterator:
         in the dataset
         """
 
-        num_examples = (len(self.dataset_reader.encoded_text) - 1) // self.sentence_len
+        num_examples = len(self.dataset_reader.encoded_text) // self.sentence_len
 
         return num_examples
 
@@ -61,6 +50,9 @@ class BERTIterator:
         num_batches = self.num_examples // self.batch_size
 
         return num_batches
+
+    def __len__(self):
+        return self.num_batches
 
     def _load_example(self) -> LongTensor:
 
@@ -78,6 +70,11 @@ class BERTIterator:
 
     def _collate(self, batch_examples: List) -> Dict:
 
-        return self.data_collator(batch_examples)
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=self.dataset_reader.encoder.tokenizer_ref,
+            mlm = True,
+            mlm_probability = 0.15)
+        
+        return data_collator(batch_examples)
 
 
