@@ -71,7 +71,7 @@ class BERTIterator:
     def _collate(self, batch_examples: List) -> Dict:
 
         data_collator = DataCollatorForLanguageModeling(
-            tokenizer=self.dataset_reader.encoder.tokenizer_ref,
+            tokenizer=self.dataset_reader.encoder.tokenizer,
             mlm = True,
             mlm_probability = 0.15)
         

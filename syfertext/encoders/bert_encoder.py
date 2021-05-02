@@ -9,8 +9,3 @@ class BERTEncoder:
     def __call__(self, text:List) -> Dict:
         inputs = self.tokenizer(text)
         return {"token_ids": inputs["input_ids"]}
-
-    @property
-    def tokenizer_ref(self):
-        #decorator method so tokenizer can't be modified
-        return self.tokenizer
