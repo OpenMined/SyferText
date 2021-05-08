@@ -7,4 +7,9 @@
     - https://docs.pytest.org/en/stable/writing_plugins.html
 """
 
-# import pytest
+import pytest
+import syfertext.tokenizers as tokenizers
+
+@pytest.fixture(scope="module")
+def tokenizer_spacy():
+    return tokenizers.SpacyTokenizer()
