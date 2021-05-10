@@ -10,6 +10,8 @@
 import pytest
 import syfertext.tokenizers as tokenizers
 
+
 @pytest.fixture(scope="module")
 def tokenizer_spacy():
     return tokenizers.SpacyTokenizer()
+
