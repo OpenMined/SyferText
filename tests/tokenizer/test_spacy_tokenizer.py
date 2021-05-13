@@ -68,7 +68,7 @@ Phasellus tincidunt, augue quis porta finibus, massa sapien consectetur augue, n
     assert len(tokens) > 5
 
 
-@pytest.mark.parametrize("file_name", ["sun.txt"])
+@pytest.mark.parametrize("file_name", ["tests/tokenizer/sun.txt"])
 def test_tokenizer_handle_text_from_file(tokenizer_spacy, file_name):
     text = open(file_name, "r", encoding="utf8").read()
     assert len(text) != 0
