@@ -1,6 +1,5 @@
 import torch
 
-
 class BPTTIterator:
     def __init__(
         self,
