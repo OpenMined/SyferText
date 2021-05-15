@@ -21,7 +21,7 @@ class TextReader:
         data_path = pathlib.Path(data_path)
 
         # Open the text file to read and encode its text
-        with data_path.open() as f:
+        with data_path.open(encoding='utf-8') as f:
 
             # Read all lines
             for line in f.readlines():
