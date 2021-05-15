@@ -1,4 +1,5 @@
 import pytest
+import SyferTextPackage
 import syfertext.tokenizers as tokenizer
 
 
