@@ -1,6 +1,6 @@
 import pytest
-import SyferTextPackage
 import syfertext.tokenizers as tokenizer
+import os
 
 
 def test_tokenizer_handles_no_word(tokenizer_spacy):
