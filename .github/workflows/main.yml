@@ -15,7 +15,7 @@ jobs:
         python-version: '3.7'
     - name: Install SyferText with test dependencies
       run: |
-        pip install ".[testing]"
+        pip install ".[test]"
         echo SyferText with test dependencies successfully installed.
     - name: Running tests
       run: |
